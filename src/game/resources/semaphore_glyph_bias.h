@@ -1,0 +1,15 @@
+#pragma once
+
+#include <cstdint>
+
+namespace resl {
+
+struct SemaphoreGlyphBias {
+    std::int8_t dx; // pixels
+    std::int8_t dy; // pixels
+};
+
+/* 1d63:0000 - 24 bytes */
+extern const SemaphoreGlyphBias g_semaphoreGlyphBias[6][2]; /* [rail type][road side] */
+
+} // namespace resl

@@ -1,0 +1,58 @@
+#pragma once
+
+#include "chunk.h"
+#include "rectangle.h"
+
+#include <cstdint>
+
+namespace resl {
+
+enum CarriageType : std::uint8_t {
+    Server = 0x0,
+    AncientLocomotive = 0x1,
+    PassengerCarriage = 0x7,
+    FreightCarriage = 0xa,
+    SomeSpecial = 0xe
+};
+
+struct Location {
+    std::uint8_t pathStep;
+    std::uint8_t b;
+    Chunk* chunk;
+};
+
+struct Train;
+
+struct Carriage {
+    Carriage* next;
+    std::int16_t x_priority_ycoord;
+    Train* train;
+    std::uint8_t angle;
+    CarriageType type;
+    std::uint8_t x_angle___;
+    std::uint8_t x_direction;
+    Location location;
+    Rectangle rect;
+};
+
+struct Train {
+    bool isFreeSlot;
+    std::uint8_t carriageCnt;
+    std::uint8_t x_trainIdx;
+    bool needToRedraw;
+    bool x_needToMove;
+    std::uint8_t x_acceleration;
+    std::uint8_t x_maxSpeed;
+    char unknown1;
+    std::uint8_t x_speed;
+    char unknown2;
+    std::int16_t year;
+    std::int16_t x_lastMovementTime;
+
+    Carriage carriages[5];
+
+    Location head;
+    Location tail;
+};
+
+} // namespace resl

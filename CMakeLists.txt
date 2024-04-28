@@ -1,0 +1,50 @@
+cmake_minimum_required(VERSION 3.5)
+
+project(reSL)
+
+file(GLOB_RECURSE HEADERS "*.h")
+
+set(SOURCES
+    src/buffer.cpp
+    src/game/draw_header.cpp
+    src/game/draw_impasse.cpp
+    src/game/drawing.cpp
+    src/game/game_data.cpp
+    src/game/init.cpp
+    src/game/io_status.cpp
+    src/game/load_game.cpp
+    src/game/resources/movement_paths.cpp
+    src/game/resources/rail_glyph.cpp
+    src/game/resources/rail_info.cpp
+    src/game/resources/rail_type_meta.cpp
+    src/game/resources/s4arr.cpp
+    src/game/resources/semaphore_glyph.cpp
+    src/game/resources/semaphore_glyph_bias.cpp
+    src/game/resources/static_object_glyph.cpp
+    src/game/resources/train_glyph.cpp
+    src/game/semaphore.cpp
+    src/game/switch.cpp
+    src/game/time.cpp
+    src/graphics/drawing.cpp
+    src/graphics/glyph.cpp
+    src/graphics/impl/driver_sdl.cpp
+    src/graphics/text.cpp
+    src/main.cpp
+    src/read_file.cpp
+    src/records.cpp
+)
+
+find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
+find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
+
+add_executable(resl ${SOURCES} ${HEADERS})
+
+set_property(TARGET resl PROPERTY C_STANDARD 11)
+set_property(TARGET resl PROPERTY CXX_STANDARD 20)
+
+if(TARGET SDL2::SDL2main)
+    target_link_libraries(resl PRIVATE SDL2::SDL2main)
+endif()
+target_link_libraries(resl PRIVATE SDL2::SDL2)
+
+target_include_directories(resl PRIVATE ${CMAKE_SOURCE_DIR}/src)

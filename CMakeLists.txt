@@ -13,6 +13,7 @@ set(SOURCES
     src/game/init.cpp
     src/game/io_status.cpp
     src/game/load_game.cpp
+    src/game/resources/impasse_glyph.cpp
     src/game/resources/movement_paths.cpp
     src/game/resources/rail_glyph.cpp
     src/game/resources/rail_info.cpp

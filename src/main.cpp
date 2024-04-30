@@ -2,13 +2,13 @@
 
 #include "game/drawing.h"
 #include "game/load_game.h"
+#include "game/records.h"
 #include "game/resources/train_glyph.h"
 #include "graphics/color.h"
 #include "graphics/drawing.h"
 #include "graphics/driver.h"
 #include "graphics/glyph.h"
 #include "graphics/text.h"
-#include "records.h"
 
 #include <cstdlib>
 #include <filesystem>
@@ -58,9 +58,11 @@ void testLoadGame(int argc, const char* argv[])
         return;
     }
     if (!std::filesystem::is_regular_file("PLAY.7")) {
-        std::cerr << "!!!WARNING!!! The PLAY.7 file was not found!\n"
-                     "Please, copy PLAY.7 file from the original game folder to the application folder. "
-                     "Otherwise you will see a mess in the game header area" << std::endl;
+        std::cerr
+            << "!!!WARNING!!! The PLAY.7 file was not found!\n"
+               "Please, copy PLAY.7 file from the original game folder to the application folder. "
+               "Otherwise you will see a mess in the game header area"
+            << std::endl;
     }
 
     initGameData();

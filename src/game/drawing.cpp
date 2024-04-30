@@ -6,11 +6,13 @@
 #include "graphics/drawing.h"
 #include "resources/rail_glyph.h"
 #include "resources/static_object_glyph.h"
-#include <buffer.h>
-#include <read_file.h>
+#include <system/buffer.h>
+#include <system/random.h>
+#include <system/read_file.h>
 
 #include <cassert>
 #include <cstdint>
+#include <cstdlib>
 #include <initializer_list>
 
 #include <algorithm> // std::min
@@ -104,16 +106,37 @@ void drawSemaphore(Semaphore& s, std::int16_t yOffset)
     );
 }
 
-/* 1530:013e */
-void FUN_1530_013e(std::int16_t yOffset)
+/* 1530:0203 */
+inline bool isInsideGameField(int x, int y)
 {
-    // TODO
+    return y >= 47 && y <= 333 && x >= 0 && x <= 639;
+}
+
+/* 1530:013e */
+static void drawGrass(std::int16_t yOffset)
+{
+    const int seed = std::rand();
+    std::srand(g_staticObjects[119].x);
+    for (int i = 0; i < 25; ++i) {
+        int x = genRandomNumber(640);
+        int y = genRandomNumber(287) + 47;
+        for (int j = 0; j < 45; ++j) {
+            if (isInsideGameField(x, y)) {
+                Color c = drawing::getPixel(x, y + yOffset);
+                if (c == Color::Green)
+                    drawing::putPixel(x, y + yOffset, Color::Black);
+            }
+            x += symmetricRand(20);
+            y += symmetricRand(20) / 4;
+        }
+    }
+    std::srand(seed);
 }
 
 /* 1530:0229 */
 void drawStaticObjects(std::int16_t yOffset)
 {
-    FUN_1530_013e(yOffset);
+    drawGrass(yOffset);
 
     g_glyphHeight = 16;
     for (StaticObject& obj : g_staticObjects) {

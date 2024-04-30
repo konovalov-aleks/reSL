@@ -26,4 +26,10 @@ void imageDot7(
     const std::uint8_t* image
 );
 
+/* 1b06:07db */
+Color getPixel(std::int16_t x, std::int16_t y);
+
+/* 1b06:0838 */
+void putPixel(std::int16_t x, std::int16_t y, Color);
+
 } // namespace resl::drawing

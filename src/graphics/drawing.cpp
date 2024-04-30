@@ -2,6 +2,7 @@
 
 #include "driver.h"
 
+#include <cassert>
 #include <utility>
 
 namespace resl::drawing {
@@ -26,7 +27,10 @@ static void graphics_setWriteMode2()
 }
 
 /* 1b06:02b5 */
-static void videoChoosePlanes(std::uint8_t mask) { setVideoMapMask(mask); }
+static void videoChoosePlanes(std::uint8_t mask)
+{
+    setVideoMapMask(mask);
+}
 
 /* 1b06:06f9 */
 void filledRectangle(
@@ -143,6 +147,41 @@ void imageDot7(
     }
     graphics_setWriteMode2();
     videoChoosePlanes(0xF);
+}
+
+/* 1b06:07db */
+Color getPixel(std::int16_t x, std::int16_t y)
+{
+    const unsigned videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x >> 3);
+    const std::uint8_t mask = 0x80 >> (x & 7);
+
+    setVideoReadPlane(0);
+    std::uint8_t res = (readVideoMem(videoPtr) & mask) != 0;
+
+    setVideoReadPlane(1);
+    if (readVideoMem(videoPtr) & mask)
+        res |= 2;
+
+    setVideoReadPlane(2);
+    if (readVideoMem(videoPtr) & mask)
+        res |= 4;
+
+    setVideoReadPlane(3);
+    if (readVideoMem(videoPtr) & mask)
+        res |= 8;
+
+    return static_cast<Color>(res);
+}
+
+/* 1b06:0838 */
+void putPixel(std::int16_t x, std::int16_t y, Color c)
+{
+    const unsigned videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x >> 3);
+
+    setVideoMask(0x80 >> (x & 7));
+    writeVideoMem(videoPtr, c);
+
+    assert(getPixel(x, y) == c);
 }
 
 } // namespace resl::drawing

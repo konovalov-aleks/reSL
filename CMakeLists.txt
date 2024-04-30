@@ -5,7 +5,6 @@ project(reSL)
 file(GLOB_RECURSE HEADERS "*.h")
 
 set(SOURCES
-    src/buffer.cpp
     src/game/draw_header.cpp
     src/game/draw_impasse.cpp
     src/game/drawing.cpp
@@ -13,6 +12,7 @@ set(SOURCES
     src/game/init.cpp
     src/game/io_status.cpp
     src/game/load_game.cpp
+    src/game/records.cpp
     src/game/resources/impasse_glyph.cpp
     src/game/resources/movement_paths.cpp
     src/game/resources/rail_glyph.cpp
@@ -25,14 +25,15 @@ set(SOURCES
     src/game/resources/train_glyph.cpp
     src/game/semaphore.cpp
     src/game/switch.cpp
-    src/game/time.cpp
     src/graphics/drawing.cpp
     src/graphics/glyph.cpp
     src/graphics/impl/driver_sdl.cpp
     src/graphics/text.cpp
     src/main.cpp
-    src/read_file.cpp
-    src/records.cpp
+    src/system/buffer.cpp
+    src/system/random.cpp
+    src/system/read_file.cpp
+    src/system/time.cpp
 )
 
 find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)

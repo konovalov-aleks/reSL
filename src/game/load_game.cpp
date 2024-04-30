@@ -5,7 +5,7 @@
 #include "io_status.h"
 #include "semaphore.h"
 #include "switch.h"
-#include "time.h"
+#include <system/time.h>
 
 #include <cassert>
 #include <cstddef>

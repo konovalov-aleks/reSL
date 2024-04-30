@@ -1,9 +1,9 @@
 #include "records.h"
 
-#include "buffer.h"
-#include "graphics/drawing.h"
-#include "graphics/text.h"
-#include "read_file.h"
+#include <graphics/drawing.h>
+#include <graphics/text.h>
+#include <system/buffer.h>
+#include <system/read_file.h>
 
 #include <cstdint>
 #include <cstdio>

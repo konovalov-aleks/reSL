@@ -26,7 +26,10 @@ static void lockTexture()
     }
 }
 
-static void unlockTexture() { SDL_UnlockTexture(g_screen); }
+static void unlockTexture()
+{
+    SDL_UnlockTexture(g_screen);
+}
 
 void graphics_init()
 {
@@ -100,9 +103,14 @@ bool poll_event()
     return true;
 }
 
-uint8_t g_videoMask = 0;
-uint8_t g_videoWriteMode = 2;
-uint8_t g_videoRegMapMask = 0xF;
+std::uint8_t g_videoWriteMask = 0;
+std::uint8_t g_videoWriteMode = 2;
+
+// 3CEh index  4  (R/W):  Graphics: Read Map Select Register
+// bit 0-1  Number of the plane Read Mode 0 will read from.
+std::uint8_t g_videoReadPlane = 0;
+
+std::uint8_t g_videoRegMapMask = 0xF;
 
 static const std::array<uint32_t, 16> g_palette = {
     0x55AA00, // Green
@@ -126,7 +134,7 @@ static const std::array<uint32_t, 16> g_palette = {
 void writeVideoMem(unsigned memPtr, std::uint8_t color)
 {
     unsigned offset = memPtr - VIDEO_MEM_START_ADDR;
-    std::uint8_t mask = g_videoMask;
+    std::uint8_t mask = g_videoWriteMask;
     int x0 = (offset * 8) % (VIDEO_MEM_ROW_BYTES * 8);
     int y = ((offset * 8) / (VIDEO_MEM_ROW_BYTES * 8)) % SCREEN_HEIGHT;
     std::uint32_t rgb = g_palette[color];
@@ -153,6 +161,27 @@ void writeVideoMem(unsigned memPtr, std::uint8_t color)
             );
         mask <<= 1;
     }
+}
+
+std::uint8_t readVideoMem(unsigned memPtr)
+{
+    unsigned offset = memPtr - VIDEO_MEM_START_ADDR;
+    int x0 = (offset * 8) % (VIDEO_MEM_ROW_BYTES * 8);
+    int y = ((offset * 8) / (VIDEO_MEM_ROW_BYTES * 8)) % SCREEN_HEIGHT;
+
+    const std::uint8_t planeMask = (1 << g_videoReadPlane);
+    std::uint8_t res = 0;
+    for (int i = 0; i < 8; ++i) {
+        std::uint32_t rgb = 0;
+        std::memcpy(
+            &rgb, &g_screenPixels[g_screenPixelsPitch * y + (x0 + i) * sizeof(rgb)], sizeof(rgb)
+        );
+        auto iter = std::find(g_palette.begin(), g_palette.end(), rgb);
+        assert(iter != g_palette.end());
+        std::uint8_t c = std::distance(g_palette.begin(), iter);
+        res |= ((c & planeMask) != 0) << (7 - i);
+    }
+    return res;
 }
 
 } // namespace resl

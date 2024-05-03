@@ -25,11 +25,11 @@ struct Train;
 
 struct Carriage {
     Carriage* next;
-    std::int16_t x_priority_ycoord;
+    std::int16_t drawingPriority;
     Train* train;
-    std::uint8_t angle;
+    std::uint8_t dstEntranceIdx;
     CarriageType type;
-    std::uint8_t x_angle___;
+    std::uint8_t direction;
     std::uint8_t x_direction;
     Location location;
     Rectangle rect;
@@ -38,7 +38,7 @@ struct Carriage {
 struct Train {
     bool isFreeSlot;
     std::uint8_t carriageCnt;
-    std::uint8_t x_trainIdx;
+    std::uint8_t drawingChainIdx;
     bool needToRedraw;
     bool x_needToMove;
     std::uint8_t x_acceleration;

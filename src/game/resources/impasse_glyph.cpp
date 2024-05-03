@@ -1,3 +1,8 @@
+//
+// This is a generated file, do not change it manually.
+// Use the script "generate_impasse_glyph.py" instead.
+//
+
 #include "impasse_glyph.h"
 
 namespace resl {

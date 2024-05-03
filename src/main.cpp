@@ -82,7 +82,6 @@ void testLoadGame(int argc, const char* argv[])
 
 void testDrawTrains(int, const char*[])
 {
-    static const int frameOrder[] = { 0, 2, 4, 6, 8, 1, 3, 5, 7, 9 };
     static Color colors[5][2] = {
         { Blue,       DarkBlue  },
         { Red,        DarkRed   },
@@ -91,7 +90,7 @@ void testDrawTrains(int, const char*[])
         { LightGreen, DarkGreen }
     };
 
-    frameFunction = [currentAngle = 0, lastFrame = std::clock()]() mutable {
+    frameFunction = [currentAngle = 0, currentDirection = 0, lastFrame = std::clock()]() mutable {
         std::clock_t curTime = std::clock();
         if (lastFrame != std::clock_t() && curTime - lastFrame < CLOCKS_PER_SEC / 5)
             return;
@@ -102,11 +101,11 @@ void testDrawTrains(int, const char*[])
         int x = 80;
         int y = 30;
         for (int i = 0; i < 15; ++i) {
-            const TrainGlyph* g = &trainGlyphs[i][frameOrder[currentAngle]];
+            const TrainGlyph* g = &g_trainGlyphs[i][currentAngle][currentDirection];
             Color* c = colors[i % std::size(colors)];
-            drawGlyph(g->glyph1, x - g->dx, y - g->dy, Black);
-            drawGlyph(g->glyph2, x - g->dx, y - g->dy, c[0]);
-            drawGlyph(g->glyph3, x - g->dx, y - g->dy, c[1]);
+            drawGlyph(g->glyph1, x - g->width / 2, y - g->height / 2, Black);
+            drawGlyph(g->glyph2, x - g->width / 2, y - g->height / 2, c[0]);
+            drawGlyph(g->glyph3, x - g->width / 2, y - g->height / 2, c[1]);
             x += 80;
             if (x > 590) {
                 x = 80;
@@ -114,7 +113,10 @@ void testDrawTrains(int, const char*[])
             }
         }
 
-        currentAngle = (currentAngle + 1) % 10;
+        if (++currentAngle >= 5) {
+            currentDirection = 1 - currentDirection;
+            currentAngle = 0;
+        }
     };
 }
 

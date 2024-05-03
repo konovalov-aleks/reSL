@@ -1,3 +1,8 @@
+//
+// This is a generated file, do not change it manually.
+// Use the script "generate_s4arr.py" instead.
+//
+
 #include "s4arr.h"
 
 namespace resl {

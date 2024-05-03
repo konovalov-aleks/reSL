@@ -4,8 +4,11 @@
 #include "draw_impasse.h"
 #include "game_data.h"
 #include "graphics/drawing.h"
+#include "resources/carriage_bias.h"
+#include "resources/movement_paths.h"
 #include "resources/rail_glyph.h"
 #include "resources/static_object_glyph.h"
+#include "resources/train_glyph.h"
 #include <system/buffer.h>
 #include <system/random.h>
 #include <system/read_file.h>
@@ -189,6 +192,151 @@ void drawHeaderBackground(std::int16_t yOffset)
     drawing::imageDot7(0, yOffset, 640, 47, g_pageBuffer);
 }
 
+/* 18fa:0142 */
+static bool trainOverlaps(const Train& t, int idx)
+{
+    for (int i = t.carriageCnt - 1; i >= 0; --i) {
+        const Carriage& c1 = t.carriages[i];
+        for (const Carriage* c2 = g_trainDrawingChains[idx]; c2; c2 = c2->next) {
+            // Check if the rectangles overlap
+            if (c1.rect.y1 < c2->rect.y2 && c1.rect.y2 > c2->rect.y1 &&
+                (c1.rect.x1 & ~7) <= (c2->rect.x2 & ~7) &&
+                (c1.rect.x2 & ~7) >= (c2->rect.x1 & ~7)) {
+
+                x_orderArray[g_orderArrayLen++] = { &c1, c2 };
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+/* 18fa:00e9 */
+static void addToDrawingChain(Train& t, int chainIdx)
+{
+    for (int i = t.carriageCnt - 1; i >= 0; --i) {
+        Carriage& c1 = t.carriages[i];
+        Carriage** c2 = &g_trainDrawingChains[chainIdx];
+        while (*c2 && (*c2)->drawingPriority < c1.drawingPriority)
+            c2 = &(*c2)->next;
+        c1.next = *c2;
+        *c2 = &c1;
+    }
+    t.drawingChainIdx = chainIdx;
+}
+
+/* 18fa:01e1 */
+static void mergeDrawingChains(int idx1, int idx2)
+{
+    Carriage* c1 = g_trainDrawingChains[idx1];
+    Carriage* c2 = g_trainDrawingChains[idx2];
+    g_trainDrawingChains[idx2] = nullptr;
+    while (c2) {
+        c2->train->drawingChainIdx = idx1;
+        while (c1->next->drawingPriority < c2->drawingPriority) {
+            c1 = c1->next;
+            if (!c1->next) {
+                c1->next = c2;
+                return;
+            }
+        }
+        Carriage* tmp = c2->next;
+        c2->next = c1->next;
+        c1->next = c2;
+        c1 = c1->next;
+        c2 = tmp;
+    }
+}
+
+/* 18fa:000b */
+static void scheduleTrainsDrawing()
+{
+    g_orderArrayLen = 0;
+    g_trainDrawingChainLen = 0;
+
+    for (Train& t : trains) {
+        if (t.isFreeSlot)
+            continue;
+
+        t.x_needToMove = false;
+        for (int i = 0;; ++i) {
+            if (i < g_trainDrawingChainLen) {
+                if (!trainOverlaps(t, i)) {
+                    // the train doesn't intersect with previously processed trains
+                    // => they can be drawn in any order
+                    continue;
+                }
+                addToDrawingChain(t, i);
+                for (int j = i + 1; j < g_trainDrawingChainLen; ++j) {
+                    if (trainOverlaps(t, j))
+                        mergeDrawingChains(i, j);
+                }
+            } else {
+                g_trainDrawingChains[g_trainDrawingChainLen] = nullptr;
+                addToDrawingChain(t, g_trainDrawingChainLen++);
+            }
+            break;
+        }
+    }
+}
+
+/* 18fa:08d6 */
+static void drawTrainList(Carriage* c)
+{
+    Rectangle boundingBox;
+
+    for (; c; c = c->next) {
+        const PathStep& p = g_movementPaths[c->location.chunk->type].data[c->location.pathStep];
+        if ((p.angle ^ c->x_direction) == 4)
+            c->direction = c->direction ^ 1;
+
+        c->x_direction = p.angle;
+        const TrainGlyph& glyph = g_trainGlyphs[c->type][p.angle][c->direction];
+
+        boundingBox = c->rect;
+
+        c->rect.x1 = c->location.chunk->x + p.dx - glyph.width / 2;
+        c->rect.x2 = c->rect.x1 + glyph.width;
+        c->drawingPriority = c->location.chunk->y + p.dy;
+        c->rect.y1 = c->drawingPriority - glyph.height + g_carriageYBiases[c->type][p.angle];
+        c->rect.y2 = c->rect.y1 + glyph.height;
+
+        if (c->rect.x1 < boundingBox.x1)
+            boundingBox.x1 = c->rect.x1;
+        if (c->rect.x2 > boundingBox.x2)
+            boundingBox.x2 = c->rect.x2;
+        if (c->rect.y1 < boundingBox.y1)
+            boundingBox.y1 = c->rect.y1;
+        if (c->rect.y2 > boundingBox.y2)
+            boundingBox.y2 = c->rect.y2;
+
+        // TODO
+        // graphics_setWriteMode1();
+        // glyph = copyFromVideoMemory(glyph, c->rect.x1, c.rect.y1 + 350,
+        //                             (c->rect.x2 - 1) / 8 - c->rect.x1 / 8 + 1,
+        //                             glyph.height);
+        // graphics_setWriteMode2();
+
+        if (c->location.chunk->type != 6) {
+            // TODO use drawSprite 1b06:067e instead
+            drawGlyph(glyph.glyph1, c->rect.x1, c->rect.y1 + 350, Color::Black);
+            drawGlyph(
+                glyph.glyph2, c->rect.x1, c->rect.y1 + 350, entrances[c->dstEntranceIdx].bgColor
+            );
+            drawGlyph(
+                glyph.glyph3, c->rect.x1, c->rect.y1 + 350, entrances[c->dstEntranceIdx].fgColor
+            );
+        }
+    }
+}
+
+/* 18fa:0b73 */
+static void drawTrains()
+{
+    for (std::uint16_t i = 0; i < g_trainDrawingChainLen; ++i)
+        drawTrainList(g_trainDrawingChains[i]);
+}
+
 /* 15e8:09c8 */
 void drawWorld()
 {
@@ -214,9 +362,8 @@ void drawWorld()
             drawSemaphore(g_semaphores[i], 350);
     }
 
-    // TODO
-    // x_schedule_trains_drawing();
-    // x_drawTrains()
+    scheduleTrainsDrawing();
+    drawTrains();
 
     for (std::uint16_t i = 0; i < g_semaphoreCount; ++i) {
         const Semaphore& s = g_semaphores[i];

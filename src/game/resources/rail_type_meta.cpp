@@ -1,3 +1,8 @@
+//
+// This is a generated file, do not change it manually.
+// Use the script "generate_rail_type_meta.py" instead.
+//
+
 #include "rail_type_meta.h"
 
 namespace resl {

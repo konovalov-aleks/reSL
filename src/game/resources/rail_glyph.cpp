@@ -1,3 +1,8 @@
+//
+// This is a generated file, do not change it manually.
+// Use the script "generate_rail_glyphs.py" instead.
+//
+
 #include "rail_glyph.h"
 
 #include <graphics/glyph.h>

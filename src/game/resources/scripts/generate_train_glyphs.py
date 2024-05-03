@@ -53,31 +53,35 @@ with CPPWriter('train_glyph.cpp') as w:
     w.writeln('} // namespace')
     w.writeln()
     w.writeln('/* 1cae:0000 : 2100 bytes */')
-    w.writeln('const TrainGlyph trainGlyphs[15][10] = {')
+    w.writeln('const TrainGlyph g_trainGlyphs[15][5][2] = {')
     
     with w.indent():
         ptr = 0
         for x in range(15):
-            w.writeln('{ /* %d */' % x)
+            w.writeln('{')
             with w.indent():
-                for y in range(10):
-                    a = train_glyph_data[ptr]
-                    b = train_glyph_data[ptr + 1]
-                    ptr += 2
-                    ptr, ref1 = parse_ref(ptr)
-                    ref1 = genName(ref1)
-                    ptr, ref2 = parse_ref(ptr)
-                    ref2 = genName(ref2)
-                    ptr, ref3 = parse_ref(ptr)
-                    ref3 = genName(ref3)
-
-                    w.writeln('{')
+                for y in range(5):
+                    w.writeln('{ /* [%d][%d] */' % (x, y))
                     with w.indent():
-                        w.writeln('%d, %d,' % (a, b))
-                        w.writeln('reinterpret_cast<const Glyph*>(&%s),' % ref1)
-                        w.writeln('reinterpret_cast<const Glyph*>(&%s),' % ref2)
-                        w.writeln('reinterpret_cast<const Glyph*>(&%s)' % ref3)
-                    w.writeln('}' if y == 9 else '},')
+                        for direction in range(2):
+                            a = train_glyph_data[ptr]
+                            b = train_glyph_data[ptr + 1]
+                            ptr += 2
+                            ptr, ref1 = parse_ref(ptr)
+                            ref1 = genName(ref1)
+                            ptr, ref2 = parse_ref(ptr)
+                            ref2 = genName(ref2)
+                            ptr, ref3 = parse_ref(ptr)
+                            ref3 = genName(ref3)
+
+                            w.writeln('{')
+                            with w.indent():
+                                w.writeln('%d, %d,' % (a, b))
+                                w.writeln('reinterpret_cast<const Glyph*>(&%s),' % ref1)
+                                w.writeln('reinterpret_cast<const Glyph*>(&%s),' % ref2)
+                                w.writeln('reinterpret_cast<const Glyph*>(&%s)' % ref3)
+                            w.writeln('}' if direction == 1 else '},')
+                    w.writeln('}' if y == 4 else '},')
             w.writeln('}' if x == 14 else '},')
     w.writeln('};')
     w.writeln()

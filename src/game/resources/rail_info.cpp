@@ -1,3 +1,8 @@
+//
+// This is a generated file, do not change it manually.
+// Use the script "generate_rail_info.py" instead.
+//
+
 #include "rail_info.h"
 
 namespace resl {

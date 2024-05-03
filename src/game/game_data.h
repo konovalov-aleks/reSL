@@ -10,6 +10,7 @@
 #include "types/tree_info.h"
 
 #include <cstdint>
+#include <utility>
 
 namespace resl {
 
@@ -78,5 +79,18 @@ extern std::int16_t x_erasedSemaphoreCount;
 
 /* 262d:58aa : 600 bytes */
 extern Semaphore g_semaphores[50];
+
+
+/* 262d:6fd2 : 2 bytes */
+extern std::uint16_t g_orderArrayLen;
+
+/* 262d:7000 : 80 bytes */
+extern std::pair<const Carriage*, const Carriage*> x_orderArray[20];
+
+/* 262d:6fd4 : 2 bytes */
+extern std::uint16_t g_trainDrawingChainLen;
+
+/* 262d:6fd6 : 40 bytes */
+extern Carriage* g_trainDrawingChains[20];
 
 } // namespace resl

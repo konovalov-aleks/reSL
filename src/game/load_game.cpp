@@ -119,10 +119,10 @@ static void loadGameState(const char* fileName, void* switchStates, void* semaph
                 checkRead(fd, &train, 14);
                 for (Carriage& c : train.carriages) {
                     c.next = readPtr<Carriage>(fd);
-                    checkRead(fd, &c.x_priority_ycoord, 2);
+                    checkRead(fd, &c.drawingPriority, 2);
                     c.train = readPtr<Train>(fd);
-                    checkRead(fd, &c.angle, 4);
-                    checkRead(fd, &c.location.b, 2);
+                    checkRead(fd, &c.dstEntranceIdx, 4);
+                    checkRead(fd, &c.location, 2);
                     c.location.chunk = readPtr<Chunk>(fd);
                     checkRead(fd, &c.rect, sizeof(Rectangle));
                 }

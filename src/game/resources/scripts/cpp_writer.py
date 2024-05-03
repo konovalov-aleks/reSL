@@ -1,3 +1,6 @@
+import os
+import sys
+
 class CPPWriter:
 
     __tabWidth = 4
@@ -18,6 +21,11 @@ class CPPWriter:
         self.__file = open(filename, 'w', encoding='utf-8')
         self.__line = ''
         self.__indent = 0
+        self.writeln('//')
+        self.writeln('// This is a generated file, do not change it manually.')
+        self.writeln('// Use the script "%s" instead.' % os.path.split(sys.modules['__main__'].__file__)[-1])
+        self.writeln('//')
+        self.writeln()
 
     def __enter__(self):
         return self

@@ -1,3 +1,8 @@
+//
+// This is a generated file, do not change it manually.
+// Use the script "generate_semaphore_glyph_bias.py" instead.
+//
+
 #include "semaphore_glyph_bias.h"
 
 namespace resl {

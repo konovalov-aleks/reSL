@@ -13,6 +13,7 @@ set(SOURCES
     src/game/io_status.cpp
     src/game/load_game.cpp
     src/game/records.cpp
+    src/game/resources/carriage_bias.cpp
     src/game/resources/impasse_glyph.cpp
     src/game/resources/movement_paths.cpp
     src/game/resources/rail_glyph.cpp
@@ -41,7 +42,6 @@ find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
 
 add_executable(resl ${SOURCES} ${HEADERS})
 
-set_property(TARGET resl PROPERTY C_STANDARD 11)
 set_property(TARGET resl PROPERTY CXX_STANDARD 20)
 
 if(TARGET SDL2::SDL2main)

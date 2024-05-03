@@ -1,3 +1,8 @@
+//
+// This is a generated file, do not change it manually.
+// Use the script "generate_semaphore_glyphs.py" instead.
+//
+
 #include "semaphore_glyph.h"
 
 namespace resl {

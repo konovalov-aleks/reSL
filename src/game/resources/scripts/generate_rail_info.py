@@ -12,7 +12,7 @@ with CPPWriter('rail_info.cpp') as w:
     w.writeln()
 
     w.writeln('/* 1d7d:2402 - 216 bytes */')
-    w.writeln('RailInfo x_railInfo[6][6] = {')
+    w.writeln('RailInfo2 x_railInfo[6][6] = {')
     with w.indent():
         for x in range(6):
             w.writeln('{ // %d' % x)

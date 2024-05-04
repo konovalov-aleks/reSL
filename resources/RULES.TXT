@@ -1,0 +1,230 @@
+                        RULES
+
+
+                  1. Introduction
+
+A wide-spread railroad network starts embracing continents in the
+dawn of 19-th century. With the development of infrastructure
+manufacturing of locomotives and railroad cars grows, traffic
+gradualy increases...
+
+You are in charge of railroad traffic controlling on a major
+section of sophisticated network with siding, switches, signals,
+crossings and other means of shunting. You goal is to assure an
+uninterrupted collision-free passage of differrent trains to
+target points through this section.
+
+You success both in traffic dispatching and railroad managing and
+constructing determines your score.
+
+
+                    2. History period
+
+simulated is from 1800 to 2000. You will get the oppotunity to
+control the trains specific for every period over these two
+centuries.  As you progress in the time scale the technical
+characteristics of the trains are getting better. The power and
+speed increase. You will see all kinds of locomotives from the
+ancient steam locomotive, then electric traction and diesel ones
+to the gas turbine machines.
+
+
+                     3. Railnet
+
+is to be constructed from elementary track parcels connecting
+each other in several different ways, switches, signals,
+crossing, dead-ends and other elements.
+
+The railnet on the play screen has from 1 upto 6 entrances
+(outlets).  These are the track parcels crossing left and right
+boundary of the game screen. Each entrance parcel is surrounded
+by several houses of the same bright color forming together
+Yellow, Red, Cyan, Blue, Green and White towns. It is only on
+these entrances that the trains enter or leave railnet.
+
+You can construct any railnet by adding any elementary parcel
+provided you have enough money for its building. So the topology
+and geometry of each railnet is under your control. Several
+topology restrictions on it still exist: for instance, you'll
+not be allowed to construct triple switches etc.
+
+
+                       4. Trains 
+
+enter your railnet from occasional towns (entrances). The color
+of the train determines the color of the town (entrance) where
+this train should be routed to. For example, the yellow train
+(come from Red or any other town) should be routed to Yellow
+town. 
+
+You can use switches and signals to control the train. The train
+moving to either closed switch or closed (red) signal will stop
+and then immediately CHANGE ITS DIRECTION FOR OPPOSITE and
+CONTINUE MOVING. So each closed control element provides such a
+reflection. After reflection the train moves backward in usual
+manner and may be routed to the destination town. The train
+itself IS NOT UNDER YOUR CONTROL; you control the means of
+traffic organization and use the railnet topology you'd built
+instead.
+
+Every type of locomotive has its own power characteristics.
+Generally the power gradually grows as you move forward two
+centuries time scale mentioned earlier. The power of locomotive
+determines the maximum speed that the train can move at. Each
+train is moving with its constant linear acceleration that mainly
+depends on its total weight that in turn is proportional to the
+number of the cars in this train. The train then reaches its
+maximum speed and continues moving with it.
+
+For any accident with the trains you'll be charged for the amount
+of money proportional to the number of cars involved in the
+clash. You will pay SEVERAL TIMES MORE FOR EACH PASSENGER CAR
+in comparison with non-passenger car.
+
+Each train routed to its destination town crosses the screen
+boundary and disappears. You'll get your money for each car
+routed. Every train routed to the entrance that is not its
+destination will just be reflected as it occurs at ordinary
+dead-end.
+
+MAD train. At the higher levels of the game you can see the
+blinking train appear. This is the MAD train. The train without
+the operator (as well as with dragged or overdrunk operator),
+with fault control system,  with the hostages captured by
+criminals etc. is the MAD train. Mad train does not obey your
+control AT ALL: it will not reverse on red signal and will clash
+at closed switch or dead-end.  However it still will disappear at
+any entrance. So the best you can do with mad trains - route them
+to any entrance or at least force it to clash.
+
+
+                   5. Entrances (more)
+
+You start the game in 1800 and will have a couple of entrances
+soon in the beginning. The land is still virgin over there and
+you can see several forests around. Then you begin constructing
+your own railnet to provide the routes between each pair of
+towns.  As the time passes you'll notice the houses appear once
+in a few years. These are the future towns and every 40 years
+you'll get the new entrance in the new town. So you'll manage 6
+entrances railnet by the end of 20-th century.
+  
+Locking. The entrance formally is the track parcel crossing the
+screen boundary.  Any time you should expect the new train coming
+in you railnet from any entrance. There is the only exception and
+it is reffered to as ENTRANCE LOCKING. Once the entrance is
+occupied by at least one car of any train the entrance becomes
+LOCKED.  Any new train(s) that is to come in your railnet from
+this LOCKED entrance has to wait till this entrance becomes
+UNLOCK. Once there is such a train(s) you can see the entrance
+man rise the hand with a flag on the display panel.
+
+
+                 6. Contructing the railnet
+
+you should know that 1) every parcel cost you 2) there is a few
+topology restriction 3) you will be charged for any tree in the
+forests you will cut down or any house destroyed.
+
+
+                  7. Destruction 
+
+The rails get older and sometimes you railnet will have
+destructions on it. You can see them as the small blinking
+red-border white triangle with a bang in the center (traffic
+danger sign). The destruction also appears at the location of the
+accident. The train meeting the track damage on its way will have
+an accident in turn so you need to repair the track.  The longer
+is total railnet the more destructions occur on it.
+
+
+                      8. Repair
+
+To repair the track you should use the special platform named
+server.  Server is called from any entrance and may be routed to
+any entrance then or kept in the railnet. You pay for its call, 
+and for it's repairs.  The server meeting the destruction of the
+track on its way makes a short stop and repairs the track.  Any
+number of servers can operate simultaneously over you railnet.
+
+
+                     9. Levels
+
+The game has potentially infinite number of levels. Any new
+level introduces the higher flow of incoming trains, the higher
+intensity of destruction and adds one or more new events.
+
+When you succesfully reach 2000 year in the game you just have
+the same initial situation in 1800 but your money and routed
+trains counters are from previous level. 
+
+
+       10. Pausing, saving and restoring the game
+
+Any time in the simulation you can just strike any keyboard
+button and you'll get in PAUSE mode. The menu appearing on the
+screen offers either to go on or save or quit.
+
+Save the game when you have to return to current point of
+simulation later or keep it for somebody else or investigate
+another 'realization' in the future. All the saved games reside
+in the working directory on your disk and may be restored later.
+Each save takes about 4K of disk space.
+
+To restore the game you choose "LOAD GAME" option in the main
+menu.  You can see ARCHIVE menu then. It provides the
+opportunity to look through all the saved games showing you the
+full saved game screen and current characteristics of that
+session and the file. Here you can also delete the old games.
+Having chosen the saved game you just use menu "GO" option to
+start simulation.
+
+Currently there is a 'pause toll' introduced in the game. When
+you go on playing either after pause or after the previously
+saved game one extra train will immediately come into your
+railnet from occasional entrance. This might prevent the
+real-time game to become step-by-step game. 
+
+
+                   11. Person profiling
+
+All your achivements, records and saved games are profiled by
+users (players) names.  Once you run SHORTLINE from DOS command
+line using you name as the argument the system registrates you
+and will keep track of your sessions later.  Now you name may be
+shown in the record table.  Also you can identify the saved files
+by your name. Finally, the system will follow your current play
+level and if you start new game you'll be proposed to play at the
+level you have already reached before.
+
+Running SHORTLINE without player names will cause profiling with
+the name "Unknown".
+
+You can load and play somebody's game with no restrictions but
+all the best results will belong to the owner of the saved game.
+
+
+                      12. Controls
+
+You use 2-button mouse to control the simulation and keyboard to
+work with menus. There are only 5 mouse actions that control all
+the simulation.
+
+        MOUSE                             ACTION
+--------------------------------------------------------------------
+click 2 buttons together    - toggle between ROUTE and BUILD modes
+left button  (ROUTE mode)   - toggle the nearest switch or signal
+right button (ROUTE mode)   - call the server from nearest entrance
+left button  (BUILD mode)   - choose the track parcels to be build
+right button (BUILD mode)   - build the track parcel shown
+--------------------------------------------------------------------
+
+
+                   13. 'Inside SHORTLINE'
+
+This manual is to be supplied. It'll contain the detailed
+description of the model geometry and topology, math formulas and
+constant using in simulation, provides the better understanding
+of different aspects of the game and give strategy tips.
+
+                         *   *   *

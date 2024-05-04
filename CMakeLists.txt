@@ -50,3 +50,11 @@ endif()
 target_link_libraries(resl PRIVATE SDL2::SDL2)
 
 target_include_directories(resl PRIVATE ${CMAKE_SOURCE_DIR}/src)
+
+add_custom_command(
+    TARGET resl
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources/PLAY.7
+        $<TARGET_FILE_DIR:resl>/PLAY.7
+)

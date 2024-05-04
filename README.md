@@ -8,7 +8,7 @@ https://www.old-games.ru/game/download/1232.html
 
 ## Current status
 
-<img width="752" alt="reSL screenshot" src="https://github.com/konovalov-aleks/reSL/assets/11459433/b2038411-9bc0-4e3b-be28-ea057b51218f">
+<img width="640" alt="reSL screenshot 2024-05-05 01 29 37" src="https://github.com/konovalov-aleks/reSL/assets/11459433/a429742a-ac7b-498b-833b-bdf6309b69cf">
 
 ### Progress:
 1. Disassembled most of the binary code.

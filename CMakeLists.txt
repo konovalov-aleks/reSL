@@ -14,6 +14,7 @@ set(SOURCES
     src/game/load_game.cpp
     src/game/records.cpp
     src/game/resources/carriage_bias.cpp
+    src/game/resources/dispatcher_glyph.cpp
     src/game/resources/impasse_glyph.cpp
     src/game/resources/movement_paths.cpp
     src/game/resources/rail_glyph.cpp

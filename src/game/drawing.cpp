@@ -355,9 +355,9 @@ void drawWorld()
                    g_headers[HeaderFieldType::Money].value,
                    g_headers[HeaderFieldType::Year].value,
                    g_headers[HeaderFieldType::Level].value, 350);
+    drawDispatchers(350);
 
     // TODO
-    //     drawAllDispatchers(350);
     //     drawFooterWithCopyright(350);
 }
 

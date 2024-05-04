@@ -1,7 +1,9 @@
 #include "draw_header.h"
 
 #include "game_data.h"
+#include "resources/dispatcher_glyph.h"
 #include <graphics/drawing.h>
+#include <graphics/glyph.h>
 #include <graphics/text.h>
 #include <system/buffer.h>
 #include <system/read_file.h>
@@ -77,6 +79,21 @@ void drawHeaderData(
     updateHeaderField(1, money, yOffset);
     updateHeaderField(2, year, yOffset);
     updateHeaderField(3, level, yOffset);
+}
+
+/* 137c:04c3 */
+void drawDispatchers(std::int16_t yOffset)
+{
+    g_glyphHeight = 16;
+
+    const std::int16_t y = yOffset + 25;
+    for (int i = 0; i < entranceCount; ++i) {
+        const EntranceInfo& e = entrances[i];
+        bool signalling = e.waitingTrainsCount != 0;
+        const std::int16_t x = i * 22 + 481;
+        drawGlyphW16(g_dispatcherGlyphs[signalling].bg, x, y, e.bgColor);
+        drawGlyphW16(g_dispatcherGlyphs[signalling].fg, x, y, Color::Black);
+    }
 }
 
 } // namespace resl

@@ -9,9 +9,7 @@
 #include "resources/rail_glyph.h"
 #include "resources/static_object_glyph.h"
 #include "resources/train_glyph.h"
-#include <system/buffer.h>
 #include <system/random.h>
-#include <system/read_file.h>
 
 #include <cassert>
 #include <cstdint>
@@ -24,42 +22,33 @@
 namespace resl {
 
 /* 137c:006f */
-void drawRailBg1(
-    std::int16_t tileX, std::int16_t tileY, std::int16_t railType, Color color, std::int16_t yOffset
-)
+void drawRailBg1(std::int16_t tileX, std::int16_t tileY,
+                 std::int16_t railType, Color color, std::int16_t yOffset)
 {
     assert(railType >= 0 && railType <= std::size(railBackgrounds));
     RailGlyph* rg = railBackgrounds[railType].bg1;
-    drawGlyph(
-        &rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
-        (tileX + tileY) * 21 + rg->dy + yOffset - 22, color
-    );
+    drawGlyph(&rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
+              (tileX + tileY) * 21 + rg->dy + yOffset - 22, color);
 }
 
 /* 137c:00d2 */
-void drawRailBg2(
-    std::int16_t tileX, std::int16_t tileY, std::int16_t railType, Color color, std::int16_t yOffset
-)
+void drawRailBg2(std::int16_t tileX, std::int16_t tileY,
+                 std::int16_t railType, Color color, std::int16_t yOffset)
 {
     assert(railType >= 0 && railType <= std::size(railBackgrounds));
     RailGlyph* rg = railBackgrounds[railType].bg2;
-    drawGlyph(
-        &rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
-        (tileX + tileY) * 21 + rg->dy + yOffset - 22, color
-    );
+    drawGlyph(&rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
+              (tileX + tileY) * 21 + rg->dy + yOffset - 22, color);
 }
 
 /* 137c:000c */
-void drawRail(
-    std::int16_t tileX, std::int16_t tileY, std::int16_t railType, Color color, std::int16_t yOffset
-)
+void drawRail(std::int16_t tileX, std::int16_t tileY,
+              std::int16_t railType, Color color, std::int16_t yOffset)
 {
     assert(railType >= 0 && railType <= std::size(railBackgrounds));
     RailGlyph* rg = railBackgrounds[railType].mainGlyph;
-    drawGlyph(
-        &rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
-        (tileX + tileY) * 21 + rg->dy + yOffset - 22, color
-    );
+    drawGlyph(&rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
+              (tileX + tileY) * 21 + rg->dy + yOffset - 22, color);
 }
 
 /* 19de:0841 */
@@ -105,8 +94,7 @@ void drawSemaphore(Semaphore& s, std::int16_t yOffset)
     g_glyphHeight = 4;
     drawGlyphW16(
         s.glyph->glyphLight, x + glyph.lightXOffset, y + glyph.lightYOffset,
-        s.isRed ? Color::Red : Color::LightGreen
-    );
+        s.isRed ? Color::Red : Color::LightGreen);
 }
 
 /* 1530:0203 */
@@ -183,13 +171,6 @@ void drawRailroad(std::int16_t yOffset)
 void fillGameFieldBackground(std::int16_t yOffset)
 {
     drawing::filledRectangle(0, 49 + yOffset, 80, 285, 0xFF, Color::Green);
-}
-
-/* 132d:0086 */
-void drawHeaderBackground(std::int16_t yOffset)
-{
-    readIfNotLoaded("play.7", g_pageBuffer);
-    drawing::imageDot7(0, yOffset, 640, 47, g_pageBuffer);
 }
 
 /* 18fa:0142 */
@@ -315,17 +296,15 @@ static void drawTrainList(Carriage* c)
         // glyph = copyFromVideoMemory(glyph, c->rect.x1, c.rect.y1 + 350,
         //                             (c->rect.x2 - 1) / 8 - c->rect.x1 / 8 + 1,
         //                             glyph.height);
-        // graphics_setWriteMode2();
+        // setVideoModeR0W2();
 
         if (c->location.chunk->type != 6) {
             // TODO use drawSprite 1b06:067e instead
             drawGlyph(glyph.glyph1, c->rect.x1, c->rect.y1 + 350, Color::Black);
             drawGlyph(
-                glyph.glyph2, c->rect.x1, c->rect.y1 + 350, entrances[c->dstEntranceIdx].bgColor
-            );
+                glyph.glyph2, c->rect.x1, c->rect.y1 + 350, entrances[c->dstEntranceIdx].bgColor);
             drawGlyph(
-                glyph.glyph3, c->rect.x1, c->rect.y1 + 350, entrances[c->dstEntranceIdx].fgColor
-            );
+                glyph.glyph3, c->rect.x1, c->rect.y1 + 350, entrances[c->dstEntranceIdx].fgColor);
         }
     }
 }
@@ -371,12 +350,15 @@ void drawWorld()
             drawSemaphore(g_semaphores[i], 350);
     }
 
-    drawHeaderBackground(0x15e);
+    drawHeaderBackground(350);
+    drawHeaderData(g_headers[HeaderFieldType::Trains].value,
+                   g_headers[HeaderFieldType::Money].value,
+                   g_headers[HeaderFieldType::Year].value,
+                   g_headers[HeaderFieldType::Level].value, 350);
+
     // TODO
-    //     drawHeaderData(headers.trains.value,headers.money.value,headers.year.value,headers.level.value,
-    //                    0x15e);
-    //     drawAllDispatchers(0x15e);
-    //     drawFooterWithCopyright(0x15e);
+    //     drawAllDispatchers(350);
+    //     drawFooterWithCopyright(350);
 }
 
 } // namespace resl

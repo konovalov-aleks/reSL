@@ -13,16 +13,16 @@ static std::uint16_t ror16(std::uint16_t x, std::uint8_t count)
 }
 
 /* 1b06:026d */
-static void graphics_setWrite0Mode()
+static void setVideoModeR0W0()
 {
-    setVideoWriteMode(0);
+    setVideoMode(0);
     setVideoMask(0xFF);
 }
 
 /* 1b06:0285 */
-static void graphics_setWriteMode2()
+void setVideoModeR0W2()
 {
-    setVideoWriteMode(2);
+    setVideoMode(2);
     setVideoMask(0xFF);
 }
 
@@ -33,10 +33,9 @@ static void videoChoosePlanes(std::uint8_t mask)
 }
 
 /* 1b06:06f9 */
-void filledRectangle(
-    std::int16_t x, std::int16_t y, std::int16_t width, std::int16_t height, std::uint8_t pattern,
-    Color color
-)
+void filledRectangle(std::int16_t x, std::int16_t y,
+                     std::int16_t width, std::int16_t height,
+                     std::uint8_t pattern, Color color)
 {
     unsigned videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x >> 3);
     setVideoMask(pattern);
@@ -63,8 +62,7 @@ void horizontalLine(std::int16_t x1, std::int16_t x2, std::int16_t y, Color colo
     if (videoPtr1 == videoPtr2) {
         // single point
         setVideoMask(
-            (ror16(0x80FF, pixelOffsetInsideByte2) >> 8) & (0xFF >> pixelOffsetInsideByte1) & 0xFF
-        );
+            (ror16(0x80FF, pixelOffsetInsideByte2) >> 8) & (0xFF >> pixelOffsetInsideByte1) & 0xFF);
         writeVideoMem(videoPtr1, color);
     } else {
         setVideoMask(0xFF >> pixelOffsetInsideByte1);
@@ -80,9 +78,8 @@ void horizontalLine(std::int16_t x1, std::int16_t x2, std::int16_t y, Color colo
 }
 
 /* 15e8:025a */
-void dialogFrame(
-    std::int16_t x, std::int16_t y, std::int16_t width, std::int16_t height, Color bgColor
-)
+void dialogFrame(std::int16_t x, std::int16_t y,
+                 std::int16_t width, std::int16_t height, Color bgColor)
 {
     const std::int16_t x2 = x + (width + -1) * 8;
     const std::int16_t roundedX1 = x & 0xfff8; // 1111111111111000b
@@ -101,8 +98,8 @@ void dialogFrame(
 }
 
 /* 1b06:00de */
-static void
-implDrawImageDot7(std::int16_t x, std::int16_t y, const std::uint8_t* data, bool drawSprite)
+static void implDrawImageDot7(std::int16_t x, std::int16_t y,
+                              const std::uint8_t* data, bool drawSprite)
 {
     unsigned videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x >> 3);
     const int nRows = 7;
@@ -123,13 +120,12 @@ implDrawImageDot7(std::int16_t x, std::int16_t y, const std::uint8_t* data, bool
 }
 
 /* 1abc:00a3 */
-void imageDot7(
-    std::int16_t x, std::int16_t y, std::int16_t width, std::int16_t height,
-    const std::uint8_t* image
-)
+void imageDot7(std::int16_t x, std::int16_t y,
+               std::int16_t width, std::int16_t height,
+               const std::uint8_t* image)
 {
     const std::uint8_t* data = &image[0x10];
-    graphics_setWrite0Mode();
+    setVideoModeR0W0();
     for (std::int16_t curY = 0; curY < height; curY += 7) {
         for (std::int16_t curX = 0; curX < 640; curX += 8) {
             std::uint8_t drawed = 0;
@@ -145,7 +141,7 @@ void imageDot7(
             }
         }
     }
-    graphics_setWriteMode2();
+    setVideoModeR0W2();
     videoChoosePlanes(0xF);
 }
 
@@ -182,6 +178,26 @@ void putPixel(std::int16_t x, std::int16_t y, Color c)
     writeVideoMem(videoPtr, c);
 
     assert(getPixel(x, y) == c);
+}
+
+/* 1b06:0324 */
+void copyRectangle(std::int16_t dstX, std::int16_t dstY,
+                   std::int16_t srcX, std::int16_t srcY,
+                   std::int16_t width, std::int16_t height)
+{
+    setVideoMode(1);
+
+    unsigned srcVideoPtr = VIDEO_MEM_START_ADDR + srcY * VIDEO_MEM_ROW_BYTES + (srcX >> 3);
+    unsigned dstVideoPtr = VIDEO_MEM_START_ADDR + dstY * VIDEO_MEM_ROW_BYTES + (dstX >> 3);
+
+    for (std::int16_t y = 0; y < height; ++y) {
+        for (std::int16_t x = 0; x < width; ++x) {
+            std::uint8_t data = readVideoMem(srcVideoPtr++);
+            writeVideoMem(dstVideoPtr++, data);
+        }
+        srcVideoPtr += VIDEO_MEM_ROW_BYTES - width;
+        dstVideoPtr += VIDEO_MEM_ROW_BYTES - width;
+    }
 }
 
 } // namespace resl::drawing

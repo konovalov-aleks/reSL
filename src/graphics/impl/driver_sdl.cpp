@@ -40,8 +40,7 @@ void graphics_init()
 
     int err = SDL_CreateWindowAndRenderer(
         SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI, &g_window,
-        &g_renderer
-    );
+        &g_renderer);
     if (err) {
         std::fprintf(stderr, "Window could not be created! SDL_Error: %s\n", SDL_GetError());
         graphics_close();
@@ -50,8 +49,7 @@ void graphics_init()
 
     g_screen = SDL_CreateTexture(
         g_renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, VIDEO_MEM_ROW_BYTES * 8,
-        SCREEN_HEIGHT
-    );
+        SCREEN_HEIGHT);
     if (!g_screen) {
         std::fprintf(stderr, "Unable to create SDL texture! SDL_Error: %s\n", SDL_GetError());
         graphics_close();
@@ -106,6 +104,15 @@ bool poll_event()
 std::uint8_t g_videoWriteMask = 0;
 std::uint8_t g_videoWriteMode = 2;
 
+/* Read Mode
+ 0: Data is read from one of 4 bit planes depending on the Read Map
+    Select Register (3CEh index 4).
+ 1: Data returned is a comparison between the 8 pixels occupying the
+    read byte and the color in the Color Compare Register (3CEh
+    index 2). A bit is set if the color of the corresponding pixel
+    matches the register. */
+std::uint8_t g_videoReadMode = 0;
+
 // 3CEh index  4  (R/W):  Graphics: Read Map Select Register
 // bit 0-1  Number of the plane Read Mode 0 will read from.
 std::uint8_t g_videoReadPlane = 0;
@@ -131,6 +138,8 @@ static const std::array<uint32_t, 16> g_palette = {
     0xFFFFFF  // White / erase
 };
 
+static std::uint8_t g_latches[4];
+
 void writeVideoMem(unsigned memPtr, std::uint8_t color)
 {
     unsigned offset = memPtr - VIDEO_MEM_START_ADDR;
@@ -143,22 +152,27 @@ void writeVideoMem(unsigned memPtr, std::uint8_t color)
         mask = color;
     }
     for (int x = x0; x < x0 + 8; ++x) {
+        if (g_videoWriteMode == 1) {
+            // read from latches
+            std::uint8_t c = 0;
+            const std::uint8_t bitMask = 1 << (7 - (x - x0));
+            for (int plane = 0; plane < 4; ++plane)
+                c |= ((g_latches[plane] & bitMask) != 0) << plane;
+            rgb = g_palette[c];
+        }
         if (g_videoWriteMode == 0) {
             std::memcpy(
-                &rgb, &g_screenPixels[g_screenPixelsPitch * y + x * sizeof(rgb)], sizeof(rgb)
-            );
+                &rgb, &g_screenPixels[g_screenPixelsPitch * y + x * sizeof(rgb)], sizeof(rgb));
             auto iter = std::find(g_palette.begin(), g_palette.end(), rgb);
             assert(iter != g_palette.end());
             std::uint8_t c = std::distance(g_palette.begin(), iter);
             c = (c & ~g_videoRegMapMask) | (((mask & 0x80) ? g_videoRegMapMask : 0));
             rgb = g_palette[c];
             std::memcpy(
-                &g_screenPixels[g_screenPixelsPitch * y + x * sizeof(rgb)], &rgb, sizeof(rgb)
-            );
+                &g_screenPixels[g_screenPixelsPitch * y + x * sizeof(rgb)], &rgb, sizeof(rgb));
         } else if (mask & 0x80)
             std::memcpy(
-                &g_screenPixels[g_screenPixelsPitch * y + x * sizeof(rgb)], &rgb, sizeof(rgb)
-            );
+                &g_screenPixels[g_screenPixelsPitch * y + x * sizeof(rgb)], &rgb, sizeof(rgb));
         mask <<= 1;
     }
 }
@@ -171,15 +185,20 @@ std::uint8_t readVideoMem(unsigned memPtr)
 
     const std::uint8_t planeMask = (1 << g_videoReadPlane);
     std::uint8_t res = 0;
+    for (int plane = 0; plane < 4; ++plane)
+        g_latches[plane] = 0;
     for (int i = 0; i < 8; ++i) {
         std::uint32_t rgb = 0;
         std::memcpy(
-            &rgb, &g_screenPixels[g_screenPixelsPitch * y + (x0 + i) * sizeof(rgb)], sizeof(rgb)
-        );
+            &rgb, &g_screenPixels[g_screenPixelsPitch * y + (x0 + i) * sizeof(rgb)], sizeof(rgb));
         auto iter = std::find(g_palette.begin(), g_palette.end(), rgb);
         assert(iter != g_palette.end());
         std::uint8_t c = std::distance(g_palette.begin(), iter);
         res |= ((c & planeMask) != 0) << (7 - i);
+        for (int plane = 0; plane < 4; ++plane) {
+            g_latches[plane] |= (c & 1) << (7 - i);
+            c >>= 1;
+        }
     }
     return res;
 }

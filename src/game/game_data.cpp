@@ -12,7 +12,7 @@ std::uint16_t entrancesLoadedOffset;
 char playerName[20];
 
 /* 1d7d:00f0 : 0x48 bytes */
-Headers headers;
+Headers g_headers;
 
 /* 262d:5f00 : 2 bytes */
 std::int16_t entranceCount;

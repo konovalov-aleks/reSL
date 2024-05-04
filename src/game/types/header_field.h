@@ -16,12 +16,16 @@ struct HeaderField {
 };
 static_assert(sizeof(HeaderField) == 0x12);
 
-struct Headers {
-    HeaderField trains;
-    HeaderField money;
-    HeaderField year;
-    HeaderField level;
+struct HeaderFieldType {
+    enum {
+        Trains,
+        Money,
+        Year,
+        Level
+    };
 };
+
+using Headers = HeaderField[4];
 static_assert(sizeof(Headers) == 0x48);
 
 } // namespace resl

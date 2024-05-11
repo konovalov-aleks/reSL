@@ -15,8 +15,9 @@ https://www.old-games.ru/game/download/1232.html
 2. Reimplemented in C++ some functions:
    * loading the state from original game save files.
    * drawing the world (all objects on the game field).
-   * (partially) drawing the header.
+   * drawing the game field header.
    * loading the original game records file and drawing records screen.
+   * (WIP) train movement logic
 
 ## Idea and goals of the project:
 

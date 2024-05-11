@@ -230,7 +230,7 @@ static void mergeDrawingChains(int idx1, int idx2)
 }
 
 /* 18fa:000b */
-static void scheduleTrainsDrawing()
+void scheduleTrainsDrawing()
 {
     g_orderArrayLen = 0;
     g_trainDrawingChainLen = 0;
@@ -351,14 +351,26 @@ void drawWorld()
     }
 
     drawHeaderBackground(350);
-    drawHeaderData(g_headers[HeaderFieldType::Trains].value,
-                   g_headers[HeaderFieldType::Money].value,
-                   g_headers[HeaderFieldType::Year].value,
-                   g_headers[HeaderFieldType::Level].value, 350);
+    drawHeaderData(g_headers[static_cast<std::size_t>(HeaderFieldId::Trains)].value,
+                   g_headers[static_cast<std::size_t>(HeaderFieldId::Money)].value,
+                   g_headers[static_cast<std::size_t>(HeaderFieldId::Year)].value,
+                   g_headers[static_cast<std::size_t>(HeaderFieldId::Level)].value, 350);
     drawDispatchers(350);
 
     // TODO
     //     drawFooterWithCopyright(350);
+}
+
+/* 132d:0002 */
+void eraseTrain(const Train&)
+{
+    // TODO implement
+}
+
+/* 132d:01e2 */
+void drawTrainFinishedExclamation(std::int16_t x, std::int16_t y)
+{
+    // TODO implement
 }
 
 } // namespace resl

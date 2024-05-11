@@ -45,18 +45,18 @@ static void createSemaphore(Chunk& c, std::int16_t type)
     sem.chunk = &c;
     sem.isRed = false;
     sem.isRightDirection = bias.dx > 0;
-    c.semSlotIdByType[type] = g_semaphoreCount;
+    c.semSlotIdByDirection[type] = g_semaphoreCount;
     ++g_semaphoreCount;
 }
 
 /* 17bf:0754 */
 static void removeSemaphore(Chunk& c, SemaphoreType type)
 {
-    Semaphore& s = g_semaphores[c.semSlotIdByType[type]];
+    Semaphore& s = g_semaphores[c.semSlotIdByDirection[type]];
     Semaphore& lastSem = g_semaphores[--g_semaphoreCount];
     const std::int8_t semIdx = &s - g_semaphores;
-    lastSem.chunk->semSlotIdByType[lastSem.type] = semIdx;
-    c.semSlotIdByType[type] = -1;
+    lastSem.chunk->semSlotIdByDirection[lastSem.type] = semIdx;
+    c.semSlotIdByDirection[type] = -1;
     s = lastSem;
 }
 
@@ -117,16 +117,16 @@ void createSemaphores(RailInfo& ri)
                 if (chunk2.type > 1 && ((1 << chunk2.type) & railroadTypeMasks[x][y])) {
                     createSemaphore(chunk2, rtm.semaphoreType);
                     x_newSemaphores[x_newSemaphoreCount++] =
-                        g_semaphores[chunk2.semSlotIdByType[rtm.semaphoreType]];
+                        g_semaphores[chunk2.semSlotIdByDirection[rtm.semaphoreType]];
                 }
             }
         } else {
             for (const RailTypeMeta& rtm : g_railTypeMeta) {
                 Chunk& chunk2 =
                     g_chunks[tileX + rtm.tileOffsetX][tileY + rtm.tileOffsetY][rtm.railType];
-                if (chunk2.semSlotIdByType[rtm.semaphoreType] != -1) {
+                if (chunk2.semSlotIdByDirection[rtm.semaphoreType] != -1) {
                     x_erasedSemaphores[x_erasedSemaphoreCount++] =
-                        g_semaphores[chunk2.semSlotIdByType[rtm.semaphoreType]];
+                        g_semaphores[chunk2.semSlotIdByDirection[rtm.semaphoreType]];
                     removeSemaphore(chunk2, rtm.semaphoreType);
                 }
             }

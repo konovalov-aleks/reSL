@@ -20,7 +20,7 @@ enum Color : std::uint8_t {
     DarkCyan = 0xC,    // #00AAAA
     LightGreen = 0xD,  // #00FF00
     DarkGreen = 0xE,   // #00AA00
-    White2Erase = 0xF, // #FFFFFF
+    BWBlinking = 0xF,  // #000000 / #FFFFFF
 };
 
 } // namespace resl

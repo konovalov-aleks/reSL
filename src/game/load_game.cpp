@@ -127,9 +127,11 @@ static void loadGameState(const char* fileName, void* switchStates, void* semaph
                     checkRead(fd, &c.rect, sizeof(Rectangle));
                 }
 
-                checkRead(fd, &train.head.b, 2);
+                checkRead(fd, &train.head, 2);
+                assert(train.head.forwardDirection >= 0 && train.head.forwardDirection <= 1);
                 train.head.chunk = readPtr<Chunk>(fd);
-                checkRead(fd, &train.tail.b, 2);
+                checkRead(fd, &train.tail, 2);
+                assert(train.tail.forwardDirection >= 0 && train.tail.forwardDirection <= 1);
                 train.tail.chunk = readPtr<Chunk>(fd);
             }
             off_t curPos = lseek(fd, 0, SEEK_CUR);

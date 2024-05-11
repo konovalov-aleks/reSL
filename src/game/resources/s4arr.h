@@ -12,6 +12,6 @@ struct s4 {
 };
 
 /* 1d60:0000 - 48 bytes */
-extern const s4 s4arr[6][2];
+extern const s4 s4arr[6][2]; // [chunk type][direction]
 
 } // namespace resl

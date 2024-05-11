@@ -93,4 +93,7 @@ extern std::uint16_t g_trainDrawingChainLen;
 /* 262d:6fd6 : 40 bytes */
 extern Carriage* g_trainDrawingChains[20];
 
+/* 262d:6ffe : 1 byte */
+extern bool g_needToRedrawTrains;
+
 } // namespace resl

@@ -17,11 +17,15 @@ enum CarriageType : std::uint8_t {
 
 struct Location {
     std::uint8_t pathStep;
-    std::uint8_t b;
+    // TODO bool?
+    std::uint8_t forwardDirection;
     Chunk* chunk;
 };
 
 struct Train;
+
+// the special value for dstEntranceIdx for blinking trains
+inline constexpr std::uint8_t blinkingTrainEntranceIdx = 8;
 
 struct Carriage {
     Carriage* next;
@@ -43,7 +47,7 @@ struct Train {
     bool x_needToMove;
     std::uint8_t x_acceleration;
     std::uint8_t x_maxSpeed;
-    char unknown1;
+    std::uint8_t x_headCarriageIdx;
     std::uint8_t x_speed;
     char unknown2;
     std::int16_t year;

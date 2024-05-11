@@ -3,6 +3,8 @@
 #include "game_data.h"
 #include "resources/movement_paths.h"
 #include "resources/rail_info.h"
+#include "resources/s4arr.h"
+#include "resources/semaphore_glyph_bias.h"
 
 #include <cassert>
 #include <utility>
@@ -10,9 +12,12 @@
 namespace resl {
 
 /* 19de:02ee */
-static void x_someSwitchManipulation(Switch&)
+static void updateSwitchPosition(Switch& s)
 {
-    // TODO implement
+    const s4& s4obj = s4arr[s.c1.chunk->type][s.c1.slot];
+    const SemaphoreGlyphBias& sb = g_semaphoreGlyphBias[s.c1.chunk->type][s.c1.slot];
+    s.x = s.c1.chunk->x + (s4obj.tileOffsetX - s4obj.tileOffsetY) * 88 + sb.dx;
+    s.y = s.c1.chunk->y + (s4obj.tileOffsetX - s4obj.tileOffsetY) * 21 + sb.dy;
 }
 
 /* 19de:00b6 */
@@ -20,9 +25,9 @@ static void configChunkStepsForSwitch(ChunkReference r)
 {
     r.chunk->x_neighbours[r.slot].chunk = specialChunkPtr;
     if (r.slot == 0)
-        r.chunk->x_probMinPathStep = 82;
+        r.chunk->minPathStep = 82;
     else
-        r.chunk->x_probMaxPathStep = g_movementPaths[r.chunk->type].size - 83;
+        r.chunk->maxPathStep = g_movementPaths[r.chunk->type].size - 83;
 }
 
 /* 1ad3:000c */
@@ -59,7 +64,7 @@ void createSwitches(RailInfo& r)
                 s.c3.chunk = &chunk2;
                 s.c3.slot = ri._type2;
                 s.curChunk = c1_neighb;
-                x_someSwitchManipulation(s);
+                updateSwitchPosition(s);
                 configChunkStepsForSwitch(s.c3);
             }
         } else if (c2_neighb.chunk != specialChunkPtr) {
@@ -70,7 +75,7 @@ void createSwitches(RailInfo& r)
             s.c3.chunk = &chunk;
             s.c3.slot = ri._type1;
             s.curChunk = c2_neighb;
-            x_someSwitchManipulation(s);
+            updateSwitchPosition(s);
             configChunkStepsForSwitch(s.c3);
 
             for (Switch* s2 = g_switches; s2 < &s; ++s2) {
@@ -93,9 +98,9 @@ void toggleSwitch(Switch& s)
 
     configChunkStepsForSwitch(s.curChunk);
     if (s.c3.slot == 0)
-        s.c3.chunk->x_probMinPathStep = 0;
+        s.c3.chunk->minPathStep = 0;
     else
-        s.c3.chunk->x_probMaxPathStep = g_movementPaths[s.c3.chunk->type].size - 1;
+        s.c3.chunk->maxPathStep = g_movementPaths[s.c3.chunk->type].size - 1;
 
     std::swap(s.curChunk, s.c3);
 

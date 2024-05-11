@@ -16,13 +16,11 @@ struct HeaderField {
 };
 static_assert(sizeof(HeaderField) == 0x12);
 
-struct HeaderFieldType {
-    enum {
-        Trains,
-        Money,
-        Year,
-        Level
-    };
+enum class HeaderFieldId {
+    Trains,
+    Money,
+    Year,
+    Level
 };
 
 using Headers = HeaderField[4];

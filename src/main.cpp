@@ -1,7 +1,9 @@
 #include "game/init.h"
 
 #include "game/drawing.h"
+#include "game/game_data.h"
 #include "game/load_game.h"
+#include "game/move_trains.h"
 #include "game/records.h"
 #include "game/resources/train_glyph.h"
 #include "graphics/color.h"
@@ -47,12 +49,14 @@ void testDrawText(int, const char*[])
 
 void testLoadGame(int argc, const char* argv[])
 {
+    const char* fname;
     if (argc != 3) [[unlikely]] {
-        std::cerr << "usage: " << argv[0] << ' ' << argv[1] << " <game save file>" << std::endl;
-        return;
-    }
+        std::cout << "The game save file name is not set explicitly - loading DEMO_A file" << std::endl;
+        std::cout << "You can pass the file name through the additional command line argument" << std::endl;
+        fname = "DEMO_A";
+    } else
+        fname = argv[2];
 
-    const char* fname = argv[2];
     if (!std::filesystem::is_regular_file(fname)) [[unlikely]] {
         std::cerr << "specified file \"" << fname << "\" doesn't exist" << std::endl;
         return;
@@ -77,7 +81,21 @@ void testLoadGame(int argc, const char* argv[])
 
     drawWorld();
 
-    //    x_scheduleTrainsDrawing();
+    frameFunction = [lastFrame = std::clock()]() mutable {
+        std::clock_t curTime = std::clock();
+        if (lastFrame != std::clock_t() && 60 * (curTime - lastFrame) < CLOCKS_PER_SEC)
+            return;
+        std::int16_t dTime = (80 * (curTime - lastFrame)) / CLOCKS_PER_SEC;
+        std::cout << "FPS: " << (CLOCKS_PER_SEC / (curTime - lastFrame)) << std::endl
+                  << "dtime: " << dTime << std::endl;
+        lastFrame = curTime;
+
+        for (Train& train : trains) {
+            if (!train.isFreeSlot)
+                moveTrain(train, dTime);
+        }
+        drawWorld();
+    };
 }
 
 void testDrawTrains(int, const char*[])
@@ -106,10 +124,13 @@ void testDrawTrains(int, const char*[])
             drawGlyph(g->glyph1, x - g->width / 2, y - g->height / 2, Black);
             drawGlyph(g->glyph2, x - g->width / 2, y - g->height / 2, c[0]);
             drawGlyph(g->glyph3, x - g->width / 2, y - g->height / 2, c[1]);
+            char buf[100];
+            snprintf(buf, sizeof(buf), "%d", i);
+            drawText(x, y + 20, buf, Red);
             x += 80;
             if (x > 590) {
                 x = 80;
-                y += 50;
+                y += 60;
             }
         }
 

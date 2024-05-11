@@ -27,11 +27,11 @@ void resetGameData()
                 Chunk& c = g_chunks[x][y][type];
                 c.x_neighbours[0] = x_unknownChunkConst;
                 c.x_neighbours[1] = x_unknownChunkConst;
-                c.x_probMinPathStep = 0;
-                c.x_probMaxPathStep = g_movementPaths[type].size - 1;
-                c.semSlotIdByType[0] = -1;
-                c.semSlotIdByType[1] = -1;
-                c.semSlotIdByType[2] = -1;
+                c.minPathStep = 0;
+                c.maxPathStep = g_movementPaths[type].size - 1;
+                c.semSlotIdByDirection[0] = -1;
+                c.semSlotIdByDirection[1] = -1;
+                c.semSlotIdByDirection[2] = -1;
             }
         }
     }

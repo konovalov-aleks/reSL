@@ -12,6 +12,7 @@ set(SOURCES
     src/game/init.cpp
     src/game/io_status.cpp
     src/game/load_game.cpp
+    src/game/move_trains.cpp
     src/game/records.cpp
     src/game/resources/carriage_bias.cpp
     src/game/resources/dispatcher_glyph.cpp
@@ -58,4 +59,7 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy
         ${CMAKE_CURRENT_SOURCE_DIR}/resources/PLAY.7
         $<TARGET_FILE_DIR:resl>/PLAY.7
+    COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources/DEMO_A
+        $<TARGET_FILE_DIR:resl>/DEMO_A
 )

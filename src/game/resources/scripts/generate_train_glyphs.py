@@ -83,6 +83,7 @@ with CPPWriter('train_glyph.cpp') as w:
                             w.writeln('}' if direction == 1 else '},')
                     w.writeln('}' if y == 4 else '},')
             w.writeln('}' if x == 14 else '},')
+        assert(ptr == len(train_glyph_data))
     w.writeln('};')
     w.writeln()
     w.writeln('} // namespace resl')

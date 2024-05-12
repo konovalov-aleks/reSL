@@ -11,18 +11,17 @@
 #include "graphics/driver.h"
 #include "graphics/glyph.h"
 #include "graphics/text.h"
+#include "system/time.h"
+#include "tasks/task.h"
 
 #include <cstdlib>
 #include <filesystem>
-#include <functional>
 #include <iostream>
 #include <map>
 
 using namespace resl;
 
 namespace {
-
-std::function<void()> frameFunction;
 
 void testRecordsScreen(int, const char*[])
 {
@@ -45,6 +44,31 @@ void testDrawText(int, const char*[])
         if (c > 146)
             break;
     }
+}
+
+Task implTestLoadGame()
+{
+    std::clock_t lastFrame = std::clock();
+    TimeT lastGameTime = getTime();
+    for (;;) {
+        TimeT gameTime = getTime();
+        std::int16_t dTime = gameTime - lastGameTime;
+        lastGameTime = gameTime;
+
+        std::clock_t curTime = std::clock();
+        std::cout << "FPS: " << (CLOCKS_PER_SEC / (curTime - lastFrame)) << std::endl
+                  << "dtime: " << dTime << std::endl;
+        lastFrame = curTime;
+
+        for (Train& train : trains) {
+            if (!train.isFreeSlot)
+                moveTrain(train, dTime);
+        }
+        drawWorld();
+
+        co_await sleep(10);
+    }
+    co_return;
 }
 
 void testLoadGame(int argc, const char* argv[])
@@ -79,26 +103,10 @@ void testLoadGame(int argc, const char* argv[])
     resetGameData();
     loadSavedGame(fname);
 
-    drawWorld();
-
-    frameFunction = [lastFrame = std::clock()]() mutable {
-        std::clock_t curTime = std::clock();
-        if (lastFrame != std::clock_t() && 60 * (curTime - lastFrame) < CLOCKS_PER_SEC)
-            return;
-        std::int16_t dTime = (80 * (curTime - lastFrame)) / CLOCKS_PER_SEC;
-        std::cout << "FPS: " << (CLOCKS_PER_SEC / (curTime - lastFrame)) << std::endl
-                  << "dtime: " << dTime << std::endl;
-        lastFrame = curTime;
-
-        for (Train& train : trains) {
-            if (!train.isFreeSlot)
-                moveTrain(train, dTime);
-        }
-        drawWorld();
-    };
+    addTask(implTestLoadGame());
 }
 
-void testDrawTrains(int, const char*[])
+Task implTestDrawTrains()
 {
     static Color colors[5][2] = {
         { Blue,       DarkBlue  },
@@ -108,12 +116,25 @@ void testDrawTrains(int, const char*[])
         { LightGreen, DarkGreen }
     };
 
-    frameFunction = [currentAngle = 0, currentDirection = 0, lastFrame = std::clock()]() mutable {
-        std::clock_t curTime = std::clock();
-        if (lastFrame != std::clock_t() && curTime - lastFrame < CLOCKS_PER_SEC / 5)
-            return;
-        lastFrame = curTime;
+    // angle - direction
+    std::pair<int, int> frames[] = {
+        { 0, 0 },
+        { 1, 0 },
+        { 2, 0 },
+        { 3, 0 },
+        { 4, 0 },
+        { 0, 1 },
+        { 1, 1 },
+        { 2, 1 },
+        { 3, 1 },
+        { 4, 1 },
+        { 0, 0 }
+    };
 
+    int curFrame = 0;
+    int dFrame = 1;
+    for (;;) {
+        const auto [currentAngle, currentDirection] = frames[curFrame];
         drawing::filledRectangle(0, 0, 640, 480, 0xFF, DarkGreen);
 
         int x = 80;
@@ -134,11 +155,18 @@ void testDrawTrains(int, const char*[])
             }
         }
 
-        if (++currentAngle >= 5) {
-            currentDirection = 1 - currentDirection;
-            currentAngle = 0;
-        }
-    };
+        curFrame += dFrame;
+        if (curFrame == 0 || curFrame == std::size(frames) - 1)
+            dFrame = -dFrame;
+
+        co_await sleep(10);
+    }
+    co_return;
+}
+
+void testDrawTrains(int, const char*[])
+{
+    addTask(implTestDrawTrains());
 }
 
 const std::map<std::string, std::function<void(int, const char*[])>> commands = {
@@ -163,12 +191,20 @@ int usage(const char* prog, const char* unknownArg = nullptr)
     return EXIT_FAILURE;
 }
 
+Task sdlLoop()
+{
+    while (poll_event()) {
+        graphics_update();
+        co_await sleep(1);
+    }
+    stopScheduler();
+    co_return;
+}
+
 } // namespace
 
 int main(int argc, const char* argv[])
 {
-    graphics_init();
-
     if (argc < 2)
         return usage(*argv);
 
@@ -176,13 +212,13 @@ int main(int argc, const char* argv[])
     if (iter == commands.end())
         return usage(argv[0], argv[1]);
 
+    graphics_init();
+    startTimer();
+
+    addTask(sdlLoop());
     iter->second(argc, argv);
 
-    while (poll_event()) {
-        if (frameFunction)
-            frameFunction();
-        graphics_update();
-    }
+    runScheduler();
 
     graphics_close();
 

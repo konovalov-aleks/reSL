@@ -37,6 +37,7 @@ set(SOURCES
     src/system/random.cpp
     src/system/read_file.cpp
     src/system/time.cpp
+    src/tasks/task.cpp
 )
 
 find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)

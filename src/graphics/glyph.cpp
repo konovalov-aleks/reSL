@@ -13,19 +13,43 @@ inline std::uint8_t ror8(std::uint8_t x, std::uint8_t count)
 }
 
 /* 1b06:062b */
-void drawGlyph(const Glyph* glyph, std::int16_t x, std::int16_t y, Color color)
+void drawGlyphAlignX8(const Glyph* glyph, std::int16_t x, std::int16_t y, Color color)
 {
     unsigned videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x >> 3);
-    unsigned glyphPtr = 0;
+    const std::uint8_t* glyphPtr = glyph->data;
     for (std::uint8_t y = 0; y < glyph->height; ++y) {
         unsigned v = videoPtr;
         for (std::uint8_t x = 0; x < glyph->width; ++x) {
-            setVideoMask(glyph->data[glyphPtr]);
+            setVideoMask(*glyphPtr);
             writeVideoMem(v, color);
             ++v;
             ++glyphPtr;
         }
         videoPtr += VIDEO_MEM_ROW_BYTES;
+    }
+}
+
+/* 1b06:067e */
+void drawGlyph(const Glyph* glyph, std::int16_t x, std::int16_t y, Color color)
+{
+    unsigned videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x >> 3);
+    const std::uint8_t pixelOffsetInsideByte = x & 7;
+    const std::uint8_t rightMask = 0xFF >> pixelOffsetInsideByte;
+    const std::uint8_t* glyphPtr = glyph->data;
+    for (std::uint8_t y = 0; y < glyph->height; ++y) {
+        for (std::uint8_t x = 0; x < glyph->width; ++x) {
+            if (*glyphPtr) {
+                std::uint8_t data = ror8(*glyphPtr, pixelOffsetInsideByte);
+                setVideoMask(data & rightMask);
+                writeVideoMem(videoPtr, color);
+
+                setVideoMask(data & ~rightMask);
+                writeVideoMem(videoPtr + 1, color);
+            }
+            ++videoPtr;
+            ++glyphPtr;
+        }
+        videoPtr += VIDEO_MEM_ROW_BYTES - glyph->width;
     }
 }
 
@@ -35,7 +59,7 @@ void drawGlyphW8(const std::uint8_t* glyph, std::int16_t x, std::int16_t y, Colo
     unsigned glyphPtr = 0;
     unsigned videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x >> 3);
     const std::uint8_t pixelOffsetInsideByte = x & 7;
-    const std::uint8_t rightMask = 0xff >> pixelOffsetInsideByte;
+    const std::uint8_t rightMask = 0xFF >> pixelOffsetInsideByte;
     for (int i = 0; i < g_glyphHeight; ++i) {
         std::uint8_t data = ror8(glyph[glyphPtr + 1], pixelOffsetInsideByte);
         setVideoMask(data & rightMask);

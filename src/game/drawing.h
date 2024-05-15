@@ -1,5 +1,6 @@
 #pragma once
 
+#include "types/semaphore.h"
 #include "types/train.h"
 #include <graphics/color.h>
 
@@ -15,8 +16,14 @@ void drawRailBg1(
 void drawRailBg2(
     std::int16_t tileX, std::int16_t tileY, std::int16_t railType, Color, std::int16_t yOffset);
 
+/* 137c:0135 */
+void drawSemaphore(Semaphore&, std::int16_t yOffset);
+
 /* 17bf:0cd0 */
 void drawRailroad(std::int16_t yOffset);
+
+/* 18fa:08d6 */
+void drawTrainList(Carriage*);
 
 /* 15e8:09c8 */
 void drawWorld();

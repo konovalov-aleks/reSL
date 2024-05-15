@@ -46,6 +46,7 @@ void graphics_init()
         graphics_close();
         std::exit(EXIT_FAILURE);
     }
+    SDL_SetWindowTitle(g_window, "reSL - reverse engineered ShortLine game");
 
     g_screen = SDL_CreateTexture(
         g_renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, VIDEO_MEM_ROW_BYTES * 8,

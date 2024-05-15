@@ -5,6 +5,8 @@
 #include "resources/movement_paths.h"
 #include "types/header_field.h"
 #include "types/position.h"
+#include <graphics/drawing.h>
+#include <system/time.h>
 
 #include <utility>
 
@@ -246,6 +248,105 @@ bool moveTrain(Train& train, std::int16_t dTime)
     }
     reverseTrain(train);
     return false;
+}
+
+/* 18fa:068a */
+Task taskMoveAndRedrawTrains()
+{
+    constexpr TimeT minMovementPeriod = 15;
+
+    // Hmm... interesting, it looks like the original game starts with an
+    // uninitialized variable here.
+    // The first access to the variable is INC operation:
+    //       18fa:0719 ff 46      INC     word ptr [BP + -0x2]
+    // But in the loop we have a logic that bounds the value
+    // => it should still work regardless the initial value.
+    std::uint16_t curChain = 0;
+
+    for (;;) {
+        co_await sleep(1);
+
+        // FIXME temporary hack, helps to get rid of phantom train shadows
+        //       Remove when the drawing logic here is fully implemented
+        drawWorld();
+
+        scheduleTrainsDrawing();
+
+        // TODO process collision
+
+        for (std::uint16_t i = 0; i < g_trainDrawingChainLen; ++i) {
+            co_await yield();
+
+            bool needToRedrawCursor = false;
+            g_needToRedrawTrains = false;
+
+            if (++curChain >= g_trainDrawingChainLen)
+                curChain = 0;
+
+            Carriage* carriage = g_trainDrawingChains[curChain];
+            if (!carriage || (getTime() - carriage->train->x_lastMovementTime < minMovementPeriod))
+                continue;
+
+            bool needToRestartDrawing = false;
+            do {
+                if (carriage->train->needToRedraw) {
+                    g_needToRedrawTrains = true;
+                    carriage->train->needToRedraw = false;
+                }
+                if (!carriage->train->x_needToMove) {
+                    carriage->train->x_needToMove = true;
+                    const TimeT curTime = getTime();
+                    const TimeT dTime = curTime - carriage->train->x_lastMovementTime;
+                    carriage->train->x_lastMovementTime = curTime;
+                    if (bool trainCrashed = moveTrain(*carriage->train, dTime);
+                        carriage->type != CarriageType::CrashedTrain && trainCrashed) {
+                        needToRestartDrawing = true;
+                        break;
+                    }
+                }
+
+                // TODO
+                // if (someLogic)
+                //    needRedrawCursor = true;
+                carriage = carriage->next;
+            } while (carriage);
+            if (needToRestartDrawing)
+                break;
+
+            carriage = g_trainDrawingChains[curChain];
+            if (!g_needToRedrawTrains) /* in the original game: "!g_needToRedrawTrains || !carriage" */
+                continue;
+
+            drawTrainList(carriage);
+            for (std::uint16_t i = 0; i < g_semaphoreCount; ++i) {
+                if (g_semaphores[i].isRightDirection)
+                    drawSemaphore(g_semaphores[i], 350);
+            }
+            // TODO
+            // waitVGARetrace();
+            // if (needToRedrawCursor)
+            //      drawCursor()
+
+            drawing::setVideoModeR0W1();
+
+            //
+
+            drawing::setVideoModeR0W2();
+            do {
+//                drawing::eraseArea(boundingBox);
+                carriage = carriage->next;
+            } while(carriage);
+            // TODO
+            // if (needToRedrawCursor)
+            //      drawCursor()
+
+            drawing::setVideoModeR0W1();
+
+
+            drawing::setVideoModeR0W2();
+        }
+    }
+    co_return;
 }
 
 } // namespace resl

@@ -17,6 +17,9 @@ struct Glyph {
 };
 
 /* 1b06:062b */
+void drawGlyphAlignX8(const Glyph*, std::int16_t x, std::int16_t y, Color);
+
+/* 1b06:067e */
 void drawGlyph(const Glyph*, std::int16_t x, std::int16_t y, Color);
 
 /* 1b06:05cb */

@@ -27,7 +27,7 @@ void drawRailBg1(std::int16_t tileX, std::int16_t tileY,
 {
     assert(railType >= 0 && railType <= std::size(railBackgrounds));
     RailGlyph* rg = railBackgrounds[railType].bg1;
-    drawGlyph(&rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
+    drawGlyphAlignX8(&rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
               (tileX + tileY) * 21 + rg->dy + yOffset - 22, color);
 }
 
@@ -37,7 +37,7 @@ void drawRailBg2(std::int16_t tileX, std::int16_t tileY,
 {
     assert(railType >= 0 && railType <= std::size(railBackgrounds));
     RailGlyph* rg = railBackgrounds[railType].bg2;
-    drawGlyph(&rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
+    drawGlyphAlignX8(&rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
               (tileX + tileY) * 21 + rg->dy + yOffset - 22, color);
 }
 
@@ -47,7 +47,7 @@ void drawRail(std::int16_t tileX, std::int16_t tileY,
 {
     assert(railType >= 0 && railType <= std::size(railBackgrounds));
     RailGlyph* rg = railBackgrounds[railType].mainGlyph;
-    drawGlyph(&rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
+    drawGlyphAlignX8(&rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
               (tileX + tileY) * 21 + rg->dy + yOffset - 22, color);
 }
 
@@ -67,7 +67,7 @@ void drawSwitch(std::int16_t idx, bool x_someFlag)
     const RailGlyph* rg = railBackgrounds[rail->type].switches[s.curChunk.slot];
     (void)x_someFlag;
     // if (x_someFlag)
-    drawGlyph(&rg->glyph, rail->x + rg->dx, rail->y + rg->dy, Color::Black);
+    drawGlyphAlignX8(&rg->glyph, rail->x + rg->dx, rail->y + rg->dy, Color::Black);
     // drawGlyph(&rg->glyph, rail->x, rail->y + 350, Color::Black);
 }
 
@@ -77,7 +77,7 @@ void drawSwitch2(std::int16_t idx, std::int16_t yOffset)
     const Switch& s = g_switches[idx];
     const Chunk* rail = s.curChunk.chunk;
     const RailGlyph* rg = railBackgrounds[rail->type].switches[s.curChunk.slot];
-    drawGlyph(&rg->glyph, rail->x + rg->dx, rail->y + rg->dy, Color::Black);
+    drawGlyphAlignX8(&rg->glyph, rail->x + rg->dx, rail->y + rg->dy, Color::Black);
 }
 
 /* 137c:0135 */
@@ -262,7 +262,7 @@ void scheduleTrainsDrawing()
 }
 
 /* 18fa:08d6 */
-static void drawTrainList(Carriage* c)
+void drawTrainList(Carriage* c)
 {
     Rectangle boundingBox;
 
@@ -291,20 +291,16 @@ static void drawTrainList(Carriage* c)
         if (c->rect.y2 > boundingBox.y2)
             boundingBox.y2 = c->rect.y2;
 
-        // TODO
-        // graphics_setWriteMode1();
+        drawing::setVideoModeR0W1();
         // glyph = copyFromVideoMemory(glyph, c->rect.x1, c.rect.y1 + 350,
         //                             (c->rect.x2 - 1) / 8 - c->rect.x1 / 8 + 1,
         //                             glyph.height);
-        // setVideoModeR0W2();
+        drawing::setVideoModeR0W2();
 
         if (c->location.chunk->type != 6) {
-            // TODO use drawSprite 1b06:067e instead
             drawGlyph(glyph.glyph1, c->rect.x1, c->rect.y1 + 350, Color::Black);
-            drawGlyph(
-                glyph.glyph2, c->rect.x1, c->rect.y1 + 350, entrances[c->dstEntranceIdx].bgColor);
-            drawGlyph(
-                glyph.glyph3, c->rect.x1, c->rect.y1 + 350, entrances[c->dstEntranceIdx].fgColor);
+            drawGlyph(glyph.glyph2, c->rect.x1, c->rect.y1 + 350, entrances[c->dstEntranceIdx].bgColor);
+            drawGlyph(glyph.glyph3, c->rect.x1, c->rect.y1 + 350, entrances[c->dstEntranceIdx].fgColor);
         }
     }
 }

@@ -46,31 +46,6 @@ void testDrawText(int, const char*[])
     }
 }
 
-Task implTestLoadGame()
-{
-    std::clock_t lastFrame = std::clock();
-    TimeT lastGameTime = getTime();
-    for (;;) {
-        TimeT gameTime = getTime();
-        std::int16_t dTime = gameTime - lastGameTime;
-        lastGameTime = gameTime;
-
-        std::clock_t curTime = std::clock();
-        std::cout << "FPS: " << (CLOCKS_PER_SEC / (curTime - lastFrame)) << std::endl
-                  << "dtime: " << dTime << std::endl;
-        lastFrame = curTime;
-
-        for (Train& train : trains) {
-            if (!train.isFreeSlot)
-                moveTrain(train, dTime);
-        }
-        drawWorld();
-
-        co_await sleep(10);
-    }
-    co_return;
-}
-
 void testLoadGame(int argc, const char* argv[])
 {
     const char* fname;
@@ -103,7 +78,7 @@ void testLoadGame(int argc, const char* argv[])
     resetGameData();
     loadSavedGame(fname);
 
-    addTask(implTestLoadGame());
+    addTask(taskMoveAndRedrawTrains());
 }
 
 Task implTestDrawTrains()

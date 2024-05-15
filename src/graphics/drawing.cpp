@@ -19,6 +19,13 @@ static void setVideoModeR0W0()
     setVideoMask(0xFF);
 }
 
+/* 1b06:0279 */
+void setVideoModeR0W1()
+{
+    setVideoMode(1);
+    setVideoMask(0xFF);
+}
+
 /* 1b06:0285 */
 void setVideoModeR0W2()
 {

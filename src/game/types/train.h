@@ -8,11 +8,11 @@
 namespace resl {
 
 enum CarriageType : std::uint8_t {
-    Server = 0x0,
-    AncientLocomotive = 0x1,
-    PassengerCarriage = 0x7,
-    FreightCarriage = 0xa,
-    SomeSpecial = 0xe
+    Server = 0,
+    AncientLocomotive = 1,
+    PassengerCarriage = 7,
+    FreightCarriage = 10,
+    CrashedTrain = 14
 };
 
 struct Location {

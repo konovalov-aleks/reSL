@@ -6,6 +6,9 @@
 
 namespace resl::drawing {
 
+/* 1b06:0279 */
+void setVideoModeR0W1();
+
 /* 1b06:0285 */
 void setVideoModeR0W2();
 

@@ -235,17 +235,21 @@ void drawText(std::int16_t x, std::int16_t y, const char* s, Color color)
             drawGlyphW8(
                 /* FIXME!!! regenerate constants, use uint8_t instead of char */ (std::uint8_t*)
                     g->glyph,
-                x, tileY, color
-            );
+                x, tileY, color);
         else
             drawGlyphW16(
                 /* FIXME!!! regenerate constants, use uint8_t instead of char */ (std::uint8_t*)
                     g->glyph,
-                x, tileY, color
-            );
+                x, tileY, color);
         x += g->width + g_textSpacing;
     }
     g_glyphHeight = oldGlyphHeight;
+}
+
+/* 1b06:077c */
+void drawTextSmall(std::int16_t, std::int16_t, const char*, Color)
+{
+    // TODO implement
 }
 
 } // namespace resl

@@ -9,7 +9,10 @@
 #include "resources/rail_glyph.h"
 #include "resources/static_object_glyph.h"
 #include "resources/train_glyph.h"
+#include <graphics/text.h>
+#include <system/buffer.h>
 #include <system/random.h>
+#include <system/read_file.h>
 
 #include <cassert>
 #include <cstdint>
@@ -28,7 +31,7 @@ void drawRailBg1(std::int16_t tileX, std::int16_t tileY,
     assert(railType >= 0 && railType <= std::size(railBackgrounds));
     RailGlyph* rg = railBackgrounds[railType].bg1;
     drawGlyphAlignX8(&rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
-              (tileX + tileY) * 21 + rg->dy + yOffset - 22, color);
+                     (tileX + tileY) * 21 + rg->dy + yOffset - 22, color);
 }
 
 /* 137c:00d2 */
@@ -38,7 +41,7 @@ void drawRailBg2(std::int16_t tileX, std::int16_t tileY,
     assert(railType >= 0 && railType <= std::size(railBackgrounds));
     RailGlyph* rg = railBackgrounds[railType].bg2;
     drawGlyphAlignX8(&rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
-              (tileX + tileY) * 21 + rg->dy + yOffset - 22, color);
+                     (tileX + tileY) * 21 + rg->dy + yOffset - 22, color);
 }
 
 /* 137c:000c */
@@ -48,7 +51,7 @@ void drawRail(std::int16_t tileX, std::int16_t tileY,
     assert(railType >= 0 && railType <= std::size(railBackgrounds));
     RailGlyph* rg = railBackgrounds[railType].mainGlyph;
     drawGlyphAlignX8(&rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
-              (tileX + tileY) * 21 + rg->dy + yOffset - 22, color);
+                     (tileX + tileY) * 21 + rg->dy + yOffset - 22, color);
 }
 
 /* 19de:0841 */
@@ -59,16 +62,33 @@ void scheduleAllTrainsRedrawing()
 }
 
 /* 13d1:010f */
-void drawSwitch(std::int16_t idx, bool x_someFlag)
+void drawSwitch(std::int16_t idx, bool drawToScreen)
 {
+    VideoMemPtr dstPtr = VIDEO_MEM_START_ADDR + (idx + 1) * 30 - 1;
     // TODO implement properly!!!
     Switch& s = g_switches[idx];
     Chunk* rail = s.curChunk.chunk;
     const RailGlyph* rg = railBackgrounds[rail->type].switches[s.curChunk.slot];
-    (void)x_someFlag;
-    // if (x_someFlag)
-    drawGlyphAlignX8(&rg->glyph, rail->x + rg->dx, rail->y + rg->dy, Color::Black);
-    // drawGlyph(&rg->glyph, rail->x, rail->y + 350, Color::Black);
+
+    drawing::setVideoModeR0W1();
+    const std::uint8_t* glyphData = rg->glyph.data;
+    for (std::uint8_t y = 0; y < rg->glyph.height; ++y) {
+        std::int16_t yPos = rail->y + rg->dy + y;
+        for (std::uint8_t xBytes = 0; xBytes < rg->glyph.width; ++xBytes) {
+            if (*glyphData) {
+                std::int16_t xPos = rail->x + rg->dx + xBytes * 8;
+                VideoMemPtr srcPtr = VIDEO_MEM_START_ADDR + (yPos + 350) * VIDEO_MEM_ROW_BYTES + xPos / 8;
+                writeVideoMem(dstPtr++, readVideoMem(srcPtr));
+            }
+            ++glyphData;
+        }
+    }
+    drawing::setVideoModeR0W2();
+
+    if (drawToScreen)
+        drawGlyphAlignX8(&rg->glyph, rail->x + rg->dx, rail->y + rg->dy, Color::Black);
+
+    drawGlyphAlignX8(&rg->glyph, rail->x + rg->dx, rail->y + rg->dy + 350, Color::Black);
 }
 
 /* 13d1:026c */
@@ -77,7 +97,7 @@ void drawSwitch2(std::int16_t idx, std::int16_t yOffset)
     const Switch& s = g_switches[idx];
     const Chunk* rail = s.curChunk.chunk;
     const RailGlyph* rg = railBackgrounds[rail->type].switches[s.curChunk.slot];
-    drawGlyphAlignX8(&rg->glyph, rail->x + rg->dx, rail->y + rg->dy, Color::Black);
+    drawGlyphAlignX8(&rg->glyph, rail->x + rg->dx, rail->y + rg->dy + yOffset, Color::Black);
 }
 
 /* 137c:0135 */
@@ -144,7 +164,7 @@ void drawStaticObjects(std::int16_t yOffset)
 }
 
 /* 17bf:0cd0 */
-void drawRailroad(std::int16_t yOffset)
+void drawFieldBackground(std::int16_t yOffset)
 {
     for (const RailInfo* r = g_railRoad; r < g_railRoad + g_railRoadCount; ++r) {
         drawRailBg1(r->tileX, r->tileY, r->railType, DarkGray, yOffset);
@@ -184,7 +204,7 @@ static bool trainOverlaps(const Train& t, int idx)
                 (c1.rect.x1 & ~7) <= (c2->rect.x2 & ~7) &&
                 (c1.rect.x2 & ~7) >= (c2->rect.x1 & ~7)) {
 
-                x_orderArray[g_orderArrayLen++] = { &c1, c2 };
+                g_collidedTrainsArray[g_collidedTrainsArrayLen++] = { &c1, c2 };
                 return true;
             }
         }
@@ -232,7 +252,7 @@ static void mergeDrawingChains(int idx1, int idx2)
 /* 18fa:000b */
 void scheduleTrainsDrawing()
 {
-    g_orderArrayLen = 0;
+    g_collidedTrainsArrayLen = 0;
     g_trainDrawingChainLen = 0;
 
     for (Train& t : trains) {
@@ -264,7 +284,8 @@ void scheduleTrainsDrawing()
 /* 18fa:08d6 */
 void drawTrainList(Carriage* c)
 {
-    Rectangle boundingBox;
+    Rectangle* curBoundingBox = g_carriagesBoundingBoxes;
+    VideoMemPtr shadowBufPtr = drawing::VIDEO_MEM_SHADOW_BUFFER;
 
     for (; c; c = c->next) {
         const PathStep& p = g_movementPaths[c->location.chunk->type].data[c->location.pathStep];
@@ -274,7 +295,7 @@ void drawTrainList(Carriage* c)
         c->x_direction = p.angle;
         const TrainGlyph& glyph = g_trainGlyphs[c->type][p.angle][c->direction];
 
-        boundingBox = c->rect;
+        *curBoundingBox = c->rect;
 
         c->rect.x1 = c->location.chunk->x + p.dx - glyph.width / 2;
         c->rect.x2 = c->rect.x1 + glyph.width;
@@ -282,26 +303,28 @@ void drawTrainList(Carriage* c)
         c->rect.y1 = c->drawingPriority - glyph.height + g_carriageYBiases[c->type][p.angle];
         c->rect.y2 = c->rect.y1 + glyph.height;
 
-        if (c->rect.x1 < boundingBox.x1)
-            boundingBox.x1 = c->rect.x1;
-        if (c->rect.x2 > boundingBox.x2)
-            boundingBox.x2 = c->rect.x2;
-        if (c->rect.y1 < boundingBox.y1)
-            boundingBox.y1 = c->rect.y1;
-        if (c->rect.y2 > boundingBox.y2)
-            boundingBox.y2 = c->rect.y2;
+        if (c->rect.x1 < curBoundingBox->x1)
+            curBoundingBox->x1 = c->rect.x1;
+        if (c->rect.x2 > curBoundingBox->x2)
+            curBoundingBox->x2 = c->rect.x2;
+        if (c->rect.y1 < curBoundingBox->y1)
+            curBoundingBox->y1 = c->rect.y1;
+        if (c->rect.y2 > curBoundingBox->y2)
+            curBoundingBox->y2 = c->rect.y2;
 
         drawing::setVideoModeR0W1();
-        // glyph = copyFromVideoMemory(glyph, c->rect.x1, c.rect.y1 + 350,
-        //                             (c->rect.x2 - 1) / 8 - c->rect.x1 / 8 + 1,
-        //                             glyph.height);
+        shadowBufPtr = drawing::copySpriteToShadowBuffer(shadowBufPtr, c->rect.x1, c->rect.y1 + 350,
+                                                         (c->rect.x2 - 1) / 8 - c->rect.x1 / 8 + 1,
+                                                         glyph.height);
         drawing::setVideoModeR0W2();
 
         if (c->location.chunk->type != 6) {
             drawGlyph(glyph.glyph1, c->rect.x1, c->rect.y1 + 350, Color::Black);
-            drawGlyph(glyph.glyph2, c->rect.x1, c->rect.y1 + 350, entrances[c->dstEntranceIdx].bgColor);
-            drawGlyph(glyph.glyph3, c->rect.x1, c->rect.y1 + 350, entrances[c->dstEntranceIdx].fgColor);
+            drawGlyph(glyph.glyph2, c->rect.x1, c->rect.y1 + 350, g_entrances[c->dstEntranceIdx].bgColor);
+            drawGlyph(glyph.glyph3, c->rect.x1, c->rect.y1 + 350, g_entrances[c->dstEntranceIdx].fgColor);
         }
+
+        ++curBoundingBox;
     }
 }
 
@@ -310,6 +333,22 @@ static void drawTrains()
 {
     for (std::uint16_t i = 0; i < g_trainDrawingChainLen; ++i)
         drawTrainList(g_trainDrawingChains[i]);
+}
+
+/* 12ba:0097 */
+static void drawCopyright(std::int16_t yOffset)
+{
+    drawTextSmall(12, 336 + yOffset,
+                  " * SHORTLINE * Game by Andrei Snegov * (c) DOKA 1992 Moscow * Version 1.1 *",
+                  Color::Black);
+}
+
+/* 132d:013c */
+static void drawFooterWithCopyright(std::int16_t yOffset)
+{
+    drawing::filledRectangle(0, 334 + yOffset, 80, 16, 0xFF, Color::Gray);
+    drawing::filledRectangle(0, 334 + yOffset, 80, 1, 0xFF, Color::Black);
+    drawCopyright(yOffset);
 }
 
 /* 15e8:09c8 */
@@ -353,8 +392,7 @@ void drawWorld()
                    g_headers[static_cast<std::size_t>(HeaderFieldId::Level)].value, 350);
     drawDispatchers(350);
 
-    // TODO
-    //     drawFooterWithCopyright(350);
+    drawFooterWithCopyright(350);
 }
 
 /* 132d:0002 */
@@ -367,6 +405,15 @@ void eraseTrain(const Train&)
 void drawTrainFinishedExclamation(std::int16_t x, std::int16_t y)
 {
     // TODO implement
+}
+
+/* 132d:00f9 */
+void drawGameField(std::int16_t yOffset)
+{
+    readIfNotLoaded("play.7", g_pageBuffer);
+    drawing::imageDot7(0, yOffset, 640, 350, g_pageBuffer);
+    drawStaticObjects(yOffset);
+    drawCopyright(yOffset);
 }
 
 } // namespace resl

@@ -12,4 +12,7 @@ extern std::int16_t g_textSpacing;
 /* 1b06:1552 */
 void drawText(std::int16_t x, std::int16_t y, const char*, Color);
 
+/* 1b06:077c */
+void drawTextSmall(std::int16_t x, std::int16_t y, const char*, Color);
+
 } // namespace resl

@@ -15,6 +15,7 @@
 #include "tasks/task.h"
 
 #include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <iostream>
 #include <map>
@@ -23,12 +24,12 @@ using namespace resl;
 
 namespace {
 
-void testRecordsScreen(int, const char*[])
+void recordsScreenDemo(int, const char*[])
 {
     showRecordsScreen();
 }
 
-void testDrawText(int, const char*[])
+void drawTextDemo(int, const char*[])
 {
     char buf[148];
     unsigned c = 0;
@@ -46,15 +47,13 @@ void testDrawText(int, const char*[])
     }
 }
 
-void testLoadGame(int argc, const char* argv[])
+void loadGame(const char* fname)
 {
-    const char* fname;
-    if (argc != 3) [[unlikely]] {
+    if (!fname) {
         std::cout << "The game save file name is not set explicitly - loading DEMO_A file" << std::endl;
-        std::cout << "You can pass the file name through the additional command line argument" << std::endl;
+        std::cout << "You can pass the file name through the '--file' command line argument" << std::endl;
         fname = "DEMO_A";
-    } else
-        fname = argv[2];
+    }
 
     if (!std::filesystem::is_regular_file(fname)) [[unlikely]] {
         std::cerr << "specified file \"" << fname << "\" doesn't exist" << std::endl;
@@ -70,18 +69,23 @@ void testLoadGame(int argc, const char* argv[])
 
     initGameData();
 
-    fillGameFieldBackground(0);
-
     char switchStatesBuf[100];
     char buf2[100];
 
     resetGameData();
     loadSavedGame(fname);
 
+    drawWorld();
+    fillGameFieldBackground(350);
+    drawFieldBackground(350);
+
+    drawing::setVideoModeR0W1();
+    drawing::copyRectangle(0, 0, 0, 350, 80, 350);
+
     addTask(taskMoveAndRedrawTrains());
 }
 
-Task implTestDrawTrains()
+Task implDrawTrainsDemo()
 {
     static Color colors[5][2] = {
         { Blue,       DarkBlue  },
@@ -139,32 +143,16 @@ Task implTestDrawTrains()
     co_return;
 }
 
-void testDrawTrains(int, const char*[])
+void drawTrainsDemo(int, const char*[])
 {
-    addTask(implTestDrawTrains());
+    addTask(implDrawTrainsDemo());
 }
 
 const std::map<std::string, std::function<void(int, const char*[])>> commands = {
-    { "records",        testRecordsScreen },
-    { "testDrawText",   testDrawText      },
-    { "testLoadGame",   testLoadGame      },
-    { "testDrawTrains", testDrawTrains    }
+    { "records",     recordsScreenDemo },
+    { "draw_text",   drawTextDemo      },
+    { "draw_trains", drawTrainsDemo    }
 };
-
-int usage(const char* prog, const char* unknownArg = nullptr)
-{
-    if (unknownArg)
-        std::cerr << "unknown argument: " << unknownArg << std::endl;
-
-    std::cout << "usage: " << prog
-              << " <mode> <arguments>\n"
-                 "available modes:"
-              << std::endl;
-    for (auto& [cmd, _] : commands)
-        std::cout << '\t' << cmd << std::endl;
-
-    return EXIT_FAILURE;
-}
 
 Task sdlLoop()
 {
@@ -176,23 +164,78 @@ Task sdlLoop()
     co_return;
 }
 
+int usage(int argc, const char* argv[], int unknownArg = -1)
+{
+    if (unknownArg != -1)
+        std::cerr << "Unknown command line argument \"" << argv[unknownArg] << "\"\n"
+                  << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <options>\n"
+                                         "\n"
+                                         "Available options:\n"
+                                         "  --file <fileName> choose the game save file to load\n"
+                                         "  --demo <demoName> run the demo with a specified name. Available demos: ";
+    bool first = true;
+    for (const auto& [name, _] : commands) {
+        if (first)
+            first = false;
+        else
+            std::cerr << ", ";
+        std::cerr << name;
+    }
+    std::cerr << "\n"
+                 "  --debug-graphics enable debug video mode. In this mode, you will see the entire content of the video memory including invisible areas\n"
+                 "  --help show this help"
+              << std::endl;
+    return EXIT_FAILURE;
+}
+
 } // namespace
 
 int main(int argc, const char* argv[])
 {
-    if (argc < 2)
-        return usage(*argv);
+    bool debugGraphics = false;
+    const char* demo = nullptr;
+    const char* file = nullptr;
 
-    auto iter = commands.find(argv[1]);
-    if (iter == commands.end())
-        return usage(argv[0], argv[1]);
+    for (int i = 1; i < argc; ++i) {
+        if (!std::strcmp(argv[i], "--debug-graphics"))
+            debugGraphics = true;
+        else if (!std::strcmp(argv[i], "--demo")) {
+            if (i == argc - 1) {
+                std::cerr << "The '--demo' argument expects a value" << std::endl;
+                return EXIT_FAILURE;
+            }
+            demo = argv[++i];
+        } else if (!std::strcmp(argv[i], "--file")) {
+            if (i == argc - 1) {
+                std::cerr << "The '--file' argument expects a value" << std::endl;
+                return EXIT_FAILURE;
+            }
+            file = argv[++i];
+        } else if (!std::strcmp(argv[i], "--help"))
+            return usage(argc, argv);
+        else
+            return usage(argc, argv, i);
+    }
 
-    graphics_init();
-    startTimer();
+    graphics_init(debugGraphics);
+
+    if (demo) {
+        if (file)
+            std::cerr << "The '--file' attribute was ignored" << std::endl;
+        auto iter = commands.find(demo);
+        if (iter == commands.end()) {
+            std::cerr << "Invalid demo name is specified \"" << demo << "\"\n"
+                      << std::endl;
+            return usage(argc, argv);
+        }
+        iter->second(argc, argv);
+    } else
+        loadGame(file);
 
     addTask(sdlLoop());
-    iter->second(argc, argv);
 
+    startTimer();
     runScheduler();
 
     graphics_close();

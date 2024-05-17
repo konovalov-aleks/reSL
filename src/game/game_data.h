@@ -4,6 +4,7 @@
 #include "types/entrance_info.h"
 #include "types/header_field.h"
 #include "types/rail_info.h"
+#include "types/rectangle.h"
 #include "types/semaphore.h"
 #include "types/switch.h"
 #include "types/train.h"
@@ -30,7 +31,7 @@ extern Headers g_headers;
 extern std::int16_t entranceCount;
 
 /* 1d7d:01fc : 132 bytes */
-extern EntranceInfo entrances[6];
+extern EntranceInfo g_entrances[9];
 
 /* 262d:21da : 960 bytes */
 extern StaticObject g_staticObjects[120];
@@ -80,12 +81,11 @@ extern std::int16_t x_erasedSemaphoreCount;
 /* 262d:58aa : 600 bytes */
 extern Semaphore g_semaphores[50];
 
-
 /* 262d:6fd2 : 2 bytes */
-extern std::uint16_t g_orderArrayLen;
+extern std::uint16_t g_collidedTrainsArrayLen;
 
 /* 262d:7000 : 80 bytes */
-extern std::pair<const Carriage*, const Carriage*> x_orderArray[20];
+extern std::pair<const Carriage*, const Carriage*> g_collidedTrainsArray[20];
 
 /* 262d:6fd4 : 2 bytes */
 extern std::uint16_t g_trainDrawingChainLen;
@@ -95,5 +95,8 @@ extern Carriage* g_trainDrawingChains[20];
 
 /* 262d:6ffe : 1 byte */
 extern bool g_needToRedrawTrains;
+
+/* 262d:7050 : 800 bytes */
+extern Rectangle g_carriagesBoundingBoxes[100];
 
 } // namespace resl

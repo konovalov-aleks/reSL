@@ -31,15 +31,23 @@ static void unlockTexture()
     SDL_UnlockTexture(g_screen);
 }
 
-void graphics_init()
+static int g_wndWidth = SCREEN_WIDTH;
+static int g_wndHeight = SCREEN_HEIGHT;
+
+void graphics_init(bool debugMode)
 {
+    if (debugMode) {
+        g_wndWidth = VIDEO_MEM_ROW_BYTES * 8;
+        g_wndHeight = VIDEO_MEM_N_ROWS;
+    }
+
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         std::exit(EXIT_FAILURE);
     }
 
     int err = SDL_CreateWindowAndRenderer(
-        SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI, &g_window,
+        g_wndWidth, g_wndHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI, &g_window,
         &g_renderer);
     if (err) {
         std::fprintf(stderr, "Window could not be created! SDL_Error: %s\n", SDL_GetError());
@@ -49,8 +57,9 @@ void graphics_init()
     SDL_SetWindowTitle(g_window, "reSL - reverse engineered ShortLine game");
 
     g_screen = SDL_CreateTexture(
-        g_renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, VIDEO_MEM_ROW_BYTES * 8,
-        SCREEN_HEIGHT);
+        g_renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING,
+        VIDEO_MEM_ROW_BYTES * 8,
+        VIDEO_MEM_N_ROWS);
     if (!g_screen) {
         std::fprintf(stderr, "Unable to create SDL texture! SDL_Error: %s\n", SDL_GetError());
         graphics_close();
@@ -82,7 +91,7 @@ void graphics_update()
 {
     unlockTexture();
 
-    SDL_Rect srcRect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+    SDL_Rect srcRect = { 0, 0, g_wndWidth, g_wndHeight };
     SDL_RenderCopy(g_renderer, g_screen, &srcRect, NULL);
     SDL_RenderPresent(g_renderer);
 
@@ -141,17 +150,25 @@ static const std::array<uint32_t, 16> g_palette = {
 
 static std::uint8_t g_latches[4];
 
-void writeVideoMem(unsigned memPtr, std::uint8_t color)
+void writeVideoMem(VideoMemPtr memPtr, std::uint8_t color)
 {
     unsigned offset = memPtr - VIDEO_MEM_START_ADDR;
     std::uint8_t mask = g_videoWriteMask;
     int x0 = (offset * 8) % (VIDEO_MEM_ROW_BYTES * 8);
-    int y = ((offset * 8) / (VIDEO_MEM_ROW_BYTES * 8)) % SCREEN_HEIGHT;
-    std::uint32_t rgb = g_palette[color];
-    if (g_videoWriteMode == 0) {
+    int y = (offset * 8) / (VIDEO_MEM_ROW_BYTES * 8);
+    std::uint32_t rgb = 0;
+    switch (g_videoWriteMode) {
+    case 0:
         // TODO rotate + modes
         mask = color;
-    }
+        break;
+    case 1:
+        mask = 0xFF;
+        break;
+    case 2:
+        rgb = g_palette[color];
+        break;
+    };
     for (int x = x0; x < x0 + 8; ++x) {
         if (g_videoWriteMode == 1) {
             // read from latches
@@ -171,18 +188,19 @@ void writeVideoMem(unsigned memPtr, std::uint8_t color)
             rgb = g_palette[c];
             std::memcpy(
                 &g_screenPixels[g_screenPixelsPitch * y + x * sizeof(rgb)], &rgb, sizeof(rgb));
-        } else if (mask & 0x80)
+        } else if (mask & 0x80) {
             std::memcpy(
                 &g_screenPixels[g_screenPixelsPitch * y + x * sizeof(rgb)], &rgb, sizeof(rgb));
+        }
         mask <<= 1;
     }
 }
 
-std::uint8_t readVideoMem(unsigned memPtr)
+std::uint8_t readVideoMem(VideoMemPtr memPtr)
 {
     unsigned offset = memPtr - VIDEO_MEM_START_ADDR;
     int x0 = (offset * 8) % (VIDEO_MEM_ROW_BYTES * 8);
-    int y = ((offset * 8) / (VIDEO_MEM_ROW_BYTES * 8)) % SCREEN_HEIGHT;
+    int y = (offset * 8) / (VIDEO_MEM_ROW_BYTES * 8);
 
     const std::uint8_t planeMask = (1 << g_videoReadPlane);
     std::uint8_t res = 0;

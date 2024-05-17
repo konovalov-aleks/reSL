@@ -4,7 +4,7 @@
 
 namespace resl {
 
-void graphics_init();
+void graphics_init(bool debugMode = false);
 void graphics_close();
 void graphics_update();
 

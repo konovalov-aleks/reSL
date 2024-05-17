@@ -218,7 +218,7 @@ bool moveTrain(Train& train, std::int16_t dTime)
             return true;
         }
     } else {
-        const EntranceInfo& dstEntrance = entrances[train.carriages[0].dstEntranceIdx];
+        const EntranceInfo& dstEntrance = g_entrances[train.carriages[0].dstEntranceIdx];
         if (train.head.chunk == dstEntrance.chunk.x_neighbours[0].chunk)
             train.x_maxSpeed = 30;
         if (train.head.chunk->type != 6) /* 6 means an entrance chunk; TODO make a constant */
@@ -250,6 +250,23 @@ bool moveTrain(Train& train, std::int16_t dTime)
     return false;
 }
 
+/* 18fa:03a8 */
+static bool handleCollisions(const Carriage& c1, const Carriage& c2)
+{
+    // TODO implement
+    return false;
+}
+
+/* 18fa:0b10 */
+static void eraseCarriagesInShadowBuffer(const Carriage& c, VideoMemPtr ptr)
+{
+    std::uint16_t widthBytes = ((c.rect.x2 - 1) >> 3) - (c.rect.x1 >> 3) + 1;
+    std::uint16_t height = c.rect.y2 - c.rect.y1;
+    if (c.next)
+        eraseCarriagesInShadowBuffer(*c.next, ptr + widthBytes * height);
+    drawing::drawSpriteFromVideoMem(ptr, c.rect.x1, c.rect.y1 + 350, widthBytes, height);
+}
+
 /* 18fa:068a */
 Task taskMoveAndRedrawTrains()
 {
@@ -266,13 +283,15 @@ Task taskMoveAndRedrawTrains()
     for (;;) {
         co_await sleep(1);
 
-        // FIXME temporary hack, helps to get rid of phantom train shadows
-        //       Remove when the drawing logic here is fully implemented
-        drawWorld();
-
         scheduleTrainsDrawing();
 
-        // TODO process collision
+        for (std::uint16_t i = 0; i < g_collidedTrainsArrayLen; ++i) {
+            const auto [c1, c2] = g_collidedTrainsArray[i];
+            if (c1->train->isFreeSlot || c2->train->isFreeSlot)
+                continue;
+            if (!handleCollisions(*c1, *c2))
+                handleCollisions(*c2, *c1);
+        }
 
         for (std::uint16_t i = 0; i < g_trainDrawingChainLen; ++i) {
             co_await yield();
@@ -317,6 +336,8 @@ Task taskMoveAndRedrawTrains()
             if (!g_needToRedrawTrains) /* in the original game: "!g_needToRedrawTrains || !carriage" */
                 continue;
 
+            const Rectangle* curCarriageRect = g_carriagesBoundingBoxes;
+
             drawTrainList(carriage);
             for (std::uint16_t i = 0; i < g_semaphoreCount; ++i) {
                 if (g_semaphores[i].isRightDirection)
@@ -328,21 +349,18 @@ Task taskMoveAndRedrawTrains()
             //      drawCursor()
 
             drawing::setVideoModeR0W1();
-
-            //
-
-            drawing::setVideoModeR0W2();
             do {
-//                drawing::eraseArea(boundingBox);
+                drawing::copyFromShadowBuffer(*curCarriageRect++);
                 carriage = carriage->next;
-            } while(carriage);
+            } while (carriage);
+            drawing::setVideoModeR0W2();
+
             // TODO
             // if (needToRedrawCursor)
             //      drawCursor()
 
             drawing::setVideoModeR0W1();
-
-
+            eraseCarriagesInShadowBuffer(*g_trainDrawingChains[curChain], drawing::VIDEO_MEM_SHADOW_BUFFER);
             drawing::setVideoModeR0W2();
         }
     }

@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+# VIM swap file
+*.swp
+
+# build directories
+build*/
+
+# python cache
+__pycache__

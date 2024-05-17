@@ -44,10 +44,10 @@ void filledRectangle(std::int16_t x, std::int16_t y,
                      std::int16_t width, std::int16_t height,
                      std::uint8_t pattern, Color color)
 {
-    unsigned videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x >> 3);
+    VideoMemPtr videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x >> 3);
     setVideoMask(pattern);
     for (int curY = 0; curY < height; ++curY) {
-        unsigned vp = videoPtr;
+        VideoMemPtr vp = videoPtr;
         for (std::int16_t curX = 0; curX < width; ++curX)
             writeVideoMem(vp++, color);
         videoPtr += VIDEO_MEM_ROW_BYTES;
@@ -60,8 +60,8 @@ void horizontalLine(std::int16_t x1, std::int16_t x2, std::int16_t y, Color colo
     if (x2 < x1)
         std::swap(x1, x2);
 
-    unsigned videoPtr1 = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x1 >> 3);
-    unsigned videoPtr2 = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x2 >> 3);
+    VideoMemPtr videoPtr1 = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x1 >> 3);
+    VideoMemPtr videoPtr2 = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x2 >> 3);
 
     const std::uint8_t pixelOffsetInsideByte1 = x1 & 7;
     const std::uint8_t pixelOffsetInsideByte2 = x2 & 7;
@@ -108,7 +108,7 @@ void dialogFrame(std::int16_t x, std::int16_t y,
 static void implDrawImageDot7(std::int16_t x, std::int16_t y,
                               const std::uint8_t* data, bool drawSprite)
 {
-    unsigned videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x >> 3);
+    VideoMemPtr videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x >> 3);
     const int nRows = 7;
     if (drawSprite) {
         // copy sprite data
@@ -155,7 +155,7 @@ void imageDot7(std::int16_t x, std::int16_t y,
 /* 1b06:07db */
 Color getPixel(std::int16_t x, std::int16_t y)
 {
-    const unsigned videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x >> 3);
+    const VideoMemPtr videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x >> 3);
     const std::uint8_t mask = 0x80 >> (x & 7);
 
     setVideoReadPlane(0);
@@ -179,7 +179,7 @@ Color getPixel(std::int16_t x, std::int16_t y)
 /* 1b06:0838 */
 void putPixel(std::int16_t x, std::int16_t y, Color c)
 {
-    const unsigned videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x >> 3);
+    const VideoMemPtr videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x >> 3);
 
     setVideoMask(0x80 >> (x & 7));
     writeVideoMem(videoPtr, c);
@@ -194,8 +194,8 @@ void copyRectangle(std::int16_t dstX, std::int16_t dstY,
 {
     setVideoMode(1);
 
-    unsigned srcVideoPtr = VIDEO_MEM_START_ADDR + srcY * VIDEO_MEM_ROW_BYTES + (srcX >> 3);
-    unsigned dstVideoPtr = VIDEO_MEM_START_ADDR + dstY * VIDEO_MEM_ROW_BYTES + (dstX >> 3);
+    VideoMemPtr srcVideoPtr = VIDEO_MEM_START_ADDR + srcY * VIDEO_MEM_ROW_BYTES + (srcX >> 3);
+    VideoMemPtr dstVideoPtr = VIDEO_MEM_START_ADDR + dstY * VIDEO_MEM_ROW_BYTES + (dstX >> 3);
 
     for (std::int16_t y = 0; y < height; ++y) {
         for (std::int16_t x = 0; x < width; ++x) {
@@ -205,6 +205,50 @@ void copyRectangle(std::int16_t dstX, std::int16_t dstY,
         srcVideoPtr += VIDEO_MEM_ROW_BYTES - width;
         dstVideoPtr += VIDEO_MEM_ROW_BYTES - width;
     }
+}
+
+/* 1b06:0004 */
+void copyFromShadowBuffer(const Rectangle& r)
+{
+    std::uint16_t xOffsetBytes = r.x1 >> 3;
+    std::uint16_t widthBytes = (r.x2 >> 3) - xOffsetBytes + 1;
+    std::uint16_t height = r.y2 - r.y1;
+    std::uint16_t offset = xOffsetBytes + r.y1 * VIDEO_MEM_ROW_BYTES;
+
+    VideoMemPtr dstPtr = offset;
+    VideoMemPtr srcPtr = VIDEO_MEM_SHADOW_BUFFER + offset;
+    for (std::uint16_t y = 0; y < height; ++y) {
+        for (std::uint16_t x = 0; x < widthBytes; ++x)
+            writeVideoMem(dstPtr++, readVideoMem(srcPtr++));
+        dstPtr += VIDEO_MEM_ROW_BYTES - widthBytes;
+        srcPtr += VIDEO_MEM_ROW_BYTES - widthBytes;
+    }
+}
+
+/* 1b06:0062 */
+VideoMemPtr copySpriteToShadowBuffer(VideoMemPtr dstPtr, std::int16_t x, std::int16_t y,
+                                     std::int16_t width, std::int16_t height)
+{
+    VideoMemPtr srcPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x >> 3);
+    for (std::int16_t curY = 0; curY < height; ++curY) {
+        for (std::int16_t curX = 0; curX < width; ++curX)
+            writeVideoMem(dstPtr++, readVideoMem(srcPtr++));
+        srcPtr += VIDEO_MEM_ROW_BYTES - width;
+    }
+    return dstPtr;
+}
+
+/* 1b06:00a0 */
+VideoMemPtr drawSpriteFromVideoMem(VideoMemPtr srcPtr, std::int16_t x, std::int16_t y,
+                                   std::int16_t width, std::int16_t height)
+{
+    VideoMemPtr dstPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x >> 3);
+    for (std::int16_t curY = 0; curY < height; ++curY) {
+        for (std::int16_t curX = 0; curX < width; ++curX)
+            writeVideoMem(dstPtr++, readVideoMem(srcPtr++));
+        dstPtr += VIDEO_MEM_ROW_BYTES - width;
+    }
+    return srcPtr;
 }
 
 } // namespace resl::drawing

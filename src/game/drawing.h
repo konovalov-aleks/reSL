@@ -20,7 +20,7 @@ void drawRailBg2(
 void drawSemaphore(Semaphore&, std::int16_t yOffset);
 
 /* 17bf:0cd0 */
-void drawRailroad(std::int16_t yOffset);
+void drawFieldBackground(std::int16_t yOffset);
 
 /* 18fa:08d6 */
 void drawTrainList(Carriage*);
@@ -39,5 +39,8 @@ void eraseTrain(const Train&);
 
 /* 132d:01e2 */
 void drawTrainFinishedExclamation(std::int16_t x, std::int16_t y);
+
+/* 132d:00f9 */
+void drawGameField(std::int16_t yOffset);
 
 } // namespace resl

@@ -88,7 +88,7 @@ void drawDispatchers(std::int16_t yOffset)
 
     const std::int16_t y = yOffset + 25;
     for (int i = 0; i < entranceCount; ++i) {
-        const EntranceInfo& e = entrances[i];
+        const EntranceInfo& e = g_entrances[i];
         bool signalling = e.waitingTrainsCount != 0;
         const std::int16_t x = i * 22 + 481;
         drawGlyphW16(g_dispatcherGlyphs[signalling].bg, x, y, e.bgColor);

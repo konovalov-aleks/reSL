@@ -15,6 +15,6 @@ struct TrainGlyph {
 };
 
 /* 1cae:0000 : 2100 bytes */
-extern const TrainGlyph g_trainGlyphs[15][5][2];
+extern const TrainGlyph g_trainGlyphs[15][5][2]; // [carriage type][angle][direction]
 
 } // namespace resl

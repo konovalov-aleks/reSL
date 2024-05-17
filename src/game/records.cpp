@@ -55,20 +55,16 @@ void showRecordsScreen()
 
         g_textSpacing = 2;
         drawText(153, 352, "* THE BEST DISPATCHERS *", Black);
-        // TODO use small font
-        drawText(0x72, 0x172, " #  Name           Trains   Money   Year   Level", Black);
+        drawTextSmall(0x72, 0x172, " #  Name           Trains   Money   Year   Level", Black);
         drawText(169, 530, "* THE BEST MANAGERS *", Black);
-        // TODO use small font
-        drawText(0x72, 0x224, " #  Name        Level : Year   Money   Trains", Black);
+        drawTextSmall(0x72, 0x224, " #  Name        Level : Year   Money   Trains", Black);
         std::qsort(records, nRecords, sizeof(Record), &recordCompareByTrains);
         for (int i = 0; i <= 9 && records[i].trains; ++i) {
             char buf[80];
             std::snprintf(
                 buf, sizeof(buf), "%2d. %-14s %6u %4u,000 %6u %2u", i + 1, records[i].name,
-                records[i].trains, records[i].money, records[i].year, records[i].level
-            );
-            // TODO use small font
-            drawText(114, (i + 2) * 12 + 370, buf, Black);
+                records[i].trains, records[i].money, records[i].year, records[i].level);
+            drawTextSmall(114, (i + 2) * 12 + 370, buf, Black);
         }
     }
 }

@@ -17,8 +17,9 @@ Headers g_headers;
 /* 262d:5f00 : 2 bytes */
 std::int16_t entranceCount;
 
-/* 1d7d:01fc : 132 bytes */
-EntranceInfo entrances[6];
+// TODO fill initial values
+/* 1d7d:01fc : 198 bytes */
+EntranceInfo g_entrances[9];
 
 /* 262d:21da : 960 bytes */
 StaticObject g_staticObjects[120];
@@ -69,10 +70,10 @@ std::int16_t x_erasedSemaphoreCount;
 Semaphore g_semaphores[50];
 
 /* 262d:6fd2 : 2 bytes */
-std::uint16_t g_orderArrayLen;
+std::uint16_t g_collidedTrainsArrayLen;
 
 /* 262d:7000 : 80 bytes */
-std::pair<const Carriage*, const Carriage*> x_orderArray[20];
+std::pair<const Carriage*, const Carriage*> g_collidedTrainsArray[20];
 
 /* 262d:6fd4 : 2 bytes */
 std::uint16_t g_trainDrawingChainLen;
@@ -82,5 +83,8 @@ Carriage* g_trainDrawingChains[20];
 
 /* 262d:6ffe : 1 byte */
 bool g_needToRedrawTrains;
+
+/* 262d:7050 : 800 bytes */
+Rectangle g_carriagesBoundingBoxes[100];
 
 } // namespace resl

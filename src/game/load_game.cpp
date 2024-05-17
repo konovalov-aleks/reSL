@@ -32,8 +32,7 @@ static Chunk* fixLoadedChunkArrayPtr(Chunk* p)
 {
     assert(
         reinterpret_cast<std::intptr_t>(p) >= chunksLoadedOffset &&
-        reinterpret_cast<std::intptr_t>(p) <= chunksLoadedOffset + fileChunkArraySize
-    );
+        reinterpret_cast<std::intptr_t>(p) <= chunksLoadedOffset + fileChunkArraySize);
     std::ptrdiff_t offset = reinterpret_cast<std::intptr_t>(p) - chunksLoadedOffset;
     assert(offset % fileChunkSize == 0);
     return &g_chunks[0][0][0] + (offset / fileChunkSize);
@@ -51,7 +50,7 @@ static void fixLoadedLocation(Location* l)
         /* obj is inside entrances array */
         std::ptrdiff_t offset = c - (entrancesLoadedOffset + fileEntranceInfoObjOffset);
         assert(offset % fileEntranceInfoSize == 0);
-        l->chunk = &entrances[offset / fileEntranceInfoSize].chunk;
+        l->chunk = &g_entrances[offset / fileEntranceInfoSize].chunk;
     } else {
         /* obj is inside objects array */
         l->chunk = fixLoadedChunkArrayPtr(l->chunk);
@@ -83,8 +82,7 @@ static void loadGameState(const char* fileName, void* switchStates, void* semaph
             sizeof(chunksLoadedOffset) == 2 && sizeof(entrancesLoadedOffset) == 2 &&
             sizeof(playerName) == 0x14 && sizeof(g_headers) == 0x48 && sizeof(entranceCount) == 2 &&
             sizeof(g_staticObjects) == 0x3c0 && sizeof(g_railRoadCount) == 2 &&
-            sizeof(g_railRoad[0]) == 6
-        );
+            sizeof(g_railRoad[0]) == 6);
 
         checkRead(fd, &chunksLoadedOffset, 2);
         checkRead(fd, &entrancesLoadedOffset, 2);
@@ -94,14 +92,14 @@ static void loadGameState(const char* fileName, void* switchStates, void* semaph
 
         if constexpr (sizeof(void*) == 2) {
             // static_assert(sizeof(entrances) == 0x84);
-            checkRead(fd, entrances, 0x84);
+            checkRead(fd, g_entrances, 0x84);
         } else {
             off_t pos = lseek(fd, 0, SEEK_CUR);
-            for (EntranceInfo& entrance : entrances) {
-                checkRead(fd, &entrance, 14);
+            for (std::size_t i = 0; i < NormalEntranceCount; ++i) {
+                checkRead(fd, &g_entrances[i], 14);
                 for (int j = 0; j < 2; ++j) {
-                    entrance.chunk.x_neighbours[j].chunk = readPtr<Chunk>(fd);
-                    checkRead(fd, &entrance.chunk.x_neighbours[j].slot, 2);
+                    g_entrances[i].chunk.x_neighbours[j].chunk = readPtr<Chunk>(fd);
+                    checkRead(fd, &g_entrances[i].chunk.x_neighbours[j].slot, 2);
                 }
             }
             off_t curPos = lseek(fd, 0, SEEK_CUR);
@@ -188,11 +186,11 @@ IOStatus loadSavedGame(const char* fileName)
             train.x_lastMovementTime = getTime();
         }
 
-        for (EntranceInfo& entrance : entrances) {
-            entrance.chunk.x_neighbours[0].chunk =
-                fixLoadedChunkArrayPtr(entrance.chunk.x_neighbours[0].chunk);
-            const bool isRight = isRightEntrance(*entrance.chunk.x_neighbours[0].chunk);
-            entrance.chunk.x_neighbours[isRight].chunk = &entrance.chunk;
+        for (std::size_t i = 0; i < NormalEntranceCount; ++i) {
+            g_entrances[i].chunk.x_neighbours[0].chunk =
+                fixLoadedChunkArrayPtr(g_entrances[i].chunk.x_neighbours[0].chunk);
+            const bool isRight = isRightEntrance(*g_entrances[i].chunk.x_neighbours[0].chunk);
+            g_entrances[i].chunk.x_neighbours[isRight].chunk = &g_entrances[i].chunk;
         }
         for (RailInfo* road = g_railRoad; road < g_railRoad + g_railRoadCount; ++road) {
             createSwitches(*road);

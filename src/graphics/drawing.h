@@ -1,6 +1,8 @@
 #pragma once
 
 #include "color.h"
+#include "driver.h"
+#include <game/types/rectangle.h>
 
 #include <cstdint>
 
@@ -39,5 +41,23 @@ void putPixel(std::int16_t x, std::int16_t y, Color);
 void copyRectangle(std::int16_t dstX, std::int16_t dstY,
                    std::int16_t srcX, std::int16_t srcY,
                    std::int16_t width, std::int16_t height);
+
+/* The block of video memory starting at A000:7DC8 is used as a shadow buffer
+
+   0x7DC8 = VIDEO_MEM_ROW_BYTES<0x5C> * SCREEN_HEIGHT<350>
+
+*/
+inline static constexpr VideoMemPtr VIDEO_MEM_SHADOW_BUFFER = 0x7DC8; /* A000:7DC8 */
+
+/* 1b06:0004 */
+void copyFromShadowBuffer(const Rectangle&);
+
+/* 1b06:0062 */
+VideoMemPtr copySpriteToShadowBuffer(VideoMemPtr, std::int16_t x, std::int16_t y,
+                                     std::int16_t width, std::int16_t height);
+
+/* 1b06:00a0 */
+VideoMemPtr drawSpriteFromVideoMem(VideoMemPtr, std::int16_t x, std::int16_t y,
+                                   std::int16_t width, std::int16_t height);
 
 } // namespace resl::drawing

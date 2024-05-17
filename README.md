@@ -1,4 +1,4 @@
-<img width="524" alt="shortline_banner" src="https://github.com/konovalov-aleks/reSL/assets/11459433/1d632634-559e-48ea-9234-471e14b8f2ab">
+<img width="516" alt="banner" src="https://github.com/konovalov-aleks/reSL/assets/11459433/eea5c05c-8175-4417-9fed-990ca22190e5">
 
 # reSL
 The reverse engineered DOS game [ShortLine v1.1. (DOKA 1992)](https://www.youtube.com/watch?v=nfpi1QWPuz8)
@@ -8,7 +8,7 @@ https://www.old-games.ru/game/download/1232.html
 
 ## Current status
 
-<img width="640" alt="reSL screenshot 2024-05-05 01 29 37" src="https://github.com/konovalov-aleks/reSL/assets/11459433/a429742a-ac7b-498b-833b-bdf6309b69cf">
+<img width="640" alt="reSL" src="https://github.com/konovalov-aleks/reSL/assets/11459433/35f3f24b-b513-44ed-a5a8-17c03803bbab">
 
 ### Progress:
 1. Disassembled most of the binary code.
@@ -17,7 +17,7 @@ https://www.old-games.ru/game/download/1232.html
    * drawing the world (all objects on the game field).
    * drawing the game field header.
    * loading the original game records file and drawing records screen.
-   * (WIP) train movement logic
+   * train movement logic
 
 ## Idea and goals of the project:
 
@@ -27,7 +27,7 @@ The goal of the project is to gain fun and experience, as well as to port my fav
 ## Why did I take v1.1, not latest v2.0?
 
 I initially started reverse engeneering the second version. But I soon realized that:
-* this game is different a bit from the one I played in childhood.
+* this game is a bit different from the one I played in childhood.
 * moreover it works much worse - there are no animations, the screen blinks when switching menus.
 * v2.0 is written on Pascal using BGI library. But v1.1 is written on TurboC using assembler parts for working with graphics and to implement some tricky mechanics (ShortLine even uses coroutines written on assembler!).
 

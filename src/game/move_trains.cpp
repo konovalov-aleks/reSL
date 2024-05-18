@@ -318,7 +318,7 @@ Task taskMoveAndRedrawTrains()
                 curChain = 0;
 
             Carriage* carriage = g_trainDrawingChains[curChain];
-            if (!carriage || (getTime() - carriage->train->x_lastMovementTime < minMovementPeriod))
+            if (!carriage || (getTime() - carriage->train->lastMovementTime < minMovementPeriod))
                 continue;
 
             bool needToRestartDrawing = false;
@@ -330,12 +330,15 @@ Task taskMoveAndRedrawTrains()
                 if (!carriage->train->x_needToMove) {
                     carriage->train->x_needToMove = true;
                     const TimeT curTime = getTime();
-                    const TimeT dTime = curTime - carriage->train->x_lastMovementTime;
-                    carriage->train->x_lastMovementTime = curTime;
-                    if (bool trainCrashed = moveTrain(*carriage->train, dTime);
-                        carriage->type != CarriageType::CrashedTrain && trainCrashed) {
-                        needToRestartDrawing = true;
-                        break;
+                    const TimeT dTime = curTime - carriage->train->lastMovementTime;
+                    carriage->train->lastMovementTime = curTime;
+
+                    if (carriage->type != CarriageType::CrashedTrain) {
+                        bool trainCrashed = moveTrain(*carriage->train, dTime);
+                        if (trainCrashed) {
+                            needToRestartDrawing = true;
+                            break;
+                        }
                     }
                 }
 

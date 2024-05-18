@@ -51,7 +51,7 @@ struct Train {
     std::uint8_t x_speed;
     char unknown2;
     std::int16_t year;
-    std::int16_t x_lastMovementTime;
+    std::int16_t lastMovementTime;
 
     Carriage carriages[5];
 

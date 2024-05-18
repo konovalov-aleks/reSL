@@ -203,7 +203,7 @@ IOStatus loadSavedGame(const char* fileName)
                 train.carriages[i].train = &train;
                 fixLoadedLocation(&train.carriages[i].location);
             }
-            train.x_lastMovementTime = getTime();
+            train.lastMovementTime = getTime();
         }
 
         for (std::size_t i = 0; i < NormalEntranceCount; ++i) {

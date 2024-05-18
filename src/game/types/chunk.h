@@ -14,8 +14,8 @@ struct ChunkReference {
 };
 
 struct Chunk {
-    std::uint16_t x;
-    std::uint16_t y;
+    std::int16_t x;
+    std::int16_t y;
     std::uint8_t type;
     std::uint8_t minPathStep;
     std::uint8_t maxPathStep;

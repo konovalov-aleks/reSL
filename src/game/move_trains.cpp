@@ -135,10 +135,24 @@ static void changeMoneyVolume(std::int16_t delta)
     // TODO implement
 }
 
+/* 18fa:00ba */
+void removeTrainFromDrawingChain(Train& train)
+{
+    Carriage** c = &g_trainDrawingChains[train.drawingChainIdx];
+    while (c) {
+        if ((*c)->train == &train)
+            *c = (*c)->next;
+        else
+            c = &((*c)->next);
+    }
+}
+
 /* 18a5:042f */
 static void deleteTrain(Train& train)
 {
-    // TODO implement
+    removeTrainFromDrawingChain(train);
+    eraseTrain(train);
+    train.isFreeSlot = true;
 }
 
 /* 19b2:0077 */
@@ -260,11 +274,11 @@ static bool handleCollisions(const Carriage& c1, const Carriage& c2)
 /* 18fa:0b10 */
 static void eraseCarriagesInShadowBuffer(const Carriage& c, VideoMemPtr ptr)
 {
-    std::uint16_t widthBytes = ((c.rect.x2 - 1) >> 3) - (c.rect.x1 >> 3) + 1;
-    std::uint16_t height = c.rect.y2 - c.rect.y1;
+    std::int16_t widthBytes = ((c.rect.x2 - 1) / 8) - (c.rect.x1 / 8) + 1;
+    std::int16_t height = c.rect.y2 - c.rect.y1;
     if (c.next)
         eraseCarriagesInShadowBuffer(*c.next, ptr + widthBytes * height);
-    drawing::drawSpriteFromVideoMem(ptr, c.rect.x1, c.rect.y1 + 350, widthBytes, height);
+    drawing::copySpriteFromShadowBuffer(ptr, c.rect.x1, c.rect.y1 + 350, widthBytes, height);
 }
 
 /* 18fa:068a */

@@ -50,9 +50,9 @@ static void initTrains()
 /* 146b:00cc */
 void initGameData()
 {
-    for (int x = 0; x < 11; ++x) {
-        for (int y = 0; y < 11; ++y) {
-            for (int type = 0; type < 6; ++type) {
+    for (std::int16_t x = 0; x < 11; ++x) {
+        for (std::int16_t y = 0; y < 11; ++y) {
+            for (std::uint8_t type = 0; type < 6; ++type) {
                 Chunk& c = g_chunks[x][y][type];
                 c.type = type;
                 c.x = (x - y) * 88 + 320;

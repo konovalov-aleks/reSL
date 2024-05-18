@@ -57,7 +57,7 @@ VideoMemPtr copySpriteToShadowBuffer(VideoMemPtr, std::int16_t x, std::int16_t y
                                      std::int16_t width, std::int16_t height);
 
 /* 1b06:00a0 */
-VideoMemPtr drawSpriteFromVideoMem(VideoMemPtr, std::int16_t x, std::int16_t y,
-                                   std::int16_t width, std::int16_t height);
+VideoMemPtr copySpriteFromShadowBuffer(VideoMemPtr, std::int16_t x, std::int16_t y,
+                                       std::int16_t width, std::int16_t height);
 
 } // namespace resl::drawing

@@ -3,10 +3,12 @@
 #include "game_data.h"
 #include "init.h"
 #include "io_status.h"
+#include "resources/s4arr.h"
 #include "semaphore.h"
 #include "switch.h"
 #include <system/time.h>
 
+#include <array>
 #include <cassert>
 #include <cstddef>
 #include <fcntl.h>
@@ -74,6 +76,14 @@ inline T* readPtr(int fd)
 /* 1400:041c */
 static void loadGameState(const char* fileName, void* switchStates, void* semaphoresIsRed)
 {
+    /* The original game just reads entire structures or even arrays or structures from a file.
+       But obviously, this is not a portable approach:
+            1) storing pointers in a file is a wierd and dangerous idea (but they do it and they adjast these pointer after loading)
+            2) different platforms have different pointer sizes, alignment of structures elements,
+               byte order, etc.
+
+        TODO read field by field instead of reading entire structures/parts of structures
+       */
     int fd = open(fileName, O_BINARY | O_RDONLY);
     if (fd == -1) [[unlikely]]
         ioStatus = OpenError;
@@ -96,7 +106,8 @@ static void loadGameState(const char* fileName, void* switchStates, void* semaph
         } else {
             off_t pos = lseek(fd, 0, SEEK_CUR);
             for (std::size_t i = 0; i < NormalEntranceCount; ++i) {
-                checkRead(fd, &g_entrances[i], 14);
+                checkRead(fd, &g_entrances[i], 4);
+                checkRead(fd, &g_entrances[i].chunk, 10);
                 for (int j = 0; j < 2; ++j) {
                     g_entrances[i].chunk.x_neighbours[j].chunk = readPtr<Chunk>(fd);
                     checkRead(fd, &g_entrances[i].chunk.x_neighbours[j].slot, 2);
@@ -159,10 +170,18 @@ IOStatus x_smthRelatedToKeyboard(IOStatus errCode)
 }
 
 /* 146b:03c7 */
-static bool isRightEntrance(Chunk&)
+static bool isVisibleChunk(const Chunk& c)
 {
-    // TODO implement
-    return true;
+    const s4& s4elem = s4arr[c.type][0];
+    std::int16_t chunkIdx = static_cast<std::int16_t>(&c - &g_chunks[0][0][0]);
+    constexpr std::int16_t nElementsPerCol =
+        static_cast<std::int16_t>(std::size(g_chunks[0][0]));
+    constexpr std::int16_t nElementsPerRow =
+        static_cast<std::int16_t>(std::size(g_chunks[0]) * nElementsPerCol);
+    std::int16_t x = chunkIdx / nElementsPerRow + s4elem.tileOffsetX;
+    std::int16_t y = (chunkIdx % nElementsPerRow) / nElementsPerCol + s4elem.tileOffsetY;
+    std::int16_t xPixPos = (x - y) * 88 + 320;
+    return xPixPos > 0 && xPixPos < 640;
 }
 
 /* 1400:009c */
@@ -189,8 +208,9 @@ IOStatus loadSavedGame(const char* fileName)
         for (std::size_t i = 0; i < NormalEntranceCount; ++i) {
             g_entrances[i].chunk.x_neighbours[0].chunk =
                 fixLoadedChunkArrayPtr(g_entrances[i].chunk.x_neighbours[0].chunk);
-            const bool isRight = isRightEntrance(*g_entrances[i].chunk.x_neighbours[0].chunk);
-            g_entrances[i].chunk.x_neighbours[isRight].chunk = &g_entrances[i].chunk;
+            Chunk& c = *g_entrances[i].chunk.x_neighbours[0].chunk;
+            const bool isVisible = isVisibleChunk(c);
+            c.x_neighbours[isVisible].chunk = &g_entrances[i].chunk;
         }
         for (RailInfo* road = g_railRoad; road < g_railRoad + g_railRoadCount; ++road) {
             createSwitches(*road);

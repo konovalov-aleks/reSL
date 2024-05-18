@@ -14,13 +14,6 @@ char playerName[20];
 /* 1d7d:00f0 : 0x48 bytes */
 Headers g_headers;
 
-/* 262d:5f00 : 2 bytes */
-std::int16_t entranceCount;
-
-// TODO fill initial values
-/* 1d7d:01fc : 198 bytes */
-EntranceInfo g_entrances[9];
-
 /* 262d:21da : 960 bytes */
 StaticObject g_staticObjects[120];
 

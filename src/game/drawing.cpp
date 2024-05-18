@@ -9,6 +9,7 @@
 #include "resources/rail_glyph.h"
 #include "resources/static_object_glyph.h"
 #include "resources/train_glyph.h"
+#include "types/entrance.h"
 #include <graphics/text.h>
 #include <system/buffer.h>
 #include <system/random.h>

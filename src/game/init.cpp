@@ -2,6 +2,7 @@
 
 #include "game_data.h"
 #include "resources/movement_paths.h"
+#include "types/entrance.h"
 
 namespace resl {
 
@@ -18,7 +19,7 @@ void resetGameData()
     g_railRoadCount = 0;
     g_nSwitches = 0;
     g_semaphoreCount = 0;
-    entranceCount = 0;
+    g_entranceCount = 0;
 
     for (int x = 0; x < 11; ++x) {
         for (int y = 0; y < 11; ++y) {

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "types/chunk.h"
-#include "types/entrance_info.h"
 #include "types/header_field.h"
 #include "types/rail_info.h"
 #include "types/rectangle.h"
@@ -26,12 +25,6 @@ extern char playerName[20];
 
 /* 1d7d:00f0 : 0x48 bytes */
 extern Headers g_headers;
-
-/* 262d:5f00 : 2 bytes */
-extern std::int16_t entranceCount;
-
-/* 1d7d:01fc : 132 bytes */
-extern EntranceInfo g_entrances[9];
 
 /* 262d:21da : 960 bytes */
 extern StaticObject g_staticObjects[120];

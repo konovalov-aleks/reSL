@@ -6,6 +6,7 @@
 #include "resources/s4arr.h"
 #include "semaphore.h"
 #include "switch.h"
+#include "types/entrance.h"
 #include <system/time.h>
 
 #include <array>
@@ -90,7 +91,7 @@ static void loadGameState(const char* fileName, void* switchStates, void* semaph
     else {
         static_assert(
             sizeof(chunksLoadedOffset) == 2 && sizeof(entrancesLoadedOffset) == 2 &&
-            sizeof(playerName) == 0x14 && sizeof(g_headers) == 0x48 && sizeof(entranceCount) == 2 &&
+            sizeof(playerName) == 0x14 && sizeof(g_headers) == 0x48 && sizeof(g_entranceCount) == 2 &&
             sizeof(g_staticObjects) == 0x3c0 && sizeof(g_railRoadCount) == 2 &&
             sizeof(g_railRoad[0]) == 6);
 
@@ -98,7 +99,7 @@ static void loadGameState(const char* fileName, void* switchStates, void* semaph
         checkRead(fd, &entrancesLoadedOffset, 2);
         checkRead(fd, playerName, 0x14);
         checkRead(fd, &g_headers, 0x48);
-        checkRead(fd, &entranceCount, 2);
+        checkRead(fd, &g_entranceCount, 2);
 
         if constexpr (sizeof(void*) == 2) {
             // static_assert(sizeof(entrances) == 0x84);

@@ -16,6 +16,7 @@ set(SOURCES
     src/game/records.cpp
     src/game/resources/carriage_bias.cpp
     src/game/resources/dispatcher_glyph.cpp
+    src/game/resources/entrance.cpp
     src/game/resources/impasse_glyph.cpp
     src/game/resources/movement_paths.cpp
     src/game/resources/rail_glyph.cpp
@@ -28,6 +29,7 @@ set(SOURCES
     src/game/resources/train_glyph.cpp
     src/game/semaphore.cpp
     src/game/switch.cpp
+    src/game/types/entrance.cpp
     src/graphics/drawing.cpp
     src/graphics/glyph.cpp
     src/graphics/impl/driver_sdl.cpp

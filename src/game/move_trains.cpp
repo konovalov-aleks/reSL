@@ -3,6 +3,7 @@
 #include "drawing.h"
 #include "game_data.h"
 #include "resources/movement_paths.h"
+#include "types/entrance.h"
 #include "types/header_field.h"
 #include "types/position.h"
 #include <graphics/drawing.h>

@@ -11,8 +11,7 @@ namespace resl {
 struct EntranceInfo {
     Color bgColor;
     Color fgColor;
-    // std::uint8_t tileX;
-    std::uint8_t tileY;
+    std::uint8_t unknown;
     std::uint8_t waitingTrainsCount;
     Chunk chunk;
 };
@@ -23,5 +22,11 @@ struct EntranceInfo {
  Thus, they write only 6 first entrances to the game save file.
  */
 static inline constexpr std::size_t NormalEntranceCount = 6;
+
+/* 262d:5f00 : 2 bytes */
+extern std::int16_t g_entranceCount;
+
+/* 1d7d:01fc : 198 bytes */
+extern EntranceInfo g_entrances[9];
 
 } // namespace resl

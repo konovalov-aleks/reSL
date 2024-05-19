@@ -39,6 +39,7 @@ set(SOURCES
     src/system/random.cpp
     src/system/read_file.cpp
     src/system/time.cpp
+    src/tasks/scheduler.cpp
     src/tasks/task.cpp
 )
 

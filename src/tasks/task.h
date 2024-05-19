@@ -23,6 +23,7 @@ struct TaskPromise {
     void unhandled_exception() { std::abort(); }
 
     TimeT m_sleepUntil = 0;
+    bool m_suspended = false;
 };
 
 class SleepAwaitable {

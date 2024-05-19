@@ -23,9 +23,6 @@ extern std::uint16_t entrancesLoadedOffset;
 /* 1d7d:01e8 : 20 byte */
 extern char playerName[20];
 
-/* 1d7d:00f0 : 0x48 bytes */
-extern Headers g_headers;
-
 /* 262d:21da : 960 bytes */
 extern StaticObject g_staticObjects[120];
 

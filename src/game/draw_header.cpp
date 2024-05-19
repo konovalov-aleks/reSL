@@ -1,6 +1,6 @@
 #include "draw_header.h"
 
-#include "game_data.h"
+#include "header.h"
 #include "resources/dispatcher_glyph.h"
 #include "types/entrance.h"
 #include <graphics/drawing.h>
@@ -34,13 +34,13 @@ void drawHeaderBackground(std::int16_t yOffset)
 }
 
 /* 12c5:01d7 */
-static void drawHeaderField(const HeaderField& hdrField)
+void drawHeaderField(const HeaderField& hdrField)
 {
-    for (int i = 0; i < hdrField.nDigits; ++i) {
+    for (std::int8_t i = 0; i <= hdrField.curAnimatingDigit; ++i) {
         drawing::copyRectangle(
             hdrField.x + (hdrField.nDigits - i - 1) * 16,
             hdrField.y, 680,
-            (hdrField.digitValues[i] + 1) * 16 + hdrField._counter + 397,
+            (hdrField.digitValues[i] + 1) * 16 + hdrField.yScroll + 397,
             2, 16);
     }
     drawing::setVideoModeR0W2();
@@ -63,7 +63,7 @@ static void updateHeaderField(
     for (int i = 0; i < hdrField.nDigits; ++i)
         hdrField.digitValues[i] = buf[4 - i] - '0';
 
-    hdrField._counter = 0;
+    hdrField.yScroll = 0;
     hdrField.curAnimatingDigit = hdrField.nDigits - 1;
     hdrField.y += yOffset;
     drawHeaderField(hdrField);

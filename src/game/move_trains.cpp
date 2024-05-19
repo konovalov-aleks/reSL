@@ -2,6 +2,7 @@
 
 #include "drawing.h"
 #include "game_data.h"
+#include "header.h"
 #include "resources/movement_paths.h"
 #include "types/entrance.h"
 #include "types/header_field.h"
@@ -140,7 +141,7 @@ static void changeMoneyVolume(std::int16_t delta)
 void removeTrainFromDrawingChain(Train& train)
 {
     Carriage** c = &g_trainDrawingChains[train.drawingChainIdx];
-    while (c) {
+    while (*c) {
         if ((*c)->train == &train)
             *c = (*c)->next;
         else
@@ -165,13 +166,6 @@ static void playTrainFinishedMelody(std::int16_t trainLen)
 // TODO move to another place
 /* 12ba:0003 */
 void showStatusMessage(const char* msg)
-{
-    // TODO implement
-}
-
-// TODO move to another place
-/* 12c5:031b */
-void startHeaderFieldAnimation(HeaderFieldId, std::int16_t delta)
 {
     // TODO implement
 }
@@ -238,8 +232,8 @@ bool moveTrain(Train& train, std::int16_t dTime)
             train.x_maxSpeed = 30;
         if (train.head.chunk->type != 6) /* 6 means an entrance chunk; TODO make a constant */
             return false;
-        const Rectangle& rect = train.carriages[train.carriageCnt - train.x_headCarriageIdx].rect;
-        if (rect.x1 < 638 || rect.x2 > 1)
+        const Rectangle& rect = train.carriages[train.carriageCnt - 1 - train.x_headCarriageIdx].rect;
+        if (rect.x1 < 638 && rect.x2 > 1)
             return false;
 
         if (train.head.chunk == &dstEntrance.chunk ||
@@ -351,7 +345,7 @@ Task taskMoveAndRedrawTrains()
                 break;
 
             carriage = g_trainDrawingChains[curChain];
-            if (!g_needToRedrawTrains) /* in the original game: "!g_needToRedrawTrains || !carriage" */
+            if (!g_needToRedrawTrains || !carriage)
                 continue;
 
             const Rectangle* curCarriageRect = g_carriagesBoundingBoxes;

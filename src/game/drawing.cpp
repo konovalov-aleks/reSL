@@ -4,6 +4,7 @@
 #include "draw_impasse.h"
 #include "game_data.h"
 #include "graphics/drawing.h"
+#include "header.h"
 #include "resources/carriage_bias.h"
 #include "resources/movement_paths.h"
 #include "resources/rail_glyph.h"

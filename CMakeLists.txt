@@ -9,6 +9,7 @@ set(SOURCES
     src/game/draw_impasse.cpp
     src/game/drawing.cpp
     src/game/game_data.cpp
+    src/game/header.cpp
     src/game/init.cpp
     src/game/io_status.cpp
     src/game/load_game.cpp

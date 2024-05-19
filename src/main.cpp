@@ -2,6 +2,7 @@
 
 #include "game/drawing.h"
 #include "game/game_data.h"
+#include "game/header.h"
 #include "game/load_game.h"
 #include "game/move_trains.h"
 #include "game/records.h"
@@ -82,6 +83,7 @@ void loadGame(const char* fname)
     drawing::setVideoModeR0W1();
     drawing::copyRectangle(0, 0, 0, 350, 80, 350);
 
+    addTask(taskHeaderFieldAnimation());
     addTask(taskMoveAndRedrawTrains());
 }
 

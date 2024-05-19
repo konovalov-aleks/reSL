@@ -1,6 +1,7 @@
 #include "load_game.h"
 
 #include "game_data.h"
+#include "header.h"
 #include "init.h"
 #include "io_status.h"
 #include "resources/s4arr.h"

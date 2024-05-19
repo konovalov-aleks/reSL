@@ -47,7 +47,7 @@ void copyRectangle(std::int16_t dstX, std::int16_t dstY,
    0x7DC8 = VIDEO_MEM_ROW_BYTES<0x5C> * SCREEN_HEIGHT<350>
 
 */
-inline static constexpr VideoMemPtr VIDEO_MEM_SHADOW_BUFFER = 0x7DC8; /* A000:7DC8 */
+inline static constexpr VideoMemPtr VIDEO_MEM_SHADOW_BUFFER = VIDEO_MEM_START_ADDR + 0x7DC8; /* A000:7DC8 */
 
 /* 1b06:0004 */
 void copyFromShadowBuffer(const Rectangle&);

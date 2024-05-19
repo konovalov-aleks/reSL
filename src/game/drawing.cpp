@@ -15,6 +15,7 @@
 #include <system/buffer.h>
 #include <system/random.h>
 #include <system/read_file.h>
+#include <utility/sar.h>
 
 #include <cassert>
 #include <cstdint>
@@ -79,7 +80,7 @@ void drawSwitch(std::int16_t idx, bool drawToScreen)
         for (std::uint8_t xBytes = 0; xBytes < rg->glyph.width; ++xBytes) {
             if (*glyphData) {
                 std::int16_t xPos = rail->x + rg->dx + xBytes * 8;
-                VideoMemPtr srcPtr = VIDEO_MEM_START_ADDR + (yPos + 350) * VIDEO_MEM_ROW_BYTES + xPos / 8;
+                VideoMemPtr srcPtr = VIDEO_MEM_START_ADDR + (yPos + 350) * VIDEO_MEM_ROW_BYTES + sar(xPos, 3);
                 writeVideoMem(dstPtr++, readVideoMem(srcPtr));
             }
             ++glyphData;
@@ -316,7 +317,7 @@ void drawTrainList(Carriage* c)
 
         drawing::setVideoModeR0W1();
         shadowBufPtr = drawing::copySpriteToShadowBuffer(shadowBufPtr, c->rect.x1, c->rect.y1 + 350,
-                                                         (c->rect.x2 - 1) / 8 - c->rect.x1 / 8 + 1,
+                                                         sar<std::int16_t>(c->rect.x2 - 1, 3) - sar(c->rect.x1, 3) + 1,
                                                          glyph.height);
         drawing::setVideoModeR0W2();
 

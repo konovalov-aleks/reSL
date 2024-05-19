@@ -9,6 +9,7 @@
 #include "types/position.h"
 #include <graphics/drawing.h>
 #include <system/time.h>
+#include <utility/sar.h>
 
 #include <utility>
 
@@ -262,7 +263,7 @@ static bool handleCollisions(const Carriage& c1, const Carriage& c2)
 /* 18fa:0b10 */
 static void eraseCarriagesInShadowBuffer(const Carriage& c, VideoMemPtr ptr)
 {
-    std::int16_t widthBytes = ((c.rect.x2 - 1) / 8) - (c.rect.x1 / 8) + 1;
+    std::int16_t widthBytes = sar<std::int16_t>((c.rect.x2 - 1), 3) - sar(c.rect.x1, 3) + 1;
     std::int16_t height = c.rect.y2 - c.rect.y1;
     if (c.next)
         eraseCarriagesInShadowBuffer(*c.next, ptr + widthBytes * height);

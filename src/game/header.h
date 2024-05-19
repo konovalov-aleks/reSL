@@ -13,6 +13,9 @@ extern Headers g_headers;
 /* 12c5:031b */
 void startHeaderFieldAnimation(HeaderFieldId, std::int16_t delta);
 
+/* 19de:0490 */
+void spendMoney(std::int16_t delta);
+
 /* 12c5:0008 */
 Task taskHeaderFieldAnimation();
 

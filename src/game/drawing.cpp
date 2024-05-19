@@ -398,9 +398,16 @@ void drawWorld()
 }
 
 /* 132d:0002 */
-void eraseTrain(const Train&)
+void eraseTrain(const Train& train)
 {
-    // TODO implement
+    // TODO draw cursor?
+
+    drawing::setVideoModeR0W1();
+    for (uint8_t i = 0; i < train.carriageCnt; ++i)
+        drawing::copyFromShadowBuffer(train.carriages[i].rect);
+    drawing::setVideoModeR0W2();
+
+    // TODO draw cursor?
 }
 
 /* 132d:01e2 */

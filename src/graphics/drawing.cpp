@@ -44,6 +44,7 @@ void filledRectangle(std::int16_t x, std::int16_t y,
                      std::int16_t width, std::int16_t height,
                      std::uint8_t pattern, Color color)
 {
+    assert(g_videoWriteMode == 2);
     VideoMemPtr videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + (x / 8);
     setVideoMask(pattern);
     for (int curY = 0; curY < height; ++curY) {

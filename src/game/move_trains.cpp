@@ -130,13 +130,6 @@ static void showPassengerAccidentMessage(std::int16_t count)
     // TODO implement
 }
 
-// TODO move to another place
-/* 19de:0490 */
-static void changeMoneyVolume(std::int16_t delta)
-{
-    // TODO implement
-}
-
 /* 18fa:00ba */
 void removeTrainFromDrawingChain(Train& train)
 {
@@ -223,7 +216,7 @@ bool moveTrain(Train& train, std::int16_t dTime)
             if (passengerCnt)
                 showPassengerAccidentMessage(passengerCnt);
 
-            changeMoneyVolume(train.carriageCnt + passengerCnt * 9);
+            spendMoney(train.carriageCnt + passengerCnt * 9);
             return true;
         }
     } else {

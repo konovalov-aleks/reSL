@@ -82,6 +82,7 @@ void loadGame(const char* fname)
 
     drawing::setVideoModeR0W1();
     drawing::copyRectangle(0, 0, 0, 350, 80, 350);
+    drawing::setVideoModeR0W2();
 
     addTask(taskHeaderFieldAnimation());
     addTask(taskMoveAndRedrawTrains());

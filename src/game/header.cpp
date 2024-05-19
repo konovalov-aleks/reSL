@@ -42,6 +42,12 @@ void startHeaderFieldAnimation(HeaderFieldId fieldId, std::int16_t delta)
     g_headerAnimationTaskQueue.push(request);
 }
 
+/* 19de:0490 */
+void spendMoney(std::int16_t delta)
+{
+    startHeaderFieldAnimation(HeaderFieldId::Money, -delta);
+}
+
 /* 16a6:067b */
 static void onHeaderFieldMaxValueReached(HeaderField&)
 {
@@ -51,8 +57,7 @@ static void onHeaderFieldMaxValueReached(HeaderField&)
 /* 12c5:0008 */
 Task taskHeaderFieldAnimation()
 {
-    // FIXME why not working?
-    //    drawHeaderFieldFontTexture();
+    drawHeaderFieldFontTexture();
 
     for (;;) {
         HeaderValueChangeRequest req = co_await g_headerAnimationTaskQueue.pop();

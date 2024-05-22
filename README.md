@@ -50,6 +50,45 @@ Every function/global variable has a comment like `/* 18fa:08d6 */`. This is an 
 
 After all the code has been rewritten, in the second stage, I will optimize the code for modern platforms and adapt the game to a touch interface.
 
+## Building reSL
+
+To build reSL you will need:
+* modern C++ compiler with C++20 support (modern clang, GCC, MSVC)
+* [cmake](https://cmake.org/download/)
+* [SDL2](https://github.com/libsdl-org/SDL/releases)
+
+### MacOS
+
+Open the Terminal application and execute the following instructions:
+```
+# install dependencies
+brew install cmake sdl2
+# prepare the build folder
+mkdir -p build && cd build
+# run cmake
+cmake -DCMAKE_BUILD_TYPE=Release ..
+# build the project
+cmake --build . -j4
+# enjoy!
+./resl
+```
+
+### Linux (Ubuntu)
+
+Open the terminal application and execute the following instructions:
+```
+# install dependencies
+sudo apt install -y cmake libsdl2-dev
+# prepare the build folder
+mkdir -p build && cd build
+# run cmake
+cmake -DCMAKE_BUILD_TYPE=Release ..
+# build the project
+cmake --build . -j4
+# enjoy!
+./resl
+```
+
 ## Legal notes:
 
 The original game was created by **Doka** in 1992.

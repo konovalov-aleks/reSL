@@ -112,8 +112,8 @@ bool poll_event()
     return true;
 }
 
-std::uint8_t g_videoWriteMask = 0;
-std::uint8_t g_videoWriteMode = 2;
+static std::uint8_t g_videoWriteMask = 0;
+static std::uint8_t g_videoWriteMode = 2;
 
 /* Read Mode
  0: Data is read from one of 4 bit planes depending on the Read Map
@@ -122,13 +122,46 @@ std::uint8_t g_videoWriteMode = 2;
     read byte and the color in the Color Compare Register (3CEh
     index 2). A bit is set if the color of the corresponding pixel
     matches the register. */
-std::uint8_t g_videoReadMode = 0;
+static std::uint8_t g_videoReadMode = 0;
 
 // 3CEh index  4  (R/W):  Graphics: Read Map Select Register
 // bit 0-1  Number of the plane Read Mode 0 will read from.
-std::uint8_t g_videoReadPlane = 0;
+static std::uint8_t g_videoReadPlane = 0;
 
-std::uint8_t g_videoRegMapMask = 0xF;
+static std::uint8_t g_videoRegMapMask = 0xF;
+
+static WriteOperation g_videoWriteOperation = WriteOperation::Copy;
+
+void setVideoMask(std::uint8_t mask)
+{
+    g_videoWriteMask = mask;
+}
+
+void setVideoMode(std::uint8_t mode)
+{
+    g_videoWriteMode = mode & 3;
+    g_videoReadMode = (mode >> 2) & 1;
+}
+
+std::uint8_t videoWriteMode()
+{
+    return g_videoWriteMode;
+}
+
+void setVideoMapMask(std::uint8_t mask)
+{
+    g_videoRegMapMask = mask;
+}
+
+void setVideoReadPlane(std::uint8_t p)
+{
+    g_videoReadPlane = p;
+}
+
+void setVideoWriteOperation(WriteOperation op)
+{
+    g_videoWriteOperation = op;
+}
 
 static const std::array<uint32_t, 16> g_palette = {
     0x55AA00, // Green
@@ -179,17 +212,41 @@ void writeVideoMem(VideoMemPtr memPtr, std::uint8_t color)
                 c |= ((g_latches[plane] & bitMask) != 0) << plane;
             rgb = g_palette[c];
         }
-        if (g_videoWriteMode == 0) {
+
+        const auto getPixel = [&x, &y]() {
+            std::uint32_t rgb;
             std::memcpy(
                 &rgb, &g_screenPixels[g_screenPixelsPitch * y + x * sizeof(rgb)], sizeof(rgb));
             auto iter = std::find(g_palette.begin(), g_palette.end(), rgb);
             assert(iter != g_palette.end());
-            std::uint8_t c = std::distance(g_palette.begin(), iter);
+            return static_cast<std::uint8_t>(std::distance(g_palette.begin(), iter));
+        };
+
+        if (g_videoWriteMode == 0) {
+            std::uint8_t c = getPixel();
             c = (c & ~g_videoRegMapMask) | (((mask & 0x80) ? g_videoRegMapMask : 0));
             rgb = g_palette[c];
             std::memcpy(
                 &g_screenPixels[g_screenPixelsPitch * y + x * sizeof(rgb)], &rgb, sizeof(rgb));
         } else if (mask & 0x80) {
+            std::uint8_t c = color;
+            if (g_videoWriteOperation != WriteOperation::Copy) {
+                std::uint8_t oldColor = getPixel();
+                switch (g_videoWriteOperation) {
+                case WriteOperation::Copy:
+                    break;
+                case WriteOperation::And:
+                    c &= oldColor;
+                    break;
+                case WriteOperation::Or:
+                    c |= oldColor;
+                    break;
+                case WriteOperation::Xor:
+                    c ^= oldColor;
+                    break;
+                }
+                rgb = g_palette[c];
+            }
             std::memcpy(
                 &g_screenPixels[g_screenPixelsPitch * y + x * sizeof(rgb)], &rgb, sizeof(rgb));
         }

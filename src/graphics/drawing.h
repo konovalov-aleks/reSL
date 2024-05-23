@@ -14,6 +14,20 @@ void setVideoModeR0W1();
 /* 1b06:0285 */
 void setVideoModeR0W2();
 
+/* Configures the data rotation register
+
+   bit 0-2  Number of positions to rotate data right before it is written to
+            display memory. Only active in Write Mode 0.
+       3-4  In Write Mode 2 this field controls the relation between the data
+            written from the CPU, the data latched from the previous read and the
+            data written to display memory:
+              0: CPU Data is written unmodified
+              1: CPU data is ANDed with the latched data
+              2: CPU data is ORed  with the latch data.
+              3: CPU data is XORed with the latched data. */
+/* 1b06:02a5 */
+void setDataRotation(std::uint8_t);
+
 /* 1b06:06f9 */
 void filledRectangle(std::int16_t x8, std::int16_t y,
                      std::int16_t width, std::int16_t height,

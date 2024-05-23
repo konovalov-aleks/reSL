@@ -9,6 +9,7 @@
 #include "resources/movement_paths.h"
 #include "resources/rail_glyph.h"
 #include "resources/static_object_glyph.h"
+#include "resources/train_finished_exclamation_glyph.h"
 #include "resources/train_glyph.h"
 #include "types/entrance.h"
 #include <graphics/text.h>
@@ -412,9 +413,24 @@ void eraseTrain(const Train& train)
 }
 
 /* 132d:01e2 */
-void drawTrainFinishedExclamation(std::int16_t x, std::int16_t y)
+void drawEraseTrainFinishedExclamation(std::int16_t entranceX, std::int16_t entranceY)
 {
-    // TODO implement
+    // Uses XOR operation when drawing
+    // => this allows us to use the same code to draw and erase the image
+
+    std::int16_t x;
+    const Glyph* glyph;
+    if (entranceX < 320) {
+        x = 8;
+        glyph = &g_glyphTrainFinishedLeftEntrance;
+    } else {
+        x = 611;
+        glyph = &g_glyphTrainFinishedRightEntrance;
+    }
+
+    drawing::setDataRotation(0x18); // rotation = 0, mode = XOR
+    drawGlyphAlignX8(glyph, x, entranceY - 9, Color::White);
+    drawing::setDataRotation(0); // default mode
 }
 
 /* 132d:00f9 */

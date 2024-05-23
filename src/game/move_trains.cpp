@@ -9,10 +9,13 @@
 #include "types/header_field.h"
 #include "types/position.h"
 #include <graphics/drawing.h>
+#include <system/random.h>
 #include <system/time.h>
 #include <utility/sar.h>
 
+#include <chrono>
 #include <cmath>
+#include <thread>
 #include <utility>
 
 namespace resl {
@@ -116,9 +119,25 @@ static Position carriagePosition(const Location& loc)
 }
 
 /* 132d:0239 */
-static void animateCollisionAndPlaySound(Position)
+static void animateCollisionAndPlaySound(Position pos)
 {
-    // TODO implement
+    drawing::setDataRotation(0x18); // rotation = 0, mode = XOR
+
+    std::int16_t x1[125];
+    std::int16_t y1[125];
+    std::int16_t x2[125];
+    std::int16_t y2[125];
+
+    for (int i = 0; i < 125; ++i) {
+        x1[i] = pos.x + symmetricRand(5);
+        y1[i] = pos.y + symmetricRand(3);
+        x2[i] = pos.x + symmetricRand(i / 2 + 1);
+        y2[i] = pos.x + symmetricRand(i / 2 + 1);
+
+        // TODO
+    }
+
+    drawing::setDataRotation(0); // default mode - simple copying without rotation
 }
 
 /* 1a65:050b */
@@ -187,6 +206,9 @@ static void deleteTrain(Train& train)
 static void playTrainFinishedMelody(std::int16_t trainLen)
 {
     // TODO implement
+    graphics_update();
+    poll_event();
+    std::this_thread::sleep_for(std::chrono::milliseconds(trainLen * 100000 / 5994));
 }
 
 /* 18a5:03a5 */
@@ -260,7 +282,7 @@ bool moveTrain(Train& train, std::int16_t dTime)
             train.carriages[0].dstEntranceIdx == blinkingTrainEntranceIdx) {
             // the train has reached the entrance
             deleteTrain(train);
-            drawTrainFinishedExclamation((rect.x1 + rect.x2) / 2, (rect.y1 + rect.y2) / 2);
+            drawEraseTrainFinishedExclamation((rect.x1 + rect.x2) / 2, (rect.y1 + rect.y2) / 2);
             playTrainFinishedMelody(train.carriageCnt);
             if (train.carriages[0].type == CarriageType::Server)
                 showStatusMessage("Server went out");
@@ -268,9 +290,9 @@ bool moveTrain(Train& train, std::int16_t dTime)
                 startHeaderFieldAnimation(HeaderFieldId::Trains, 1);
                 startHeaderFieldAnimation(HeaderFieldId::Money, train.carriageCnt + 3);
             }
-            // the original game also has this duplicated call, it looks like a bug:
-            // 18a5:0323 and 18a5:038b
-            drawTrainFinishedExclamation((rect.x1 + rect.x2) / 2, (rect.y1 + rect.y2) / 2);
+            // this function uses the XOR function when drawing, thus this duplicate call simply
+            // erases the previously drawn image
+            drawEraseTrainFinishedExclamation((rect.x1 + rect.x2) / 2, (rect.y1 + rect.y2) / 2);
             return false;
         }
     }

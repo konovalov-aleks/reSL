@@ -38,7 +38,7 @@ void scheduleTrainsDrawing();
 void eraseTrain(const Train&);
 
 /* 132d:01e2 */
-void drawTrainFinishedExclamation(std::int16_t x, std::int16_t y);
+void drawEraseTrainFinishedExclamation(std::int16_t entranceX, std::int16_t entranceY);
 
 /* 132d:00f9 */
 void drawGameField(std::int16_t yOffset);

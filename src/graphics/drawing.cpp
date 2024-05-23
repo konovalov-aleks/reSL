@@ -34,6 +34,15 @@ void setVideoModeR0W2()
     setVideoMask(0xFF);
 }
 
+/* 1b06:02a5 */
+void setDataRotation(std::uint8_t rotation)
+{
+    assert((rotation & 7) == 0); // not implemented yet
+    rotation >>= 3;
+    assert(rotation < 4);
+    setVideoWriteOperation(static_cast<WriteOperation>(rotation));
+}
+
 /* 1b06:02b5 */
 static void videoChoosePlanes(std::uint8_t mask)
 {
@@ -45,7 +54,7 @@ void filledRectangle(std::int16_t x, std::int16_t y,
                      std::int16_t width, std::int16_t height,
                      std::uint8_t pattern, Color color)
 {
-    assert(g_videoWriteMode == 2);
+    assert(videoWriteMode() == 2);
     VideoMemPtr videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + sar(x, 3);
     setVideoMask(pattern);
     for (int curY = 0; curY < height; ++curY) {
@@ -212,7 +221,7 @@ void copyRectangle(std::int16_t dstX, std::int16_t dstY,
 /* 1b06:0004 */
 void copyFromShadowBuffer(const Rectangle& r)
 {
-    assert(g_videoWriteMode == 1);
+    assert(videoWriteMode() == 1);
     std::int16_t xOffsetBytes = sar(r.x1, 3);
     std::int16_t widthBytes = sar(r.x2, 3) - xOffsetBytes + 1;
     std::int16_t height = r.y2 - r.y1;
@@ -232,7 +241,7 @@ void copyFromShadowBuffer(const Rectangle& r)
 VideoMemPtr copySpriteToShadowBuffer(VideoMemPtr dstPtr, std::int16_t x, std::int16_t y,
                                      std::int16_t width, std::int16_t height)
 {
-    assert(g_videoWriteMode == 1);
+    assert(videoWriteMode() == 1);
     VideoMemPtr srcPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + sar(x, 3);
     for (std::int16_t curY = 0; curY < height; ++curY) {
         for (std::int16_t curX = 0; curX < width; ++curX)
@@ -246,7 +255,7 @@ VideoMemPtr copySpriteToShadowBuffer(VideoMemPtr dstPtr, std::int16_t x, std::in
 VideoMemPtr copySpriteFromShadowBuffer(VideoMemPtr srcPtr, std::int16_t x, std::int16_t y,
                                        std::int16_t width, std::int16_t height)
 {
-    assert(g_videoWriteMode == 1);
+    assert(videoWriteMode() == 1);
     VideoMemPtr dstPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + sar(x, 3);
     for (std::int16_t curY = 0; curY < height; ++curY) {
         for (std::int16_t curX = 0; curX < width; ++curX)

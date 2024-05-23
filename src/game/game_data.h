@@ -75,7 +75,7 @@ extern Semaphore g_semaphores[50];
 extern std::uint16_t g_collidedTrainsArrayLen;
 
 /* 262d:7000 : 80 bytes */
-extern std::pair<const Carriage*, const Carriage*> g_collidedTrainsArray[20];
+extern std::pair<Carriage*, Carriage*> g_collidedTrainsArray[20];
 
 /* 262d:6fd4 : 2 bytes */
 extern std::uint16_t g_trainDrawingChainLen;

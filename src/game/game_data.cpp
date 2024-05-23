@@ -63,7 +63,7 @@ Semaphore g_semaphores[50];
 std::uint16_t g_collidedTrainsArrayLen;
 
 /* 262d:7000 : 80 bytes */
-std::pair<const Carriage*, const Carriage*> g_collidedTrainsArray[20];
+std::pair<Carriage*, Carriage*> g_collidedTrainsArray[20];
 
 /* 262d:6fd4 : 2 bytes */
 std::uint16_t g_trainDrawingChainLen;

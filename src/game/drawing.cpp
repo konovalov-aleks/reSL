@@ -197,11 +197,11 @@ void fillGameFieldBackground(std::int16_t yOffset)
 }
 
 /* 18fa:0142 */
-static bool trainOverlaps(const Train& t, int idx)
+static bool trainOverlaps(Train& t, int idx)
 {
     for (int i = t.carriageCnt - 1; i >= 0; --i) {
-        const Carriage& c1 = t.carriages[i];
-        for (const Carriage* c2 = g_trainDrawingChains[idx]; c2; c2 = c2->next) {
+        Carriage& c1 = t.carriages[i];
+        for (Carriage* c2 = g_trainDrawingChains[idx]; c2; c2 = c2->next) {
             // Check if the rectangles overlap
             if (c1.rect.y1 < c2->rect.y2 && c1.rect.y2 > c2->rect.y1 &&
                 (c1.rect.x1 & ~7) <= (c2->rect.x2 & ~7) &&

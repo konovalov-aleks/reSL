@@ -49,7 +49,7 @@ struct Train {
     std::uint8_t x_maxSpeed;
     std::uint8_t x_headCarriageIdx;
     std::uint8_t x_speed;
-    char unknown2;
+    char _padding;
     std::int16_t year;
     std::int16_t lastMovementTime;
 

@@ -4,6 +4,7 @@
 #include "game_data.h"
 #include "header.h"
 #include "resources/movement_paths.h"
+#include "resources/train_glyph.h"
 #include "types/entrance.h"
 #include "types/header_field.h"
 #include "types/position.h"
@@ -11,6 +12,7 @@
 #include <system/time.h>
 #include <utility/sar.h>
 
+#include <cmath>
 #include <utility>
 
 namespace resl {
@@ -119,8 +121,34 @@ static void animateCollisionAndPlaySound(Position)
     // TODO implement
 }
 
+/* 1a65:050b */
+static void setEmptyRectangle(Rectangle& r)
+{
+    r.x1 = 10000;
+    r.x2 = -10000;
+    r.y1 = 10000;
+    r.y2 = -10000;
+}
+
 /* 18fa:023d */
-static void createCrashMarker(Carriage&)
+static void createCrashMarker(Carriage& c)
+{
+    Train& train = *c.train;
+    train.isFreeSlot = false;
+    train.x_headCarriageIdx = 0;
+    train.carriageCnt = 1;
+    train.carriages[0] = c;
+    train.carriages[0].dstEntranceIdx = 7; // TODO create a constant
+    train.carriages[0].type = CarriageType::CrashedTrain;
+    train.tail = train.carriages[0].location;
+    train.head = train.carriages[0].location;
+    setEmptyRectangle(train.carriages[0].rect);
+    train.needToRedraw = true;
+}
+
+// TODO move to another place
+/* 12ba:0003 */
+static void showStatusMessage(const char* msg)
 {
     // TODO implement
 }
@@ -128,7 +156,11 @@ static void createCrashMarker(Carriage&)
 /* 18fa:063d */
 static void showPassengerAccidentMessage(std::int16_t count)
 {
-    // TODO implement
+    char msg[] = "?? PASSENGER CARS involved in the accident";
+    std::int16_t firstDigit = count / 10;
+    msg[0] = firstDigit ? '0' + firstDigit : ' ';
+    msg[1] = '0' + count % 10;
+    showStatusMessage(msg);
 }
 
 /* 18fa:00ba */
@@ -153,13 +185,6 @@ static void deleteTrain(Train& train)
 
 /* 19b2:0077 */
 static void playTrainFinishedMelody(std::int16_t trainLen)
-{
-    // TODO implement
-}
-
-// TODO move to another place
-/* 12ba:0003 */
-void showStatusMessage(const char* msg)
 {
     // TODO implement
 }
@@ -253,10 +278,119 @@ bool moveTrain(Train& train, std::int16_t dTime)
     return false;
 }
 
-/* 18fa:03a8 */
-static bool handleCollisions(const Carriage& c1, const Carriage& c2)
+/* 18fa:0295 */
+void processCarriageCollision(Carriage* c1, Carriage* c2, std::int16_t x, std::int16_t y)
 {
-    // TODO implement
+    do {
+        if (c1->type == CarriageType::Server) {
+            if (c2->type == CarriageType::CrashedTrain) {
+                // TODO fix the damaged road
+                return;
+            }
+        }
+        if (c1->type == CarriageType::CrashedTrain) {
+            if (c2->type == CarriageType::CrashedTrain)
+                return;
+            std::swap(c1, c2);
+            continue;
+        }
+    } while (false);
+
+    animateCollisionAndPlaySound({ x, y });
+    std::int16_t nPassenger = countPassengerCarriages(*c1->train);
+    std::int16_t dMoney = c1->train->carriageCnt;
+
+    deleteTrain(*c1->train);
+    if (c2->type == CarriageType::CrashedTrain)
+        c2->train->needToRedraw = true;
+    else {
+        deleteTrain(*c2->train);
+        if (x > 0 && x < 639)
+            createCrashMarker(*c1);
+        dMoney += c2->train->carriageCnt;
+        nPassenger += countPassengerCarriages(*c2->train);
+    }
+
+    if (nPassenger)
+        showPassengerAccidentMessage(nPassenger);
+
+    dMoney += nPassenger * 9;
+    spendMoney(dMoney);
+}
+
+/*g */
+static bool handleCollisions(Carriage& c1, Carriage& c2)
+{
+    /* 2D rotation:
+
+        x' = x cos(a) - y sin(a)
+        y' = x sin(a) + y cos(a)
+     */
+
+    /* 1d7d:234c - 10 bytes */
+    static const std::int16_t g_sinArr[5] = { 0, 3, 5, 5, 3 };
+
+    /* 1d7d:2356 - 10 bytes */
+    static const std::int16_t g_cosArr[5] = { 5, 4, 1, -1, -4 };
+
+    const Location& loc1 = c1.location;
+    const Location& loc2 = c2.location;
+
+    const PathStep& p1 = g_movementPaths[loc1.chunk->type].data[loc1.pathStep];
+    const PathStep& p2 = g_movementPaths[loc2.chunk->type].data[loc2.pathStep];
+
+    const std::int16_t x1 = loc1.chunk->x + p1.dx;
+    const std::int16_t y1 = loc1.chunk->y + p1.dy;
+
+    const std::int16_t x2 = loc2.chunk->x + p2.dx;
+    const std::int16_t y2 = loc2.chunk->y + p2.dy;
+
+    const std::int16_t dx = x1 - x2;
+    const std::int16_t dy = (y1 - y2) * 4;
+
+    const std::int16_t cos = g_cosArr[p1.angle];
+    const std::int16_t sin = -g_sinArr[p1.angle];
+
+    const std::int16_t w1 = g_trainGlyphs[c1.type][0][0].width - 4;
+    const std::int16_t w2 = g_trainGlyphs[c2.type][0][0].width - 4;
+
+    const std::int16_t a1 = (cos * w1) / 10;
+    const std::int16_t b1 = (sin * w1) / 10;
+
+    const std::int16_t a2 = (sin * 8) / 10;
+    const std::int16_t b2 = (-cos * 8) / 10;
+
+    std::int16_t xOffsets[5];
+    std::int16_t yOffsets[5];
+
+    xOffsets[0] = a1 - a2;
+    yOffsets[0] = b1 - b2;
+    xOffsets[1] = a1 + a2;
+    yOffsets[1] = b1 + b2;
+    xOffsets[2] = -a1 - a2;
+    yOffsets[2] = -b1 - b2;
+    xOffsets[3] = -a1 + a2;
+    yOffsets[3] = -b1 + b2;
+
+    // This is wierd, but in the original game this values is overwritten with 0:
+    //    18fa:0563
+    xOffsets[0] = 0;
+
+    // The original game makes 5 iterations in the loop (18fa:062d).
+    // But I don't see any place where they initialize xOffsets[4] and yOffsets[4].
+    // So, if I'm not mistaken, they have reading of uninitialized memory here 🤷🏻
+    for (int i = 0; i < 4; ++i) {
+        std::int16_t curX = xOffsets[i] + dx;
+        std::int16_t curY = yOffsets[i] + dy;
+
+        const std::int16_t xDist = g_sinArr[c2.x_direction] * curX + g_cosArr[c2.x_direction] * curY;
+        const std::int16_t yDist = g_cosArr[c2.x_direction] * curX - g_sinArr[c2.x_direction] * curY;
+        if (std::abs(xDist) > 20 || std::abs(yDist) >= (w2 * 5) / 2)
+            continue;
+
+        processCarriageCollision(&c1, &c2, (x1 + x2) / 2, (y1 + y2) / 2);
+        return true;
+    }
     return false;
 }
 

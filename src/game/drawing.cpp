@@ -11,6 +11,7 @@
 #include "resources/static_object_glyph.h"
 #include "resources/train_finished_exclamation_glyph.h"
 #include "resources/train_glyph.h"
+#include "system/driver/driver.h"
 #include "types/entrance.h"
 #include <graphics/text.h>
 #include <system/buffer.h>
@@ -18,13 +19,11 @@
 #include <system/read_file.h>
 #include <utility/sar.h>
 
+#include <algorithm> // std::min
 #include <cassert>
 #include <cstdint>
 #include <cstdlib>
 #include <initializer_list>
-
-#include <algorithm> // std::min
-#include <graphics/text.h>
 
 namespace resl {
 
@@ -68,6 +67,8 @@ void scheduleAllTrainsRedrawing()
 /* 13d1:010f */
 void drawSwitch(std::int16_t idx, bool drawToScreen)
 {
+    auto& vga = Driver::instance().vga();
+
     VideoMemPtr dstPtr = VIDEO_MEM_START_ADDR + (idx + 1) * 30 - 1;
     // TODO implement properly!!!
     Switch& s = g_switches[idx];
@@ -82,7 +83,7 @@ void drawSwitch(std::int16_t idx, bool drawToScreen)
             if (*glyphData) {
                 std::int16_t xPos = rail->x + rg->dx + xBytes * 8;
                 VideoMemPtr srcPtr = VIDEO_MEM_START_ADDR + (yPos + 350) * VIDEO_MEM_ROW_BYTES + sar(xPos, 3);
-                writeVideoMem(dstPtr++, readVideoMem(srcPtr));
+                vga.write(dstPtr++, vga.read(srcPtr));
             }
             ++glyphData;
         }

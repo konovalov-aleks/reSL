@@ -9,9 +9,9 @@
 #include "game/resources/train_glyph.h"
 #include "graphics/color.h"
 #include "graphics/drawing.h"
-#include "graphics/driver.h"
 #include "graphics/glyph.h"
 #include "graphics/text.h"
+#include "system/driver/driver.h"
 #include "system/time.h"
 #include "tasks/task.h"
 
@@ -160,8 +160,8 @@ const std::map<std::string, std::function<void(int, const char*[])>> commands = 
 
 Task sdlLoop()
 {
-    while (poll_event()) {
-        graphics_update();
+    while (Driver::instance().pollEvent()) {
+        Driver::instance().vga().flush();
         co_await sleep(1);
     }
     stopScheduler();
@@ -222,7 +222,8 @@ int main(int argc, const char* argv[])
             return usage(argc, argv, i);
     }
 
-    graphics_init(debugGraphics);
+    if (debugGraphics)
+        Driver::instance().vga().setDebugMode(true);
 
     if (demo) {
         if (file)
@@ -241,8 +242,6 @@ int main(int argc, const char* argv[])
 
     startTimer();
     runScheduler();
-
-    graphics_close();
 
     return EXIT_SUCCESS;
 }

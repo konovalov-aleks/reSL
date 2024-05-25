@@ -1,6 +1,6 @@
 #include "glyph.h"
 
-#include "driver.h"
+#include <system/driver/driver.h>
 #include <utility/ror.h>
 #include <utility/sar.h>
 
@@ -17,8 +17,8 @@ void drawGlyphAlignX8(const Glyph* glyph, std::int16_t x, std::int16_t y, Color 
     for (std::uint8_t row = 0; row < glyph->height; ++row) {
         VideoMemPtr v = videoPtr;
         for (std::uint8_t col = 0; col < glyph->width; ++col) {
-            setVideoMask(*glyphPtr);
-            writeVideoMem(v, color);
+            Driver::instance().vga().setWriteMask(*glyphPtr);
+            Driver::instance().vga().write(v, color);
             ++v;
             ++glyphPtr;
         }
@@ -37,11 +37,11 @@ void drawGlyph(const Glyph* glyph, std::int16_t x, std::int16_t y, Color color)
         for (std::uint8_t col = 0; col < glyph->width; ++col) {
             if (*glyphPtr) {
                 std::uint8_t data = ror(*glyphPtr, pixelOffsetInsideByte);
-                setVideoMask(data & rightMask);
-                writeVideoMem(videoPtr, color);
+                Driver::instance().vga().setWriteMask(data & rightMask);
+                Driver::instance().vga().write(videoPtr, color);
 
-                setVideoMask(data & ~rightMask);
-                writeVideoMem(videoPtr + 1, color);
+                Driver::instance().vga().setWriteMask(data & ~rightMask);
+                Driver::instance().vga().write(videoPtr + 1, color);
             }
             ++videoPtr;
             ++glyphPtr;
@@ -58,11 +58,11 @@ void drawGlyphW8(const std::uint8_t* glyph, std::int16_t x, std::int16_t y, Colo
     const std::uint8_t rightMask = 0xFF >> pixelOffsetInsideByte;
     for (std::uint8_t row = 0; row < g_glyphHeight; ++row) {
         std::uint8_t data = ror(*glyph++, pixelOffsetInsideByte);
-        setVideoMask(data & rightMask);
-        writeVideoMem(videoPtr, color);
+        Driver::instance().vga().setWriteMask(data & rightMask);
+        Driver::instance().vga().write(videoPtr, color);
 
-        setVideoMask(data & ~rightMask);
-        writeVideoMem(videoPtr + 1, color);
+        Driver::instance().vga().setWriteMask(data & ~rightMask);
+        Driver::instance().vga().write(videoPtr + 1, color);
 
         videoPtr += VIDEO_MEM_ROW_BYTES;
     }
@@ -77,19 +77,19 @@ void drawGlyphW16(const std::uint8_t* glyph, std::int16_t x, std::int16_t y, Col
     for (std::uint8_t row = 0; row < g_glyphHeight; ++row) {
         std::uint8_t data = ror(*(glyph + 1), pixelOffsetInsideByte);
 
-        setVideoMask(data & rightMask);
-        writeVideoMem(videoPtr, color);
+        Driver::instance().vga().setWriteMask(data & rightMask);
+        Driver::instance().vga().write(videoPtr, color);
 
-        setVideoMask(data & ~rightMask);
-        writeVideoMem(videoPtr + 1, color);
+        Driver::instance().vga().setWriteMask(data & ~rightMask);
+        Driver::instance().vga().write(videoPtr + 1, color);
 
         data = ror(*glyph, pixelOffsetInsideByte);
         glyph += 2;
-        setVideoMask(data & rightMask);
-        writeVideoMem(videoPtr + 1, color);
+        Driver::instance().vga().setWriteMask(data & rightMask);
+        Driver::instance().vga().write(videoPtr + 1, color);
 
-        setVideoMask(data & ~rightMask);
-        writeVideoMem(videoPtr + 2, color);
+        Driver::instance().vga().setWriteMask(data & ~rightMask);
+        Driver::instance().vga().write(videoPtr + 2, color);
 
         videoPtr += VIDEO_MEM_ROW_BYTES;
     }

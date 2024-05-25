@@ -1,7 +1,7 @@
 #pragma once
 
 #include "color.h"
-#include "driver.h"
+#include "vga.h"
 #include <game/types/rectangle.h>
 
 #include <cstdint>

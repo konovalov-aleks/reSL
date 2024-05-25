@@ -1,6 +1,6 @@
 #include "drawing.h"
 
-#include "driver.h"
+#include <system/driver/driver.h>
 #include <utility/ror.h>
 #include <utility/sar.h>
 
@@ -10,30 +10,25 @@
 
 namespace resl::drawing {
 
-static std::uint16_t ror16(std::uint16_t x, std::uint8_t count)
-{
-    return (x >> count) | (x << (16 - count));
-}
-
 /* 1b06:026d */
 static void setVideoModeR0W0()
 {
-    setVideoMode(0);
-    setVideoMask(0xFF);
+    Driver::instance().vga().setMode(0);
+    Driver::instance().vga().setWriteMask(0xFF);
 }
 
 /* 1b06:0279 */
 void setVideoModeR0W1()
 {
-    setVideoMode(1);
-    setVideoMask(0xFF);
+    Driver::instance().vga().setMode(1);
+    Driver::instance().vga().setWriteMask(0xFF);
 }
 
 /* 1b06:0285 */
 void setVideoModeR0W2()
 {
-    setVideoMode(2);
-    setVideoMask(0xFF);
+    Driver::instance().vga().setMode(2);
+    Driver::instance().vga().setWriteMask(0xFF);
 }
 
 /* 1b06:02a5 */
@@ -42,13 +37,13 @@ void setDataRotation(std::uint8_t rotation)
     assert((rotation & 7) == 0); // not implemented yet
     rotation >>= 3;
     assert(rotation < 4);
-    setVideoWriteOperation(static_cast<WriteOperation>(rotation));
+    Driver::instance().vga().setWriteOperation(static_cast<WriteOperation>(rotation));
 }
 
 /* 1b06:02b5 */
 static void videoChoosePlanes(std::uint8_t mask)
 {
-    setVideoMapMask(mask);
+    Driver::instance().vga().setMapMask(mask);
 }
 
 /* 1b06:06f9 */
@@ -56,13 +51,13 @@ void filledRectangle(std::int16_t x, std::int16_t y,
                      std::int16_t width, std::int16_t height,
                      std::uint8_t pattern, Color color)
 {
-    assert(videoWriteMode() == 2);
+    assert(Driver::instance().vga().writeMode() == 2);
     VideoMemPtr videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + sar(x, 3);
-    setVideoMask(pattern);
+    Driver::instance().vga().setWriteMask(pattern);
     for (int curY = 0; curY < height; ++curY) {
         VideoMemPtr vp = videoPtr;
         for (std::int16_t curX = 0; curX < width; ++curX)
-            writeVideoMem(vp++, color);
+            Driver::instance().vga().write(vp++, color);
         videoPtr += VIDEO_MEM_ROW_BYTES;
     }
 }
@@ -81,19 +76,19 @@ void horizontalLine(std::int16_t x1, std::int16_t x2, std::int16_t y, Color colo
 
     if (videoPtr1 == videoPtr2) {
         // single point
-        setVideoMask(
-            (ror16(0x80FF, pixelOffsetInsideByte2) >> 8) & (0xFF >> pixelOffsetInsideByte1) & 0xFF);
-        writeVideoMem(videoPtr1, color);
+        Driver::instance().vga().setWriteMask(
+            (ror<std::uint16_t>(0x80FF, pixelOffsetInsideByte2) >> 8) & (0xFF >> pixelOffsetInsideByte1) & 0xFF);
+        Driver::instance().vga().write(videoPtr1, color);
     } else {
-        setVideoMask(0xFF >> pixelOffsetInsideByte1);
-        writeVideoMem(videoPtr1++, color);
+        Driver::instance().vga().setWriteMask(0xFF >> pixelOffsetInsideByte1);
+        Driver::instance().vga().write(videoPtr1++, color);
 
-        setVideoMask(0xFF);
+        Driver::instance().vga().setWriteMask(0xFF);
         for (std::int16_t i = 0, cnt = videoPtr2 - videoPtr1; i < cnt; ++i)
-            writeVideoMem(videoPtr1++, color);
+            Driver::instance().vga().write(videoPtr1++, color);
 
-        setVideoMask((ror16(0x80FF, pixelOffsetInsideByte2) >> 8) & 0xFF);
-        writeVideoMem(videoPtr1++, color);
+        Driver::instance().vga().setWriteMask((ror<std::uint16_t>(0x80FF, pixelOffsetInsideByte2) >> 8) & 0xFF);
+        Driver::instance().vga().write(videoPtr1++, color);
     }
 }
 
@@ -126,14 +121,14 @@ static void implDrawImageDot7(std::int16_t x, std::int16_t y,
     if (drawSprite) {
         // copy sprite data
         for (int r = 0; r < nRows; ++r) {
-            writeVideoMem(videoPtr, *(data++));
+            Driver::instance().vga().write(videoPtr, *(data++));
             videoPtr += VIDEO_MEM_ROW_BYTES;
         }
     } else {
         // fill with a constant
         const std::uint8_t v = *data;
         for (int r = 0; r < nRows; ++r) {
-            writeVideoMem(videoPtr, v);
+            Driver::instance().vga().write(videoPtr, v);
             videoPtr += VIDEO_MEM_ROW_BYTES;
         }
     }
@@ -171,19 +166,19 @@ Color getPixel(std::int16_t x, std::int16_t y)
     const VideoMemPtr videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + sar(x, 3);
     const std::uint8_t mask = 0x80 >> (x & 7);
 
-    setVideoReadPlane(0);
-    std::uint8_t res = (readVideoMem(videoPtr) & mask) != 0;
+    Driver::instance().vga().setReadPlane(0);
+    std::uint8_t res = (Driver::instance().vga().read(videoPtr) & mask) != 0;
 
-    setVideoReadPlane(1);
-    if (readVideoMem(videoPtr) & mask)
+    Driver::instance().vga().setReadPlane(1);
+    if (Driver::instance().vga().read(videoPtr) & mask)
         res |= 2;
 
-    setVideoReadPlane(2);
-    if (readVideoMem(videoPtr) & mask)
+    Driver::instance().vga().setReadPlane(2);
+    if (Driver::instance().vga().read(videoPtr) & mask)
         res |= 4;
 
-    setVideoReadPlane(3);
-    if (readVideoMem(videoPtr) & mask)
+    Driver::instance().vga().setReadPlane(3);
+    if (Driver::instance().vga().read(videoPtr) & mask)
         res |= 8;
 
     return static_cast<Color>(res);
@@ -194,8 +189,8 @@ void putPixel(std::int16_t x, std::int16_t y, Color c)
 {
     const VideoMemPtr videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + sar(x, 3);
 
-    setVideoMask(0x80 >> (x & 7));
-    writeVideoMem(videoPtr, c);
+    Driver::instance().vga().setWriteMask(0x80 >> (x & 7));
+    Driver::instance().vga().write(videoPtr, c);
 
     assert(getPixel(x, y) == c);
 }
@@ -231,8 +226,8 @@ void line(std::int16_t x1, std::int16_t y1, std::int16_t x2, std::int16_t y2, Co
     std::uint8_t pixelMask = 0x80 >> (x1 & 7);
 
     for (std::int16_t y = 0; y < dy; ++y) {
-        setVideoMask(pixelMask);
-        writeVideoMem(videoPtr, c);
+        Driver::instance().vga().setWriteMask(pixelMask);
+        Driver::instance().vga().write(videoPtr, c);
 
         const auto moveAlongX = [&videoPtr, &pixelMask]() {
             std::uint8_t lastBit = pixelMask & 1;
@@ -280,15 +275,15 @@ void copyRectangle(std::int16_t dstX, std::int16_t dstY,
                    std::int16_t srcX, std::int16_t srcY,
                    std::int16_t width, std::int16_t height)
 {
-    setVideoMode(1);
+    Driver::instance().vga().setMode(1);
 
     VideoMemPtr srcVideoPtr = VIDEO_MEM_START_ADDR + srcY * VIDEO_MEM_ROW_BYTES + sar(srcX, 3);
     VideoMemPtr dstVideoPtr = VIDEO_MEM_START_ADDR + dstY * VIDEO_MEM_ROW_BYTES + sar(dstX, 3);
 
     for (std::int16_t y = 0; y < height; ++y) {
         for (std::int16_t x = 0; x < width; ++x) {
-            std::uint8_t data = readVideoMem(srcVideoPtr++);
-            writeVideoMem(dstVideoPtr++, data);
+            std::uint8_t data = Driver::instance().vga().read(srcVideoPtr++);
+            Driver::instance().vga().write(dstVideoPtr++, data);
         }
         srcVideoPtr += VIDEO_MEM_ROW_BYTES - width;
         dstVideoPtr += VIDEO_MEM_ROW_BYTES - width;
@@ -298,7 +293,7 @@ void copyRectangle(std::int16_t dstX, std::int16_t dstY,
 /* 1b06:0004 */
 void copyFromShadowBuffer(const Rectangle& r)
 {
-    assert(videoWriteMode() == 1);
+    assert(Driver::instance().vga().writeMode() == 1);
     std::int16_t xOffsetBytes = sar(r.x1, 3);
     std::int16_t widthBytes = sar(r.x2, 3) - xOffsetBytes + 1;
     std::int16_t height = r.y2 - r.y1;
@@ -308,7 +303,7 @@ void copyFromShadowBuffer(const Rectangle& r)
     VideoMemPtr srcPtr = VIDEO_MEM_SHADOW_BUFFER + offset;
     for (std::uint16_t y = 0; y < height; ++y) {
         for (std::uint16_t x = 0; x < widthBytes; ++x)
-            writeVideoMem(dstPtr++, readVideoMem(srcPtr++));
+            Driver::instance().vga().write(dstPtr++, Driver::instance().vga().read(srcPtr++));
         dstPtr += VIDEO_MEM_ROW_BYTES - widthBytes;
         srcPtr += VIDEO_MEM_ROW_BYTES - widthBytes;
     }
@@ -318,11 +313,11 @@ void copyFromShadowBuffer(const Rectangle& r)
 VideoMemPtr copySpriteToShadowBuffer(VideoMemPtr dstPtr, std::int16_t x, std::int16_t y,
                                      std::int16_t width, std::int16_t height)
 {
-    assert(videoWriteMode() == 1);
+    assert(Driver::instance().vga().writeMode() == 1);
     VideoMemPtr srcPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + sar(x, 3);
     for (std::int16_t curY = 0; curY < height; ++curY) {
         for (std::int16_t curX = 0; curX < width; ++curX)
-            writeVideoMem(dstPtr++, readVideoMem(srcPtr++));
+            Driver::instance().vga().write(dstPtr++, Driver::instance().vga().read(srcPtr++));
         srcPtr += VIDEO_MEM_ROW_BYTES - width;
     }
     return dstPtr;
@@ -332,11 +327,11 @@ VideoMemPtr copySpriteToShadowBuffer(VideoMemPtr dstPtr, std::int16_t x, std::in
 VideoMemPtr copySpriteFromShadowBuffer(VideoMemPtr srcPtr, std::int16_t x, std::int16_t y,
                                        std::int16_t width, std::int16_t height)
 {
-    assert(videoWriteMode() == 1);
+    assert(Driver::instance().vga().writeMode() == 1);
     VideoMemPtr dstPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + sar(x, 3);
     for (std::int16_t curY = 0; curY < height; ++curY) {
         for (std::int16_t curX = 0; curX < width; ++curX)
-            writeVideoMem(dstPtr++, readVideoMem(srcPtr++));
+            Driver::instance().vga().write(dstPtr++, Driver::instance().vga().read(srcPtr++));
         dstPtr += VIDEO_MEM_ROW_BYTES - width;
     }
     return srcPtr;

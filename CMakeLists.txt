@@ -34,10 +34,12 @@ set(SOURCES
     src/game/types/entrance.cpp
     src/graphics/drawing.cpp
     src/graphics/glyph.cpp
-    src/graphics/impl/driver_sdl.cpp
     src/graphics/text.cpp
     src/main.cpp
+    src/system/active_sleep.cpp
     src/system/buffer.cpp
+    src/system/driver/sdl/driver.cpp
+    src/system/driver/sdl/video.cpp
     src/system/random.cpp
     src/system/read_file.cpp
     src/system/time.cpp

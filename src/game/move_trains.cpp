@@ -9,6 +9,8 @@
 #include "types/header_field.h"
 #include "types/position.h"
 #include <graphics/drawing.h>
+#include <system/active_sleep.h>
+#include <system/driver/driver.h>
 #include <system/random.h>
 #include <system/time.h>
 #include <utility/sar.h>
@@ -139,10 +141,7 @@ static void animateCollisionAndPlaySound(Position pos)
         std::int16_t freq = genRandomNumber(i * 16 + 1);
         // TODO
         // playSound(freq + 30);
-        // TODO rewrite the code below (1594:0113 activeSleep)
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        graphics_update();
-        poll_event();
+        activeSleep(1);
     }
     for (int i = 0; i < 125; ++i) {
         drawing::line(x1[i], y1[i], x2[i], y2[i], Color::White);
@@ -151,9 +150,7 @@ static void animateCollisionAndPlaySound(Position pos)
         // TODO
         // playSound(freq + 30);
         // TODO rewrite the code below (1594:0113 activeSleep)
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        graphics_update();
-        poll_event();
+        activeSleep(1);
     }
 
     drawing::setDataRotation(0); // default mode - simple copying without rotation
@@ -225,8 +222,8 @@ static void deleteTrain(Train& train)
 static void playTrainFinishedMelody(std::int16_t trainLen)
 {
     // TODO implement
-    graphics_update();
-    poll_event();
+    Driver::instance().vga().flush();
+    Driver::instance().pollEvent();
     std::this_thread::sleep_for(std::chrono::milliseconds(trainLen * 100000 / 5994));
 }
 

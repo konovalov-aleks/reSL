@@ -51,6 +51,9 @@ Color getPixel(std::int16_t x, std::int16_t y);
 /* 1b06:0838 */
 void putPixel(std::int16_t x, std::int16_t y, Color);
 
+/* 1b06:086a */
+void line(std::int16_t x1, std::int16_t y1, std::int16_t x2, std::int16_t y2, Color);
+
 /* 1b06:0324 */
 void copyRectangle(std::int16_t dstX, std::int16_t dstY,
                    std::int16_t srcX, std::int16_t srcY,

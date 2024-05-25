@@ -1,9 +1,11 @@
 #include "drawing.h"
 
 #include "driver.h"
+#include <utility/ror.h>
 #include <utility/sar.h>
 
 #include <cassert>
+#include <cstdlib>
 #include <utility>
 
 namespace resl::drawing {
@@ -196,6 +198,81 @@ void putPixel(std::int16_t x, std::int16_t y, Color c)
     writeVideoMem(videoPtr, c);
 
     assert(getPixel(x, y) == c);
+}
+
+/* 1b06:086a */
+void line(std::int16_t x1, std::int16_t y1, std::int16_t x2, std::int16_t y2, Color c)
+{
+    // https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm#All_cases
+
+    if (x2 < x1) {
+        std::swap(x1, x2);
+        std::swap(y1, y2);
+    }
+    std::int16_t dx = x2 - x1;
+    std::int16_t dy = y2 - y1;
+
+    const bool negativeDY = y2 < y1;
+    if (negativeDY)
+        dy = -dy;
+
+    const bool inverseAxis = dx > dy;
+    if (inverseAxis)
+        std::swap(dx, dy);
+
+    if (dy == 0)
+        return;
+
+    const int mode = (negativeDY << 2) | (inverseAxis << 1);
+
+    std::int16_t err = 2 * dx - dy;
+
+    VideoMemPtr videoPtr = VIDEO_MEM_START_ADDR + y1 * VIDEO_MEM_ROW_BYTES + sar(x1, 3);
+    std::uint8_t pixelMask = 0x80 >> (x1 & 7);
+
+    for (std::int16_t y = 0; y < dy; ++y) {
+        setVideoMask(pixelMask);
+        writeVideoMem(videoPtr, c);
+
+        const auto moveAlongX = [&videoPtr, &pixelMask]() {
+            std::uint8_t lastBit = pixelMask & 1;
+            pixelMask = ror(pixelMask, 1);
+            videoPtr += lastBit;
+        };
+
+        bool isNegative = err < 0;
+        switch (mode | isNegative) {
+        case 0:
+            moveAlongX();
+            [[fallthrough]];
+        case 1:
+            videoPtr += VIDEO_MEM_ROW_BYTES;
+            break;
+        case 2:
+            videoPtr += VIDEO_MEM_ROW_BYTES;
+            [[fallthrough]];
+        case 3:
+            moveAlongX();
+            break;
+        case 4:
+            moveAlongX();
+            [[fallthrough]];
+        case 5:
+            videoPtr -= VIDEO_MEM_ROW_BYTES;
+            break;
+        case 6:
+            videoPtr -= VIDEO_MEM_ROW_BYTES;
+            [[fallthrough]];
+        case 7:
+            moveAlongX();
+            break;
+        default:
+            std::abort(); // unreachable
+        }
+        if (!isNegative)
+            err -= 2 * dy;
+        err += 2 * dx;
+    }
 }
 
 /* 1b06:0324 */

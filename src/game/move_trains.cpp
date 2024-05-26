@@ -12,6 +12,7 @@
 #include <system/active_sleep.h>
 #include <system/driver/driver.h>
 #include <system/random.h>
+#include <system/sound.h>
 #include <system/time.h>
 #include <utility/sar.h>
 
@@ -139,19 +140,17 @@ static void animateCollisionAndPlaySound(Position pos)
         drawing::line(x1[i], y1[i], x2[i], y2[i], Color::White);
 
         std::int16_t freq = genRandomNumber(i * 16 + 1);
-        // TODO
-        // playSound(freq + 30);
+        sound(freq + 30);
         activeSleep(1);
     }
     for (int i = 0; i < 125; ++i) {
         drawing::line(x1[i], y1[i], x2[i], y2[i], Color::White);
 
         std::int16_t freq = genRandomNumber(i * 16 + 1);
-        // TODO
-        // playSound(freq + 30);
-        // TODO rewrite the code below (1594:0113 activeSleep)
+        sound(freq + 30);
         activeSleep(1);
     }
+    nosound();
 
     drawing::setDataRotation(0); // default mode - simple copying without rotation
 }

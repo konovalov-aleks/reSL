@@ -139,9 +139,14 @@ Task implDrawTrainsDemo()
         }
 
         curFrame += dFrame;
+
+        if (curFrame < 4)
+            Driver::instance().audio().startSound(400 + 100 * (3 - curFrame));
+        else
+            Driver::instance().audio().stopSound();
+
         if (curFrame == 0 || curFrame == std::size(frames) - 1)
             dFrame = -dFrame;
-
         co_await sleep(10);
     }
     co_return;

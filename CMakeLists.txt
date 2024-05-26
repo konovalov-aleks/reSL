@@ -38,10 +38,12 @@ set(SOURCES
     src/main.cpp
     src/system/active_sleep.cpp
     src/system/buffer.cpp
+    src/system/driver/sdl/audio.cpp
     src/system/driver/sdl/driver.cpp
     src/system/driver/sdl/video.cpp
     src/system/random.cpp
     src/system/read_file.cpp
+    src/system/sound.cpp
     src/system/time.cpp
     src/tasks/scheduler.cpp
     src/tasks/task.cpp

@@ -13,6 +13,9 @@ public:
     VGAEmulation();
     ~VGAEmulation();
 
+    VGAEmulation(const VGAEmulation&) = delete;
+    VGAEmulation& operator=(const VGAEmulation&) = delete;
+
     void flush();
     void setDebugMode(bool debug);
 

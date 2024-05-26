@@ -1,5 +1,7 @@
 #include "sound.h"
 
+#include "driver/driver.h"
+
 #include <cstdint>
 
 namespace resl {
@@ -16,13 +18,13 @@ namespace resl {
 /* 1000:1a87 */
 void sound(std::uint16_t frequency)
 {
-    // TODO implement
+    Driver::instance().audio().startSound(frequency);
 }
 
 /* 1000:1ab3 */
 void nosound()
 {
-    // TODO implement
+    Driver::instance().audio().stopSound();
 }
 
 } // namespace resl

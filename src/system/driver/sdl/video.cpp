@@ -1,6 +1,10 @@
 #include "video.h"
 
-#include <SDL.h>
+#include "graphics/vga.h"
+
+#include <SDL_error.h>
+#include <SDL_pixels.h>
+#include <SDL_rect.h>
 
 #include <algorithm>
 #include <array>
@@ -9,6 +13,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <iterator>
 
 namespace resl {
 

@@ -2,7 +2,11 @@
 
 #include "game_data.h"
 #include "resources/movement_paths.h"
+#include "types/chunk.h"
 #include "types/entrance.h"
+#include "types/train.h"
+
+#include <cstdint>
 
 namespace resl {
 

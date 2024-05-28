@@ -5,6 +5,8 @@
 
 #include "train_finished_exclamation_glyph.h"
 
+#include <graphics/glyph.h>
+
 namespace resl {
 
 /* 1d7d:864e - 77 bytes */

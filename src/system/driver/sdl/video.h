@@ -2,7 +2,8 @@
 
 #include <graphics/vga.h>
 
-#include <SDL.h>
+#include <SDL_render.h>
+#include <SDL_video.h>
 
 #include <cstdint>
 
@@ -62,10 +63,10 @@ private:
     void lockTexture();
     void unlockTexture();
 
-    SDL_Window* m_window = NULL;
-    SDL_Renderer* m_renderer = NULL;
-    SDL_Texture* m_screen = NULL;
-    char* m_screenPixels = NULL;
+    SDL_Window* m_window = nullptr;
+    SDL_Renderer* m_renderer = nullptr;
+    SDL_Texture* m_screen = nullptr;
+    char* m_screenPixels = nullptr;
     int m_screenPixelsPitch = 0;
 
     int m_wndWidth = SCREEN_WIDTH;

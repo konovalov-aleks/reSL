@@ -1,7 +1,7 @@
 #include "active_sleep.h"
 
-#include "driver/driver.h"
 #include "time.h"
+#include <system/driver/driver.h>
 
 #include <chrono>
 #include <cstdint>

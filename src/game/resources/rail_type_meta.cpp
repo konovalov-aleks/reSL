@@ -5,6 +5,8 @@
 
 #include "rail_type_meta.h"
 
+#include <game/types/semaphore.h>
+
 namespace resl {
 
 /* 1d5d:0000 : 48 bytes */

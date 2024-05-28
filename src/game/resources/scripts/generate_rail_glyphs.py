@@ -14,7 +14,6 @@ with CPPWriter('rail_glyph.cpp') as w:
     w.writeln('#include <graphics/glyph.h>')
     w.writeln()
     w.writeln('#include <cstdint>')
-    w.writeln('#include <initializer_list>')
     w.writeln()
     w.writeln('namespace resl {')
     w.writeln('namespace {')

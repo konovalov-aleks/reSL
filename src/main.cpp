@@ -1,7 +1,6 @@
 #include "game/init.h"
 
 #include "game/drawing.h"
-#include "game/game_data.h"
 #include "game/header.h"
 #include "game/load_game.h"
 #include "game/move_trains.h"
@@ -11,16 +10,20 @@
 #include "graphics/drawing.h"
 #include "graphics/glyph.h"
 #include "graphics/text.h"
-#include "system/driver/driver.h"
 #include "system/time.h"
 #include "tasks/task.h"
+#include <system/driver/driver.h>
 
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
 #include <functional>
 #include <iostream>
+#include <iterator>
 #include <map>
+#include <string>
+#include <utility>
 
 using namespace resl;
 
@@ -129,7 +132,7 @@ Task implDrawTrainsDemo()
             drawGlyph(g->glyph2, x - g->width / 2, y - g->height / 2, c[0]);
             drawGlyph(g->glyph3, x - g->width / 2, y - g->height / 2, c[1]);
             char buf[100];
-            snprintf(buf, sizeof(buf), "%d", i);
+            std::snprintf(buf, sizeof(buf), "%d", i);
             drawText(x, y + 20, buf, Red);
             x += 80;
             if (x > 590) {

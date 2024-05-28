@@ -8,7 +8,6 @@
 #include <graphics/glyph.h>
 
 #include <cstdint>
-#include <initializer_list>
 
 namespace resl {
 namespace {

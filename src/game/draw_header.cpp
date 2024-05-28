@@ -3,6 +3,8 @@
 #include "header.h"
 #include "resources/dispatcher_glyph.h"
 #include "types/entrance.h"
+#include "types/header_field.h"
+#include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/glyph.h>
 #include <graphics/text.h>

@@ -5,8 +5,12 @@
 #include "resources/rail_info.h"
 #include "resources/s4arr.h"
 #include "resources/semaphore_glyph_bias.h"
+#include "types/chunk.h"
+#include "types/rail_info.h"
+#include "types/switch.h"
 
 #include <cassert>
+#include <cstdint>
 #include <utility>
 
 namespace resl {

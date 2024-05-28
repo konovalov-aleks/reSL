@@ -5,19 +5,26 @@
 #include "header.h"
 #include "resources/movement_paths.h"
 #include "resources/train_glyph.h"
+#include "types/chunk.h"
 #include "types/entrance.h"
 #include "types/header_field.h"
 #include "types/position.h"
+#include "types/rectangle.h"
+#include "types/semaphore.h"
+#include "types/train.h"
+#include <graphics/color.h>
 #include <graphics/drawing.h>
+#include <graphics/vga.h>
 #include <system/active_sleep.h>
 #include <system/driver/driver.h>
 #include <system/random.h>
 #include <system/sound.h>
 #include <system/time.h>
+#include <tasks/task.h>
 #include <utility/sar.h>
 
 #include <chrono>
-#include <cmath>
+#include <cstdlib>
 #include <thread>
 #include <utility>
 

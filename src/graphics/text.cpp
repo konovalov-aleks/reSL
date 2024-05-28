@@ -1,5 +1,6 @@
 #include "text.h"
 
+#include "color.h"
 #include "glyph.h"
 
 namespace resl {

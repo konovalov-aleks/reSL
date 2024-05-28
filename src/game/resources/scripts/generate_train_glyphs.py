@@ -30,6 +30,8 @@ while ptr < len(train_glyph_data):
 with CPPWriter('train_glyph.cpp') as w:
     w.writeln('#include "train_glyph.h"')
     w.writeln()
+    w.writeln('#include <graphics/glyph.h>')
+    w.writeln()
     w.writeln('namespace resl {')
     w.writeln('namespace {')
     w.writeln()

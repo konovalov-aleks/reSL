@@ -1,8 +1,9 @@
 #include "read_file.h"
 
-#include <cstring>
-#include <fcntl.h>
+#include <sys/fcntl.h>
 #include <unistd.h>
+
+#include <cstring>
 
 #ifndef O_BINARY
 #   define O_BINARY 0

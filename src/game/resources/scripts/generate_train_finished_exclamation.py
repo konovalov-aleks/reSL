@@ -20,6 +20,8 @@ def writeGlyph(w, name, data):
 with CPPWriter('train_finished_exclamation_glyph.cpp') as w:
     w.writeln('#include "train_finished_exclamation_glyph.h"')
     w.writeln()
+    w.writeln('#include <graphics/glyph.h>')
+    w.writeln()
     w.writeln('namespace resl {')
     w.writeln()
     w.writeln('/* 1d7d:864e - 77 bytes */')

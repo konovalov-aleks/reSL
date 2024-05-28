@@ -1,5 +1,8 @@
 #include "scheduler.h"
 
+#include "task.h"
+#include <system/time.h>
+
 #include <algorithm>
 #include <cassert>
 #include <chrono>

@@ -1,5 +1,11 @@
 #include "load_game.h"
 
+#include "game/types/chunk.h"
+#include "game/types/rail_info.h"
+#include "game/types/rectangle.h"
+#include "game/types/semaphore.h"
+#include "game/types/switch.h"
+#include "game/types/train.h"
 #include "game_data.h"
 #include "header.h"
 #include "init.h"
@@ -10,11 +16,14 @@
 #include "types/entrance.h"
 #include <system/time.h>
 
-#include <array>
+#include <sys/fcntl.h>
+#include <sys/types.h> // IWYU pragma: no_include <sys/_types/_seek_set.h>
+#include <unistd.h>
+
 #include <cassert>
 #include <cstddef>
-#include <fcntl.h>
-#include <unistd.h>
+#include <cstdint>
+#include <iterator>
 
 #ifndef O_BINARY
 #   define O_BINARY 0

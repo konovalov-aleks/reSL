@@ -1,6 +1,7 @@
 #pragma once
 
-#include <SDL.h>
+#include <SDL_audio.h>
+#include <SDL_stdinc.h>
 
 #include <cstdint>
 

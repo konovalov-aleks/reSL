@@ -1,7 +1,13 @@
 #pragma once
 
-#include "audio.h"
-#include "video.h"
+// IWYU pragma: private, include <system/driver/driver.h>
+// IWYU pragma: friend "system/driver/sdl/.*"
+
+// IWYU pragma: no_include "system/driver/sdl/audio.h"
+// IWYU pragma: no_include "system/driver/sdl/video.h"
+
+#include "audio.h" // IWYU pragma: export
+#include "video.h" // IWYU pragma: export
 
 namespace resl {
 

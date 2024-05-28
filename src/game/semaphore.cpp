@@ -1,10 +1,13 @@
 #include "semaphore.h"
 
-#include "game/resources/semaphore_glyph_bias.h"
 #include "game_data.h"
 #include "resources/rail_type_meta.h"
 #include "resources/s4arr.h"
+#include "resources/semaphore_glyph.h"
+#include "resources/semaphore_glyph_bias.h"
 #include "types/chunk.h"
+#include "types/rail_info.h"
+#include "types/semaphore.h"
 
 #include <cstdint>
 

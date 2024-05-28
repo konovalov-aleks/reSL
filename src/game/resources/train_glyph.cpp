@@ -5,6 +5,8 @@
 
 #include "train_glyph.h"
 
+#include <graphics/glyph.h>
+
 namespace resl {
 namespace {
 

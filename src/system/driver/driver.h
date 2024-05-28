@@ -1,1 +1,1 @@
-#include "sdl/driver.h"
+#include "sdl/driver.h" // IWYU pragma: export

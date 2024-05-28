@@ -16,6 +16,8 @@ SemType = {
 with CPPWriter('rail_type_meta.cpp') as w:
     w.writeln('#include "rail_type_meta.h"')
     w.writeln()
+    w.writeln('#include <game/types/semaphore.h>')
+    w.writeln()
     w.writeln('namespace resl {')
     w.writeln()
     w.writeln('/* 1d5d:0000 : 48 bytes */')

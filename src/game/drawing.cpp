@@ -8,22 +8,35 @@
 #include "resources/carriage_bias.h"
 #include "resources/movement_paths.h"
 #include "resources/rail_glyph.h"
+#include "resources/semaphore_glyph.h"
 #include "resources/static_object_glyph.h"
 #include "resources/train_finished_exclamation_glyph.h"
 #include "resources/train_glyph.h"
-#include "system/driver/driver.h"
+#include "types/chunk.h"
 #include "types/entrance.h"
+#include "types/header_field.h"
+#include "types/rail_info.h"
+#include "types/rectangle.h"
+#include "types/semaphore.h"
+#include "types/static_object.h"
+#include "types/switch.h"
+#include "types/train.h"
+#include <graphics/color.h>
+#include <graphics/glyph.h>
 #include <graphics/text.h>
+#include <graphics/vga.h>
 #include <system/buffer.h>
+#include <system/driver/driver.h>
 #include <system/random.h>
 #include <system/read_file.h>
 #include <utility/sar.h>
 
-#include <algorithm> // std::min
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <cstdlib>
-#include <initializer_list>
+#include <iterator>
+#include <utility>
 
 namespace resl {
 

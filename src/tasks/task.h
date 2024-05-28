@@ -2,9 +2,8 @@
 
 #include <system/time.h>
 
-#include <coroutine>
-
 #include <cassert>
+#include <coroutine> // IWYU pragma: export
 #include <cstdlib>
 
 namespace resl {

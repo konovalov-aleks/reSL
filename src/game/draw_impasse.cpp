@@ -1,9 +1,11 @@
 #include "draw_impasse.h"
 
-#include "graphics/glyph.h"
 #include "resources/impasse_glyph.h"
 #include "resources/s4arr.h"
 #include "resources/semaphore_glyph_bias.h"
+#include "types/chunk.h"
+#include <graphics/color.h>
+#include <graphics/glyph.h>
 
 #include <cstdint>
 

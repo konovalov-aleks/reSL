@@ -1,6 +1,10 @@
 #include "driver.h"
 
-#include "SDL.h"
+// IWYU pragma: no_include "system/driver/sdl/driver.h"
+
+#include <SDL.h>
+#include <SDL_error.h>
+#include <SDL_events.h>
 
 #include <cstdlib>
 #include <iostream>

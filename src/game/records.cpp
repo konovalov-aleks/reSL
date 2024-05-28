@@ -1,9 +1,12 @@
 #include "records.h"
 
+#include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/text.h>
 #include <system/buffer.h>
 #include <system/read_file.h>
+
+#include <sys/types.h>
 
 #include <cstdint>
 #include <cstdio>

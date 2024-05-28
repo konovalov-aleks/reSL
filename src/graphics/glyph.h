@@ -3,7 +3,6 @@
 #include "color.h"
 
 #include <cstdint>
-#include <initializer_list>
 
 namespace resl {
 

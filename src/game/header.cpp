@@ -7,8 +7,8 @@
 #include <tasks/task.h>
 
 #include <cassert>
-#include <cstddef>
 #include <cstdint>
+#include <cstdio>
 
 namespace resl {
 namespace {

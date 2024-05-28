@@ -1,13 +1,12 @@
 #pragma once
 
 #include "types/chunk.h"
-#include "types/header_field.h"
 #include "types/rail_info.h"
 #include "types/rectangle.h"
 #include "types/semaphore.h"
+#include "types/static_object.h"
 #include "types/switch.h"
 #include "types/train.h"
-#include "types/tree_info.h"
 
 #include <cstdint>
 #include <utility>

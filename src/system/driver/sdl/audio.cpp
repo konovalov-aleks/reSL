@@ -1,7 +1,8 @@
 #include "audio.h"
 
+#include <SDL_error.h>
+
 #include <cassert>
-#include <cmath>
 #include <iostream>
 
 namespace resl {

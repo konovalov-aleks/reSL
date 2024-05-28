@@ -2,6 +2,8 @@
 
 #include <graphics/glyph.h>
 
+#include <cstdint>
+
 namespace resl {
 
 struct RailGlyph {

@@ -7,7 +7,7 @@
 
 namespace resl {
 
-enum SemaphoreType {
+enum class SemaphoreType : std::int16_t {
     RightUp = 0,
     RightDown = 1,
     LeftUp = 2,
@@ -17,7 +17,7 @@ enum SemaphoreType {
 
 struct Semaphore {
     Chunk* chunk;
-    std::int16_t type;
+    SemaphoreType type;
     bool isRed;
     bool isRightDirection;
     std::int16_t pixelX;

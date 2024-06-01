@@ -13,6 +13,7 @@ set(SOURCES
     src/game/init.cpp
     src/game/io_status.cpp
     src/game/load_game.cpp
+    src/game/mouse.cpp
     src/game/move_trains.cpp
     src/game/records.cpp
     src/game/resources/carriage_bias.cpp

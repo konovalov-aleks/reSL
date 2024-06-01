@@ -8,6 +8,9 @@
 
 #include "audio.h" // IWYU pragma: export
 #include "video.h" // IWYU pragma: export
+#include <system/mouse.h>
+
+#include <SDL_events.h>
 
 namespace resl {
 
@@ -24,12 +27,16 @@ public:
     VGAEmulation& vga() { return m_vga; }
     AudioDriver& audio() { return m_audio; }
 
+    void setMouseHandler(MouseHandler hdl) { m_mouseHandler = hdl; }
+
     bool pollEvent();
 
 private:
     Driver() = default;
     Driver(const Driver&) = delete;
     Driver& operator=(const Driver&) = delete;
+
+    void onMouseButtonEvent(const SDL_MouseButtonEvent&);
 
     class SDLInit {
     public:
@@ -41,6 +48,8 @@ private:
 
     VGAEmulation m_vga;
     AudioDriver m_audio;
+
+    MouseHandler m_mouseHandler = nullptr;
 
     bool m_quit = false;
 };

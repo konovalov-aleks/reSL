@@ -3,6 +3,7 @@
 #include "game/drawing.h"
 #include "game/header.h"
 #include "game/load_game.h"
+#include "game/mouse.h"
 #include "game/move_trains.h"
 #include "game/records.h"
 #include "game/resources/train_glyph.h"
@@ -80,6 +81,8 @@ void loadGame(const char* fname)
     resetGameData();
     loadSavedGame(fname);
 
+    Driver::instance().setMouseHandler(&handleMouseInput);
+
     drawWorld();
     fillGameFieldBackground(350);
     drawFieldBackground(350);
@@ -88,6 +91,7 @@ void loadGame(const char* fname)
     drawing::copyRectangle(0, 0, 0, 350, 80, 350);
     drawing::setVideoModeR0W2();
 
+    addTask(taskMouseEventHandling());
     addTask(taskHeaderFieldAnimation());
     addTask(taskMoveAndRedrawTrains());
 }

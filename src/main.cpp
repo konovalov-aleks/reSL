@@ -93,7 +93,7 @@ void loadGame(const char* fname)
     drawing::copyRectangle(0, 0, 0, 350, 80, 350);
     drawing::setVideoModeR0W2();
 
-    mouse::g_mouseState.mode->drawFn();
+    mouse::g_state.mode->drawFn();
 
     addTask(taskMouseEventHandling());
     addTask(taskHeaderFieldAnimation());

@@ -5,7 +5,7 @@
 namespace resl::mouse {
 
 /* 262d:6f02 : 12 bytes */
-const MouseState g_mouseState = {
+const MouseState g_state = {
     &g_modeManagement
     /* TODO initialize */
 };

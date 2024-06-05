@@ -506,9 +506,9 @@ Task taskMoveAndRedrawTrains()
                     }
                 }
 
-                const std::int16_t mouseX = mouse::g_mouseState.mode->x & 0xFFF8;
-                const std::int16_t mouseY = mouse::g_mouseState.mode->y;
-                if (mouse::g_mouseState.mode == &mouse::g_modeManagement &&
+                const std::int16_t mouseX = mouse::g_state.mode->x & 0xFFF8;
+                const std::int16_t mouseY = mouse::g_state.mode->y;
+                if (mouse::g_state.mode == &mouse::g_modeManagement &&
                     mouseX - 8 < carriage->rect.x2 && mouseX + 32 > carriage->rect.x1 &&
                     mouseY < carriage->rect.y2 && mouseY + 16 > carriage->rect.y1)
                     needToRedrawCursor = true;
@@ -533,7 +533,7 @@ Task taskMoveAndRedrawTrains()
             // TODO
             // waitVGARetrace();
             if (needToRedrawCursor)
-                mouse::g_mouseState.mode->clearFn();
+                mouse::g_state.mode->clearFn();
 
             drawing::setVideoModeR0W1();
             do {
@@ -543,7 +543,7 @@ Task taskMoveAndRedrawTrains()
             drawing::setVideoModeR0W2();
 
             if (needToRedrawCursor)
-                mouse::g_mouseState.mode->drawFn();
+                mouse::g_state.mode->drawFn();
 
             drawing::setVideoModeR0W1();
             eraseCarriagesInShadowBuffer(*g_trainDrawingChains[curChain], drawing::VIDEO_MEM_SHADOW_BUFFER);

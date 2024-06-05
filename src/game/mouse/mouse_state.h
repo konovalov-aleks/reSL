@@ -16,6 +16,6 @@ struct MouseState {
 };
 
 /* 262d:6f02 : 12 bytes */
-extern const MouseState g_mouseState;
+extern const MouseState g_state;
 
 } // namespace resl::mouse

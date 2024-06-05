@@ -2,6 +2,8 @@
 
 #include "entrance.h"
 #include "header.h"
+#include "mouse/mouse_mode.h"
+#include "mouse/mouse_state.h"
 #include "move_trains.h"
 #include "resources/carriage_bias.h"
 #include "resources/movement_paths.h"
@@ -16,6 +18,7 @@
 #include <system/time.h>
 #include <utility/sar.h>
 
+#include <cassert>
 #include <utility>
 
 namespace resl {
@@ -211,14 +214,15 @@ void drawTrains()
 /* 132d:0002 */
 void eraseTrain(const Train& train)
 {
-    // TODO draw cursor?
+    assert(mouse::g_state.mode);
+    mouse::g_state.mode->clearFn();
 
     drawing::setVideoModeR0W1();
     for (uint8_t i = 0; i < train.carriageCnt; ++i)
         drawing::copyFromShadowBuffer(train.carriages[i].rect);
     drawing::setVideoModeR0W2();
 
-    // TODO draw cursor?
+    mouse::g_state.mode->drawFn();
 }
 
 /* 19de:0797 */

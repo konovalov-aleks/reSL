@@ -62,14 +62,14 @@ void handleMouseInput(std::uint16_t mouseEventFlags,
         } else {
             if (mouseEventFlags & ME_LEFTRELEASED) {
                 // left button clicked
-                if (g_mouseState.mode == &g_modeManagement)
+                if (g_state.mode == &g_modeManagement)
                     msg.action = MouseAction::MouseMove;
                 else
                     msg.action = MouseAction::ToggleNextRailType;
             } else {
                 if (mouseEventFlags & ME_RIGHTRELEASED) {
                     // right button clicked
-                    if (g_mouseState.mode == &g_modeManagement)
+                    if (g_state.mode == &g_modeManagement)
                         msg.action = MouseAction::CallServer;
                     else
                         msg.action = MouseAction::BuildRails;
@@ -86,8 +86,8 @@ Task taskMouseEventHandling()
     for (;;) {
         MsgMouseEvent e = co_await g_mouseMsgQueue.pop();
 
-        assert(g_mouseState.mode);
-        MouseMode& mode = *g_mouseState.mode;
+        assert(g_state.mode);
+        MouseMode& mode = *g_state.mode;
         mode.updatePosFn(e.cursorDX, e.cursorDY);
 
         switch (e.action) {

@@ -36,8 +36,8 @@ namespace {
     {
         // The original game doesn't use g_modeManagement directly for some reason,
         // it uses a pointer inside g_mouseState instead.
-        assert(g_mouseState.mode && g_mouseState.mode == &g_modeManagement);
-        MouseMode& mode = *g_mouseState.mode;
+        assert(g_state.mode && g_state.mode == &g_modeManagement);
+        MouseMode& mode = *g_state.mode;
 
         mode.clearFn();
         mode.x = std::min(std::max<std::int16_t>(mode.x + dx, mode.minX), mode.maxX);
@@ -50,8 +50,8 @@ namespace {
     /* 14af:0089 */
     void drawCursor()
     {
-        assert(g_mouseState.mode && g_mouseState.mode == &g_modeManagement);
-        MouseMode& mode = *g_mouseState.mode;
+        assert(g_state.mode && g_state.mode == &g_modeManagement);
+        MouseMode& mode = *g_state.mode;
 
         drawing::saveVideoMemRegion24x16(mode.x, mode.y, g_cursorAreaBackup);
         drawing::setVideoModeR0W2();
@@ -65,8 +65,8 @@ namespace {
     /* 14af:00e6 */
     void clearCursor()
     {
-        assert(g_mouseState.mode && g_mouseState.mode == &g_modeManagement);
-        MouseMode& mode = *g_mouseState.mode;
+        assert(g_state.mode && g_state.mode == &g_modeManagement);
+        MouseMode& mode = *g_state.mode;
         drawing::restoreVideoMemRegion24x16(mode.x, mode.y, g_cursorAreaBackup);
         drawing::setVideoModeR0W2();
     }

@@ -1,11 +1,6 @@
 #include "load_game.h"
 
-#include "game/types/chunk.h"
-#include "game/types/rail_info.h"
-#include "game/types/rectangle.h"
-#include "game/types/semaphore.h"
-#include "game/types/switch.h"
-#include "game/types/train.h"
+#include "entrance.h"
 #include "game_data.h"
 #include "header.h"
 #include "init.h"
@@ -13,7 +8,12 @@
 #include "resources/s4arr.h"
 #include "semaphore.h"
 #include "switch.h"
-#include "types/entrance.h"
+#include "train.h"
+#include "types/chunk.h"
+#include "types/rail_info.h"
+#include "types/rectangle.h"
+#include "types/semaphore.h"
+#include "types/switch.h"
 #include <system/time.h>
 
 #include <sys/fcntl.h>
@@ -132,10 +132,10 @@ static void loadGameState(const char* fileName, void* switchStates, void* semaph
 
         if constexpr (sizeof(void*) == 2) {
             // static_assert(sizeof(trains) == 0xa50);
-            read(fd, trains, 0xa50);
+            read(fd, g_trains, 0xa50);
         } else {
             off_t pos = lseek(fd, 0, SEEK_CUR);
-            for (Train& train : trains) {
+            for (Train& train : g_trains) {
                 checkRead(fd, &train, 14);
                 for (Carriage& c : train.carriages) {
                     c.next = readPtr<Carriage>(fd);
@@ -206,7 +206,7 @@ IOStatus loadSavedGame(const char* fileName)
     loadGameState(fileName, switchStatesBuf, semaphoresIsRed);
 
     if (ioStatus == NoError) {
-        for (Train& train : trains) {
+        for (Train& train : g_trains) {
             fixLoadedLocation(&train.head);
             fixLoadedLocation(&train.tail);
             for (int i = 0; i < 5; ++i) {

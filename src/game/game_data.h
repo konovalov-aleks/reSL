@@ -2,14 +2,11 @@
 
 #include "types/chunk.h"
 #include "types/rail_info.h"
-#include "types/rectangle.h"
 #include "types/semaphore.h"
 #include "types/static_object.h"
 #include "types/switch.h"
-#include "types/train.h"
 
 #include <cstdint>
-#include <utility>
 
 namespace resl {
 
@@ -24,9 +21,6 @@ extern char playerName[20];
 
 /* 262d:21da : 960 bytes */
 extern StaticObject g_staticObjects[120];
-
-/* 262d:5f02 : 2640 bytes */
-extern Train trains[20];
 
 /* 262d:6952 : 2 bytes */
 extern std::uint16_t g_railRoadCount;
@@ -69,23 +63,5 @@ extern std::int16_t x_erasedSemaphoreCount;
 
 /* 262d:58aa : 600 bytes */
 extern Semaphore g_semaphores[50];
-
-/* 262d:6fd2 : 2 bytes */
-extern std::uint16_t g_collidedTrainsArrayLen;
-
-/* 262d:7000 : 80 bytes */
-extern std::pair<Carriage*, Carriage*> g_collidedTrainsArray[20];
-
-/* 262d:6fd4 : 2 bytes */
-extern std::uint16_t g_trainDrawingChainLen;
-
-/* 262d:6fd6 : 40 bytes */
-extern Carriage* g_trainDrawingChains[20];
-
-/* 262d:6ffe : 1 byte */
-extern bool g_needToRedrawTrains;
-
-/* 262d:7050 : 800 bytes */
-extern Rectangle g_carriagesBoundingBoxes[100];
 
 } // namespace resl

@@ -3,12 +3,12 @@
 // Use the script "generate_entrances.py" instead.
 //
 
-#include <game/types/entrance.h>
+#include <game/entrance.h>
 
 namespace resl {
 
 /* 1d7d:01fc : 198 bytes */
-EntranceInfo g_entrances[9] = {
+Entrance g_entrances[9] = {
     { Color::Yellow, Color::Brown },
     { Color::Red, Color::DarkRed },
     { Color::Cyan, Color::DarkCyan },

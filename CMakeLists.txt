@@ -8,11 +8,13 @@ set(SOURCES
     src/game/draw_header.cpp
     src/game/draw_impasse.cpp
     src/game/drawing.cpp
+    src/game/entrance.cpp
     src/game/game_data.cpp
     src/game/header.cpp
     src/game/init.cpp
     src/game/io_status.cpp
     src/game/load_game.cpp
+    src/game/melody.cpp
     src/game/mouse/management_mode.cpp
     src/game/mouse/mouse.cpp
     src/game/mouse/mouse_state.cpp
@@ -33,8 +35,9 @@ set(SOURCES
     src/game/resources/train_finished_exclamation_glyph.cpp
     src/game/resources/train_glyph.cpp
     src/game/semaphore.cpp
+    src/game/status_bar.cpp
     src/game/switch.cpp
-    src/game/types/entrance.cpp
+    src/game/train.cpp
     src/graphics/drawing.cpp
     src/graphics/glyph.cpp
     src/graphics/text.cpp

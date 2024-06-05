@@ -1,21 +1,14 @@
 #include "init.h"
 
+#include "entrance.h"
 #include "game_data.h"
 #include "resources/movement_paths.h"
+#include "train.h"
 #include "types/chunk.h"
-#include "types/entrance.h"
-#include "types/train.h"
 
 #include <cstdint>
 
 namespace resl {
-
-/* 146b:018c */
-static void resetCarriages()
-{
-    for (int i = 0; i < 20; ++i)
-        trains[i].isFreeSlot = true;
-}
 
 /* 146b:000c */
 void resetGameData()
@@ -41,15 +34,6 @@ void resetGameData()
         }
     }
     resetCarriages();
-}
-
-/* 146b:0153 */
-static void initTrains()
-{
-    for (int trainIdx = 0; trainIdx < 20; ++trainIdx) {
-        for (int carriageIdx = 0; carriageIdx < 5; ++carriageIdx)
-            trains[trainIdx].carriages[carriageIdx].train = &trains[trainIdx];
-    }
 }
 
 /* 146b:00cc */

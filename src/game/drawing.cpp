@@ -5,25 +5,20 @@
 #include "game_data.h"
 #include "graphics/drawing.h"
 #include "header.h"
-#include "resources/carriage_bias.h"
-#include "resources/movement_paths.h"
 #include "resources/rail_glyph.h"
 #include "resources/semaphore_glyph.h"
 #include "resources/static_object_glyph.h"
 #include "resources/train_finished_exclamation_glyph.h"
-#include "resources/train_glyph.h"
+#include "status_bar.h"
+#include "train.h"
 #include "types/chunk.h"
-#include "types/entrance.h"
 #include "types/header_field.h"
 #include "types/rail_info.h"
-#include "types/rectangle.h"
 #include "types/semaphore.h"
 #include "types/static_object.h"
 #include "types/switch.h"
-#include "types/train.h"
 #include <graphics/color.h>
 #include <graphics/glyph.h>
-#include <graphics/text.h>
 #include <graphics/vga.h>
 #include <system/buffer.h>
 #include <system/driver/driver.h>
@@ -35,7 +30,6 @@
 #include <cassert>
 #include <cstdint>
 #include <cstdlib>
-#include <utility>
 
 #ifndef NDEBUG
 #   include <iterator>
@@ -71,13 +65,6 @@ void drawRail(std::int16_t tileX, std::int16_t tileY,
     RailGlyph* rg = railBackgrounds[railType].mainGlyph;
     drawGlyphAlignX8(&rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
                      (tileX + tileY) * 21 + rg->dy + yOffset - 22, color);
-}
-
-/* 19de:0841 */
-void scheduleAllTrainsRedrawing()
-{
-    for (std::int16_t i = 0; i < sizeof(trains) / sizeof(*trains); ++i)
-        trains[i].needToRedraw = true;
 }
 
 /* 13d1:010f */
@@ -214,164 +201,6 @@ void fillGameFieldBackground(std::int16_t yOffset)
     drawing::filledRectangle(0, 49 + yOffset, 80, 285, 0xFF, Color::Green);
 }
 
-/* 18fa:0142 */
-static bool trainOverlaps(Train& t, int idx)
-{
-    for (int i = t.carriageCnt - 1; i >= 0; --i) {
-        Carriage& c1 = t.carriages[i];
-        for (Carriage* c2 = g_trainDrawingChains[idx]; c2; c2 = c2->next) {
-            // Check if the rectangles overlap
-            if (c1.rect.y1 < c2->rect.y2 && c1.rect.y2 > c2->rect.y1 &&
-                (c1.rect.x1 & ~7) <= (c2->rect.x2 & ~7) &&
-                (c1.rect.x2 & ~7) >= (c2->rect.x1 & ~7)) {
-
-                g_collidedTrainsArray[g_collidedTrainsArrayLen++] = { &c1, c2 };
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-/* 18fa:00e9 */
-static void addToDrawingChain(Train& t, int chainIdx)
-{
-    for (int i = t.carriageCnt - 1; i >= 0; --i) {
-        Carriage& c1 = t.carriages[i];
-        Carriage** c2 = &g_trainDrawingChains[chainIdx];
-        while (*c2 && (*c2)->drawingPriority < c1.drawingPriority)
-            c2 = &(*c2)->next;
-        c1.next = *c2;
-        *c2 = &c1;
-    }
-    t.drawingChainIdx = chainIdx;
-}
-
-/* 18fa:01e1 */
-static void mergeDrawingChains(int idx1, int idx2)
-{
-    Carriage* c1 = g_trainDrawingChains[idx1];
-    Carriage* c2 = g_trainDrawingChains[idx2];
-    g_trainDrawingChains[idx2] = nullptr;
-    while (c2) {
-        c2->train->drawingChainIdx = idx1;
-        while (c1->next->drawingPriority < c2->drawingPriority) {
-            c1 = c1->next;
-            if (!c1->next) {
-                c1->next = c2;
-                return;
-            }
-        }
-        Carriage* tmp = c2->next;
-        c2->next = c1->next;
-        c1->next = c2;
-        c1 = c1->next;
-        c2 = tmp;
-    }
-}
-
-/* 18fa:000b */
-void scheduleTrainsDrawing()
-{
-    g_collidedTrainsArrayLen = 0;
-    g_trainDrawingChainLen = 0;
-
-    for (Train& t : trains) {
-        if (t.isFreeSlot)
-            continue;
-
-        t.x_needToMove = false;
-        for (int i = 0;; ++i) {
-            if (i < g_trainDrawingChainLen) {
-                if (!trainOverlaps(t, i)) {
-                    // the train doesn't intersect with previously processed trains
-                    // => they can be drawn in any order
-                    continue;
-                }
-                addToDrawingChain(t, i);
-                for (int j = i + 1; j < g_trainDrawingChainLen; ++j) {
-                    if (trainOverlaps(t, j))
-                        mergeDrawingChains(i, j);
-                }
-            } else {
-                g_trainDrawingChains[g_trainDrawingChainLen] = nullptr;
-                addToDrawingChain(t, g_trainDrawingChainLen++);
-            }
-            break;
-        }
-    }
-}
-
-/* 18fa:08d6 */
-void drawTrainList(Carriage* c)
-{
-    Rectangle* curBoundingBox = g_carriagesBoundingBoxes;
-    VideoMemPtr shadowBufPtr = drawing::VIDEO_MEM_SHADOW_BUFFER;
-
-    for (; c; c = c->next) {
-        const PathStep& p = g_movementPaths[c->location.chunk->type].data[c->location.pathStep];
-        if ((p.angle ^ c->x_direction) == 4)
-            c->direction = c->direction ^ 1;
-
-        c->x_direction = p.angle;
-        const TrainGlyph& glyph = g_trainGlyphs[c->type][p.angle][c->direction];
-
-        *curBoundingBox = c->rect;
-
-        c->rect.x1 = c->location.chunk->x + p.dx - glyph.width / 2;
-        c->rect.x2 = c->rect.x1 + glyph.width;
-        c->drawingPriority = c->location.chunk->y + p.dy;
-        c->rect.y1 = c->drawingPriority - glyph.height + g_carriageYBiases[c->type][p.angle];
-        c->rect.y2 = c->rect.y1 + glyph.height;
-
-        if (c->rect.x1 < curBoundingBox->x1)
-            curBoundingBox->x1 = c->rect.x1;
-        if (c->rect.x2 > curBoundingBox->x2)
-            curBoundingBox->x2 = c->rect.x2;
-        if (c->rect.y1 < curBoundingBox->y1)
-            curBoundingBox->y1 = c->rect.y1;
-        if (c->rect.y2 > curBoundingBox->y2)
-            curBoundingBox->y2 = c->rect.y2;
-
-        drawing::setVideoModeR0W1();
-        shadowBufPtr = drawing::copySpriteToShadowBuffer(shadowBufPtr, c->rect.x1, c->rect.y1 + 350,
-                                                         sar<std::int16_t>(c->rect.x2 - 1, 3) - sar(c->rect.x1, 3) + 1,
-                                                         glyph.height);
-        drawing::setVideoModeR0W2();
-
-        if (c->location.chunk->type != 6) {
-            drawGlyph(glyph.glyph1, c->rect.x1, c->rect.y1 + 350, Color::Black);
-            drawGlyph(glyph.glyph2, c->rect.x1, c->rect.y1 + 350, g_entrances[c->dstEntranceIdx].bgColor);
-            drawGlyph(glyph.glyph3, c->rect.x1, c->rect.y1 + 350, g_entrances[c->dstEntranceIdx].fgColor);
-        }
-
-        ++curBoundingBox;
-    }
-}
-
-/* 18fa:0b73 */
-static void drawTrains()
-{
-    for (std::uint16_t i = 0; i < g_trainDrawingChainLen; ++i)
-        drawTrainList(g_trainDrawingChains[i]);
-}
-
-/* 12ba:0097 */
-static void drawCopyright(std::int16_t yOffset)
-{
-    drawTextSmall(12, 336 + yOffset,
-                  " * SHORTLINE * Game by Andrei Snegov * (c) DOKA 1992 Moscow * Version 1.1 *",
-                  Color::Black);
-}
-
-/* 132d:013c */
-static void drawFooterWithCopyright(std::int16_t yOffset)
-{
-    drawing::filledRectangle(0, 334 + yOffset, 80, 16, 0xFF, Color::Gray);
-    drawing::filledRectangle(0, 334 + yOffset, 80, 1, 0xFF, Color::Black);
-    drawCopyright(yOffset);
-}
-
 /* 15e8:09c8 */
 void drawWorld()
 {
@@ -413,20 +242,7 @@ void drawWorld()
                    g_headers[static_cast<std::size_t>(HeaderFieldId::Level)].value, 350);
     drawDispatchers(350);
 
-    drawFooterWithCopyright(350);
-}
-
-/* 132d:0002 */
-void eraseTrain(const Train& train)
-{
-    // TODO draw cursor?
-
-    drawing::setVideoModeR0W1();
-    for (uint8_t i = 0; i < train.carriageCnt; ++i)
-        drawing::copyFromShadowBuffer(train.carriages[i].rect);
-    drawing::setVideoModeR0W2();
-
-    // TODO draw cursor?
+    drawStatusBarWithCopyright(350);
 }
 
 /* 132d:01e2 */

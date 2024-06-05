@@ -1,14 +1,14 @@
 #pragma once
 
-#include "chunk.h"
 #include "graphics/color.h"
+#include "types/chunk.h"
 
 #include <cstddef>
 #include <cstdint>
 
 namespace resl {
 
-struct EntranceInfo {
+struct Entrance {
     Color bgColor;
     Color fgColor;
     std::uint8_t unknown;
@@ -23,10 +23,24 @@ struct EntranceInfo {
  */
 static inline constexpr std::size_t NormalEntranceCount = 6;
 
+// the special pseudo-entrance for servers
+inline constexpr std::uint8_t serverEntranceIdx = 6;
+
+// the special pseudo-entrance for blinking trains
+inline constexpr std::uint8_t blinkingTrainEntranceIdx = 8;
+
 /* 262d:5f00 : 2 bytes */
 extern std::int16_t g_entranceCount;
 
 /* 1d7d:01fc : 198 bytes */
-extern EntranceInfo g_entrances[9];
+extern Entrance g_entrances[9];
+
+//-----------------------------------------------------------------------------
+
+/* 19de:028b */
+Entrance* findClosestEntrance(std::int16_t x, std::int16_t y);
+
+/* 1a65:039d */
+bool checkEntranceIsFree(std::int16_t entranceIdx);
 
 } // namespace resl

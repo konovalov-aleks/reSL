@@ -27,7 +27,7 @@ colors = {
 EntranceStructSize = 0x16
 
 with CPPWriter('entrance.cpp') as w:
-    w.writeln('#include <game/types/entrance.h>')
+    w.writeln('#include <game/entrance.h>')
     w.writeln()
     w.writeln('namespace resl {')
     w.writeln()

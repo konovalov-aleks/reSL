@@ -1,0 +1,16 @@
+#pragma once
+
+#include <cstdint>
+
+namespace resl {
+
+/* 12ba:0097 */
+void drawCopyright(std::int16_t yOffset);
+
+/* 132d:013c */
+void drawStatusBarWithCopyright(std::int16_t yOffset);
+
+/* 12ba:0003 */
+void showStatusMessage(const char* msg);
+
+} // namespace resl

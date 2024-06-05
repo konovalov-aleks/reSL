@@ -1,8 +1,8 @@
 #include "draw_header.h"
 
+#include "entrance.h"
 #include "header.h"
 #include "resources/dispatcher_glyph.h"
-#include "types/entrance.h"
 #include "types/header_field.h"
 #include <graphics/color.h>
 #include <graphics/drawing.h>
@@ -96,7 +96,7 @@ void drawDispatchers(std::int16_t yOffset)
 
     const std::int16_t y = yOffset + 25;
     for (std::int16_t i = 0; i < g_entranceCount; ++i) {
-        const EntranceInfo& e = g_entrances[i];
+        const Entrance& e = g_entrances[i];
         bool signalling = e.waitingTrainsCount != 0;
         const std::int16_t x = i * 22 + 481;
         drawGlyphW16(g_dispatcherGlyphs[signalling].bg, x, y, e.bgColor);

@@ -3,13 +3,18 @@
 #include "management_mode.h"
 #include "mouse_mode.h"
 #include "mouse_state.h"
+#include <game/status_bar.h>
+#include <game/train.h>
+#include <game/entrance.h>
+#include <game/header.h>
+#include <game/melody.h>
+#include <game/types/header_field.h>
 #include <system/mouse.h>
 #include <tasks/message_queue.h>
 #include <tasks/task.h>
 
 #include <cassert>
 #include <cstdint>
-#include <iostream>
 
 namespace resl {
 
@@ -64,9 +69,11 @@ void handleMouseInput(std::uint16_t mouseEventFlags,
             } else {
                 if (mouseEventFlags & ME_RIGHTRELEASED) {
                     // right button clicked
-                    msg.action = MouseAction::BuildRails;
-                } else
-                    msg.action = MouseAction::CallServer;
+                    if (g_mouseState.mode == &g_modeManagement)
+                        msg.action = MouseAction::CallServer;
+                    else
+                        msg.action = MouseAction::BuildRails;
+                }
             }
         }
     }
@@ -79,14 +86,38 @@ Task taskMouseEventHandling()
     for (;;) {
         MsgMouseEvent e = co_await g_mouseMsgQueue.pop();
 
-        // TODO implement
-        std::cout << "mouse event:\n"
-                     "   action = " << static_cast<int>(e.action) << "\n"
-                     "   dx = " << e.cursorDX << "\n"
-                     "   dy = " << e.cursorDY << std::endl;
-
         assert(g_mouseState.mode);
-        g_mouseState.mode->updatePosFn(e.cursorDX, e.cursorDY);
+        MouseMode& mode = *g_mouseState.mode;
+        mode.updatePosFn(e.cursorDX, e.cursorDY);
+
+        switch (e.action) {
+        case MouseAction::CallServer:
+            {
+                Entrance* entrance = findClosestEntrance(mode.x, mode.y);
+                if (!entrance) {
+                    showStatusMessage("Click CLOSER TO ENTRANCE to call server");
+                    playErrorMelody();
+                } else if (g_headers[static_cast<int>(HeaderFieldId::Money)].value < 2) {
+                    showStatusMessage("No money to pay for server call");
+                    playErrorMelody();
+                } else {
+                    const std::int16_t entranceIdx =
+                        static_cast<std::int16_t>(entrance - &g_entrances[0]);
+                    if (!checkEntranceIsFree(entranceIdx)) {
+                        showStatusMessage("Entrance is locked by train");
+                        playErrorMelody();
+                    } else {
+                        if (spawnServer(entranceIdx))
+                            spendMoney(2);
+                        else {
+                            showStatusMessage("Railnet OVERFLOW. Can't call the server");
+                            playErrorMelody();
+                        }
+                    }
+                }
+            }
+            break;
+        }
 
         co_await sleep(1);
     }

@@ -1,20 +1,22 @@
 #include "move_trains.h"
 
 #include "drawing.h"
+#include "entrance.h"
 #include "game_data.h"
 #include "header.h"
+#include "melody.h"
 #include "mouse/management_mode.h"
 #include "mouse/mouse_mode.h"
 #include "mouse/mouse_state.h"
 #include "resources/movement_paths.h"
 #include "resources/train_glyph.h"
+#include "status_bar.h"
+#include "train.h"
 #include "types/chunk.h"
-#include "types/entrance.h"
 #include "types/header_field.h"
 #include "types/position.h"
 #include "types/rectangle.h"
 #include "types/semaphore.h"
-#include "types/train.h"
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/vga.h>
@@ -78,7 +80,7 @@ static MoveAbility tryMoveAlongPath(Location& loc)
 }
 
 /* 18a5:00c1 */
-static void moveAlongPath(Location& loc, std::int16_t distance)
+void moveAlongPath(Location& loc, std::int16_t distance)
 {
     for (std::int16_t i = 0; i < distance; ++i) {
         if (loc.forwardDirection) {
@@ -165,15 +167,6 @@ static void animateCollisionAndPlaySound(Position pos)
     drawing::setDataRotation(0); // default mode - simple copying without rotation
 }
 
-/* 1a65:050b */
-static void setEmptyRectangle(Rectangle& r)
-{
-    r.x1 = 10000;
-    r.x2 = -10000;
-    r.y1 = 10000;
-    r.y2 = -10000;
-}
-
 /* 18fa:023d */
 static void createCrashMarker(Carriage& c)
 {
@@ -190,13 +183,6 @@ static void createCrashMarker(Carriage& c)
     train.needToRedraw = true;
 }
 
-// TODO move to another place
-/* 12ba:0003 */
-static void showStatusMessage(const char* msg)
-{
-    // TODO implement
-}
-
 /* 18fa:063d */
 static void showPassengerAccidentMessage(std::int16_t count)
 {
@@ -208,7 +194,7 @@ static void showPassengerAccidentMessage(std::int16_t count)
 }
 
 /* 18fa:00ba */
-void removeTrainFromDrawingChain(Train& train)
+static void removeTrainFromDrawingChain(Train& train)
 {
     Carriage** c = &g_trainDrawingChains[train.drawingChainIdx];
     while (*c) {
@@ -293,7 +279,7 @@ bool moveTrain(Train& train, std::int16_t dTime)
             return true;
         }
     } else {
-        const EntranceInfo& dstEntrance = g_entrances[train.carriages[0].dstEntranceIdx];
+        const Entrance& dstEntrance = g_entrances[train.carriages[0].dstEntranceIdx];
         if (train.head.chunk == dstEntrance.chunk.x_neighbours[0].chunk)
             train.x_maxSpeed = 30;
         if (train.head.chunk->type != 6) /* 6 means an entrance chunk; TODO make a constant */
@@ -328,10 +314,18 @@ bool moveTrain(Train& train, std::int16_t dTime)
 /* 18fa:0295 */
 void processCarriageCollision(Carriage* c1, Carriage* c2, std::int16_t x, std::int16_t y)
 {
-    do {
+    for (;;) {
         if (c1->type == CarriageType::Server) {
             if (c2->type == CarriageType::CrashedTrain) {
-                // TODO fix the damaged road
+                // server should fix the damaged road
+                if (c1->train->x_acceleration) {
+                    c1->train->x_acceleration = 0;
+                    return;
+                }
+                playFixRoadMelody();
+                deleteTrain(*c2->train);
+                c1->train->x_acceleration = 1;
+                spendMoney(1);
                 return;
             }
         }
@@ -341,7 +335,8 @@ void processCarriageCollision(Carriage* c1, Carriage* c2, std::int16_t x, std::i
             std::swap(c1, c2);
             continue;
         }
-    } while (false);
+        break;
+    }
 
     animateCollisionAndPlaySound({ x, y });
     std::int16_t nPassenger = countPassengerCarriages(*c1->train);

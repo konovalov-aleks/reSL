@@ -1,9 +1,10 @@
 #pragma once
 
-#include "chunk.h"
-#include "rectangle.h"
+#include "types/chunk.h"
+#include "types/rectangle.h"
 
 #include <cstdint>
+#include <utility>
 
 namespace resl {
 
@@ -23,9 +24,6 @@ struct Location {
 };
 
 struct Train;
-
-// the special value for dstEntranceIdx for blinking trains
-inline constexpr std::uint8_t blinkingTrainEntranceIdx = 8;
 
 struct Carriage {
     Carriage* next;
@@ -58,5 +56,52 @@ struct Train {
     Location head;
     Location tail;
 };
+
+/* 262d:5f02 : 2640 bytes */
+extern Train g_trains[20];
+
+/* 262d:6fd2 : 2 bytes */
+extern std::uint16_t g_collidedTrainsArrayLen;
+
+/* 262d:7000 : 80 bytes */
+extern std::pair<Carriage*, Carriage*> g_collidedTrainsArray[20];
+
+/* 262d:6fd4 : 2 bytes */
+extern std::uint16_t g_trainDrawingChainLen;
+
+/* 262d:6fd6 : 40 bytes */
+extern Carriage* g_trainDrawingChains[20];
+
+/* 262d:6ffe : 1 byte */
+extern bool g_needToRedrawTrains;
+
+/* 262d:7050 : 800 bytes */
+extern Rectangle g_carriagesBoundingBoxes[100];
+
+//-----------------------------------------------------------------------------
+
+/* 146b:0153 */
+void initTrains();
+
+/* 146b:018c */
+void resetCarriages();
+
+/* 18fa:000b */
+void scheduleTrainsDrawing();
+
+/* 19de:0841 */
+void scheduleAllTrainsRedrawing();
+
+/* 18fa:08d6 */
+void drawTrainList(Carriage*);
+
+/* 18fa:0b73 */
+void drawTrains();
+
+/* 132d:0002 */
+void eraseTrain(const Train&);
+
+/* 1a65:0256 */
+Train* spawnServer(std::int16_t entranceIdx);
 
 } // namespace resl

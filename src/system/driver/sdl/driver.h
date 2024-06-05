@@ -8,9 +8,12 @@
 
 #include "audio.h" // IWYU pragma: export
 #include "video.h" // IWYU pragma: export
+
+#include <graphics/vga.h>
 #include <system/mouse.h>
 
 #include <SDL_events.h>
+#include <SDL_stdinc.h>
 
 namespace resl {
 
@@ -37,6 +40,7 @@ private:
     Driver& operator=(const Driver&) = delete;
 
     void onMouseButtonEvent(const SDL_MouseButtonEvent&);
+    void onMouseMove(const SDL_MouseMotionEvent&);
 
     class SDLInit {
     public:
@@ -50,6 +54,8 @@ private:
     AudioDriver m_audio;
 
     MouseHandler m_mouseHandler = nullptr;
+    Sint32 m_lastCursorX = SCREEN_WIDTH / 2;
+    Sint32 m_lastCursorY = SCREEN_HEIGHT / 2;
 
     bool m_quit = false;
 };

@@ -340,4 +340,30 @@ VideoMemPtr copySpriteFromShadowBuffer(VideoMemPtr srcPtr, std::int16_t x, std::
     return srcPtr;
 }
 
+/* 1b06:0379 */
+void saveVideoMemRegion24x16(std::int16_t x, std::int16_t y, VideoMemPtr dst)
+{
+    setVideoModeR0W1();
+    VideoMemPtr src = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + sar(x, 3);
+    for (int y = 0; y < 16; ++y) {
+        for (int i = 0; i < 3; ++i)
+            Driver::instance().vga().write(dst++, Driver::instance().vga().read(src++));
+        dst += VIDEO_MEM_ROW_BYTES - 3;
+        src += VIDEO_MEM_ROW_BYTES - 3;
+    }
+}
+
+/* 1b06:03bb */
+void restoreVideoMemRegion24x16(std::int16_t x, std::int16_t y, VideoMemPtr src)
+{
+    setVideoModeR0W1();
+    VideoMemPtr dst = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + sar(x, 3);
+    for (int y = 0; y < 16; ++y) {
+        for (int i = 0; i < 3; ++i)
+            Driver::instance().vga().write(dst++, Driver::instance().vga().read(src++));
+        dst += VIDEO_MEM_ROW_BYTES - 3;
+        src += VIDEO_MEM_ROW_BYTES - 3;
+    }
+}
+
 } // namespace resl::drawing

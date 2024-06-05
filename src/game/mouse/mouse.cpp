@@ -1,34 +1,24 @@
 #include "mouse.h"
 
-#include <graphics/glyph.h>
+#include "management_mode.h"
+#include "mouse_mode.h"
+#include "mouse_state.h"
 #include <system/mouse.h>
 #include <tasks/message_queue.h>
 #include <tasks/task.h>
 
+#include <cassert>
 #include <cstdint>
 #include <iostream>
 
 namespace resl {
 
+using namespace mouse; // FIXME
+
 namespace {
 
-    struct MouseMode {
-        // TODO
-    };
-
-    struct MouseState {
-        MouseMode* mode;
-        std::uint8_t unknown1;
-        std::uint8_t unknown2;
-        Glyph* glyph;
-        std::uint16_t videoMemOffset;
-    };
-
-    /* 1d7d:1cae : 32 bytes */
-    const MouseMode g_mouseMode1 = { /* TODO initialize */ };
-
-    /* 262d:6f02 : 12 bytes */
-    const MouseState g_mouseState = { /* TODO initialize */ };
+    /* 1d7d:1cce : 32 bytes */
+    const MouseMode g_mouseModeRoadConstruction = { /* TODO initialize */ };
 
     /* 262d:6ef8 : 1 byte */
     std::uint8_t g_previousMouseButtonState = 0;
@@ -46,12 +36,16 @@ namespace {
 } // namespace
 
 /* 14af:0761 */
-void handleMouseInput(std::uint16_t mouseEventFlags, std::uint16_t mouseButtonState,
-                      std::int16_t lastRawHMickeyCount, std::int16_t lastRawVMickeyCount)
+void handleMouseInput(std::uint16_t mouseEventFlags,
+                      std::uint16_t mouseButtonState,
+                      std::int16_t dx, std::int16_t dy)
 {
+    static std::int16_t lastX = 0;
+    static std::int16_t lastY = 0;
+
     // the original game uses a global vairable here but we have a different
     // coroutines implementation, and it makes sense to use local variable instead.
-    MsgMouseEvent msg = { MouseAction::None, lastRawHMickeyCount, lastRawVMickeyCount };
+    MsgMouseEvent msg = { MouseAction::None, dx, dy };
 
     if (g_previousMouseButtonState)
         g_previousMouseButtonState = static_cast<std::uint8_t>(mouseButtonState);
@@ -63,7 +57,7 @@ void handleMouseInput(std::uint16_t mouseEventFlags, std::uint16_t mouseButtonSt
         } else {
             if (mouseEventFlags & ME_LEFTRELEASED) {
                 // left button clicked
-                if (g_mouseState.mode == &g_mouseMode1)
+                if (g_mouseState.mode == &g_modeManagement)
                     msg.action = MouseAction::MouseMove;
                 else
                     msg.action = MouseAction::ToggleNextRailType;
@@ -88,8 +82,11 @@ Task taskMouseEventHandling()
         // TODO implement
         std::cout << "mouse event:\n"
                      "   action = " << static_cast<int>(e.action) << "\n"
-                     "   x = " << e.cursorX << "\n"
-                     "   y = " << e.cursorY << std::endl;
+                     "   dx = " << e.cursorDX << "\n"
+                     "   dy = " << e.cursorDY << std::endl;
+
+        assert(g_mouseState.mode);
+        g_mouseState.mode->updatePosFn(e.cursorDX, e.cursorDY);
 
         co_await sleep(1);
     }

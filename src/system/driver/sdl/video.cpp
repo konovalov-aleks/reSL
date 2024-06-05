@@ -3,6 +3,7 @@
 #include "graphics/vga.h"
 
 #include <SDL_error.h>
+#include <SDL_mouse.h>
 #include <SDL_pixels.h>
 #include <SDL_rect.h>
 
@@ -84,6 +85,7 @@ void VGAEmulation::init()
         std::exit(EXIT_FAILURE);
     }
     SDL_SetWindowTitle(m_window, g_windowTitle);
+    SDL_WarpMouseInWindow(m_window, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 
     m_screen = SDL_CreateTexture(
         m_renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING,

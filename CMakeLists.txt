@@ -13,7 +13,9 @@ set(SOURCES
     src/game/init.cpp
     src/game/io_status.cpp
     src/game/load_game.cpp
-    src/game/mouse.cpp
+    src/game/mouse/management_mode.cpp
+    src/game/mouse/mouse.cpp
+    src/game/mouse/mouse_state.cpp
     src/game/move_trains.cpp
     src/game/records.cpp
     src/game/resources/carriage_bias.cpp
@@ -74,3 +76,10 @@ add_custom_command(
         ${CMAKE_CURRENT_SOURCE_DIR}/resources/DEMO_A
         $<TARGET_FILE_DIR:resl>/DEMO_A
 )
+
+find_program(iwyu_path NAMES include-what-you-use iwyu)
+if (NOT iwyu_path)
+    message("WARNING: include-what-you-use tool was not found - will build without include validation")
+else()
+    set_property(TARGET resl PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path};-Xiwyu;--no_fwd_decls;-Xiwyu;--cxx17ns)
+endif()

@@ -3,6 +3,9 @@
 #include "drawing.h"
 #include "game_data.h"
 #include "header.h"
+#include "mouse/management_mode.h"
+#include "mouse/mouse_mode.h"
+#include "mouse/mouse_state.h"
 #include "resources/movement_paths.h"
 #include "resources/train_glyph.h"
 #include "types/chunk.h"
@@ -508,9 +511,13 @@ Task taskMoveAndRedrawTrains()
                     }
                 }
 
-                // TODO
-                // if (someLogic)
-                //    needRedrawCursor = true;
+                const std::int16_t mouseX = mouse::g_mouseState.mode->x & 0xFFF8;
+                const std::int16_t mouseY = mouse::g_mouseState.mode->y;
+                if (mouse::g_mouseState.mode == &mouse::g_modeManagement &&
+                    mouseX - 8 < carriage->rect.x2 && mouseX + 32 > carriage->rect.x1 &&
+                    mouseY < carriage->rect.y2 && mouseY + 16 > carriage->rect.y1)
+                    needToRedrawCursor = true;
+
                 carriage = carriage->next;
             } while (carriage);
             if (needToRestartDrawing)
@@ -527,10 +534,11 @@ Task taskMoveAndRedrawTrains()
                 if (g_semaphores[i].isRightDirection)
                     drawSemaphore(g_semaphores[i], 350);
             }
+
             // TODO
             // waitVGARetrace();
-            // if (needToRedrawCursor)
-            //      drawCursor()
+            if (needToRedrawCursor)
+                mouse::g_mouseState.mode->clearFn();
 
             drawing::setVideoModeR0W1();
             do {
@@ -539,9 +547,8 @@ Task taskMoveAndRedrawTrains()
             } while (carriage);
             drawing::setVideoModeR0W2();
 
-            // TODO
-            // if (needToRedrawCursor)
-            //      drawCursor()
+            if (needToRedrawCursor)
+                mouse::g_mouseState.mode->drawFn();
 
             drawing::setVideoModeR0W1();
             eraseCarriagesInShadowBuffer(*g_trainDrawingChains[curChain], drawing::VIDEO_MEM_SHADOW_BUFFER);

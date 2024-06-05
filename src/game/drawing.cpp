@@ -35,8 +35,11 @@
 #include <cassert>
 #include <cstdint>
 #include <cstdlib>
-#include <iterator>
 #include <utility>
+
+#ifndef NDEBUG
+#   include <iterator>
+#endif
 
 namespace resl {
 

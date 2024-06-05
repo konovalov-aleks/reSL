@@ -17,13 +17,14 @@ enum MouseAction : std::uint8_t {
 
 struct MsgMouseEvent {
     MouseAction action;
-    std::int16_t cursorX;
-    std::int16_t cursorY;
+    std::int16_t cursorDX;
+    std::int16_t cursorDY;
 };
 
 /* 14af:0761 */
-void handleMouseInput(std::uint16_t mouseEventFlags, std::uint16_t mouseButtonState,
-                      std::int16_t lastRawHMickeyCount, std::int16_t lastRawVMickeyCount);
+void handleMouseInput(std::uint16_t mouseEventFlags,
+                      std::uint16_t mouseButtonState,
+                      std::int16_t dx, std::int16_t dy);
 
 /* 14af:0320 */
 Task taskMouseEventHandling();

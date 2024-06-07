@@ -2,7 +2,6 @@
 
 #include "drawing.h"
 #include "entrance.h"
-#include "game_data.h"
 #include "header.h"
 #include "melody.h"
 #include "mouse/management_mode.h"
@@ -10,13 +9,13 @@
 #include "mouse/mouse_state.h"
 #include "resources/movement_paths.h"
 #include "resources/train_glyph.h"
+#include "semaphore.h"
 #include "status_bar.h"
 #include "train.h"
 #include "types/chunk.h"
 #include "types/header_field.h"
 #include "types/position.h"
 #include "types/rectangle.h"
-#include "types/semaphore.h"
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/vga.h>

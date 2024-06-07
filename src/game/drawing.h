@@ -1,6 +1,5 @@
 #pragma once
 
-#include "types/semaphore.h"
 #include <graphics/color.h>
 
 #include <cstdint>
@@ -14,9 +13,6 @@ void drawRailBg1(
 /* 137c:00d2 */
 void drawRailBg2(
     std::int16_t tileX, std::int16_t tileY, std::int16_t railType, Color, std::int16_t yOffset);
-
-/* 137c:0135 */
-void drawSemaphore(Semaphore&, std::int16_t yOffset);
 
 /* 17bf:0cd0 */
 void drawFieldBackground(std::int16_t yOffset);

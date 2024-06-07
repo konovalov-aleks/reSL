@@ -2,18 +2,32 @@
 
 #include "game_data.h"
 #include "resources/movement_paths.h"
+#include "resources/rail_glyph.h"
 #include "resources/rail_info.h"
 #include "resources/s4arr.h"
 #include "resources/semaphore_glyph_bias.h"
 #include "types/chunk.h"
 #include "types/rail_info.h"
-#include "types/switch.h"
+#include <graphics/color.h>
+#include <graphics/drawing.h>
+#include <graphics/glyph.h>
+#include <graphics/vga.h>
+#include <system/driver/driver.h>
+#include <utility/sar.h>
 
 #include <cassert>
 #include <cstdint>
 #include <utility>
 
 namespace resl {
+
+/* 262d:21d4 : 2 bytes */
+std::uint16_t g_nSwitches;
+
+/* 262d:6954 : 1440 bytes */
+Switch g_switches[80];
+
+//-----------------------------------------------------------------------------
 
 /* 19de:02ee */
 static void updateSwitchPosition(Switch& s)
@@ -110,6 +124,47 @@ void toggleSwitch(Switch& s)
 
     if (s.x_someSwitchIndex != -1)
         g_switches[s.x_someSwitchIndex].c1 = s.curChunk;
+}
+
+/* 13d1:010f */
+void drawSwitch(std::int16_t idx, bool drawToScreen)
+{
+    auto& vga = Driver::instance().vga();
+
+    VideoMemPtr dstPtr = VIDEO_MEM_START_ADDR + (idx + 1) * 30 - 1;
+    // TODO implement properly!!!
+    Switch& s = g_switches[idx];
+    Chunk* rail = s.curChunk.chunk;
+    const RailGlyph* rg = railBackgrounds[rail->type].switches[s.curChunk.slot];
+
+    drawing::setVideoModeR0W1();
+    const std::uint8_t* glyphData = rg->glyph.data;
+    for (std::uint8_t y = 0; y < rg->glyph.height; ++y) {
+        std::int16_t yPos = rail->y + rg->dy + y;
+        for (std::uint8_t xBytes = 0; xBytes < rg->glyph.width; ++xBytes) {
+            if (*glyphData) {
+                std::int16_t xPos = rail->x + rg->dx + xBytes * 8;
+                VideoMemPtr srcPtr = VIDEO_MEM_START_ADDR + (yPos + 350) * VIDEO_MEM_ROW_BYTES + sar(xPos, 3);
+                vga.write(dstPtr++, vga.read(srcPtr));
+            }
+            ++glyphData;
+        }
+    }
+    drawing::setVideoModeR0W2();
+
+    if (drawToScreen)
+        drawGlyphAlignX8(&rg->glyph, rail->x + rg->dx, rail->y + rg->dy, Color::Black);
+
+    drawGlyphAlignX8(&rg->glyph, rail->x + rg->dx, rail->y + rg->dy + 350, Color::Black);
+}
+
+/* 13d1:026c */
+void drawSwitch2(std::int16_t idx, std::int16_t yOffset)
+{
+    const Switch& s = g_switches[idx];
+    const Chunk* rail = s.curChunk.chunk;
+    const RailGlyph* rg = railBackgrounds[rail->type].switches[s.curChunk.slot];
+    drawGlyphAlignX8(&rg->glyph, rail->x + rg->dx, rail->y + rg->dy + yOffset, Color::Black);
 }
 
 } // namespace resl

@@ -7,11 +7,32 @@
 #include "resources/semaphore_glyph_bias.h"
 #include "types/chunk.h"
 #include "types/rail_info.h"
-#include "types/semaphore.h"
+#include <graphics/color.h>
+#include <graphics/glyph.h>
 
 #include <cstdint>
 
 namespace resl {
+
+/* 262d:6f9c : 48 bytes */
+Semaphore x_newSemaphores[4];
+
+/* 262d:6f60 : 48 bytes */
+Semaphore x_erasedSemaphores[4];
+
+/* 262d:6f90 : 2 bytes */
+std::int16_t x_newSemaphoreCount;
+
+/* 262d:6f92 : 2 bytes */
+std::int16_t x_erasedSemaphoreCount;
+
+/* 262d:58aa : 600 bytes */
+Semaphore g_semaphores[50];
+
+/* 262d:21d6 : 2 bytes */
+std::uint16_t g_semaphoreCount;
+
+//-----------------------------------------------------------------------------
 
 /* 19de:0426 */
 static std::uint16_t roadMaskInTile(std::int16_t tileX, std::int16_t tileY)
@@ -136,6 +157,23 @@ void createSemaphores(RailInfo& ri)
             }
         }
     }
+}
+
+/* 137c:0135 */
+void drawSemaphore(Semaphore& s, std::int16_t yOffset)
+{
+    const SemaphoreGlyph& glyph = *s.glyph;
+    std::int16_t x = s.pixelX + glyph.xOffset;
+    std::int16_t y = s.pixelY + glyph.yOffset + yOffset;
+
+    g_glyphHeight = 15;
+    drawGlyphW8(glyph.glyphBg1, x, y, Color::White);
+    drawGlyphW8(glyph.glyphBg2, x, y, Color::Black);
+
+    g_glyphHeight = 4;
+    drawGlyphW16(
+        s.glyph->glyphLight, x + glyph.lightXOffset, y + glyph.lightYOffset,
+        s.isRed ? Color::Red : Color::LightGreen);
 }
 
 } // namespace resl

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <game/types/semaphore.h>
+#include <game/semaphore.h>
 
 #include <cstdint>
 

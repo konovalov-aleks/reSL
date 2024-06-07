@@ -12,8 +12,6 @@
 #include "types/chunk.h"
 #include "types/rail_info.h"
 #include "types/rectangle.h"
-#include "types/semaphore.h"
-#include "types/switch.h"
 #include <system/time.h>
 
 #include <sys/fcntl.h>

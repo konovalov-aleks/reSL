@@ -5,7 +5,7 @@
 
 #include "rail_type_meta.h"
 
-#include <game/types/semaphore.h>
+#include <game/semaphore.h>
 
 namespace resl {
 

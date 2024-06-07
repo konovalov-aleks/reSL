@@ -6,25 +6,21 @@
 #include "graphics/drawing.h"
 #include "header.h"
 #include "resources/rail_glyph.h"
-#include "resources/semaphore_glyph.h"
 #include "resources/static_object_glyph.h"
 #include "resources/train_finished_exclamation_glyph.h"
+#include "semaphore.h"
 #include "status_bar.h"
+#include "switch.h"
 #include "train.h"
 #include "types/chunk.h"
 #include "types/header_field.h"
 #include "types/rail_info.h"
-#include "types/semaphore.h"
 #include "types/static_object.h"
-#include "types/switch.h"
 #include <graphics/color.h>
 #include <graphics/glyph.h>
-#include <graphics/vga.h>
 #include <system/buffer.h>
-#include <system/driver/driver.h>
 #include <system/random.h>
 #include <system/read_file.h>
-#include <utility/sar.h>
 
 #include <algorithm>
 #include <cassert>
@@ -65,64 +61,6 @@ void drawRail(std::int16_t tileX, std::int16_t tileY,
     RailGlyph* rg = railBackgrounds[railType].mainGlyph;
     drawGlyphAlignX8(&rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
                      (tileX + tileY) * 21 + rg->dy + yOffset - 22, color);
-}
-
-/* 13d1:010f */
-void drawSwitch(std::int16_t idx, bool drawToScreen)
-{
-    auto& vga = Driver::instance().vga();
-
-    VideoMemPtr dstPtr = VIDEO_MEM_START_ADDR + (idx + 1) * 30 - 1;
-    // TODO implement properly!!!
-    Switch& s = g_switches[idx];
-    Chunk* rail = s.curChunk.chunk;
-    const RailGlyph* rg = railBackgrounds[rail->type].switches[s.curChunk.slot];
-
-    drawing::setVideoModeR0W1();
-    const std::uint8_t* glyphData = rg->glyph.data;
-    for (std::uint8_t y = 0; y < rg->glyph.height; ++y) {
-        std::int16_t yPos = rail->y + rg->dy + y;
-        for (std::uint8_t xBytes = 0; xBytes < rg->glyph.width; ++xBytes) {
-            if (*glyphData) {
-                std::int16_t xPos = rail->x + rg->dx + xBytes * 8;
-                VideoMemPtr srcPtr = VIDEO_MEM_START_ADDR + (yPos + 350) * VIDEO_MEM_ROW_BYTES + sar(xPos, 3);
-                vga.write(dstPtr++, vga.read(srcPtr));
-            }
-            ++glyphData;
-        }
-    }
-    drawing::setVideoModeR0W2();
-
-    if (drawToScreen)
-        drawGlyphAlignX8(&rg->glyph, rail->x + rg->dx, rail->y + rg->dy, Color::Black);
-
-    drawGlyphAlignX8(&rg->glyph, rail->x + rg->dx, rail->y + rg->dy + 350, Color::Black);
-}
-
-/* 13d1:026c */
-void drawSwitch2(std::int16_t idx, std::int16_t yOffset)
-{
-    const Switch& s = g_switches[idx];
-    const Chunk* rail = s.curChunk.chunk;
-    const RailGlyph* rg = railBackgrounds[rail->type].switches[s.curChunk.slot];
-    drawGlyphAlignX8(&rg->glyph, rail->x + rg->dx, rail->y + rg->dy + yOffset, Color::Black);
-}
-
-/* 137c:0135 */
-void drawSemaphore(Semaphore& s, std::int16_t yOffset)
-{
-    const SemaphoreGlyph& glyph = *s.glyph;
-    std::int16_t x = s.pixelX + glyph.xOffset;
-    std::int16_t y = s.pixelY + glyph.yOffset + yOffset;
-
-    g_glyphHeight = 15;
-    drawGlyphW8(glyph.glyphBg1, x, y, Color::White);
-    drawGlyphW8(glyph.glyphBg2, x, y, Color::Black);
-
-    g_glyphHeight = 4;
-    drawGlyphW16(
-        s.glyph->glyphLight, x + glyph.lightXOffset, y + glyph.lightYOffset,
-        s.isRed ? Color::Red : Color::LightGreen);
 }
 
 /* 1530:0203 */

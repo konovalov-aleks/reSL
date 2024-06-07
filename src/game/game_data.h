@@ -2,9 +2,7 @@
 
 #include "types/chunk.h"
 #include "types/rail_info.h"
-#include "types/semaphore.h"
 #include "types/static_object.h"
-#include "types/switch.h"
 
 #include <cstdint>
 
@@ -37,31 +35,7 @@ extern std::uint8_t railroadTypeMasks[11][11];
 /* 262d:6954 : 1440 bytes */
 extern Chunk x_chunks_1[80];
 
-/* 262d:21d4 : 2 bytes */
-extern std::uint16_t g_nSwitches;
-
-/* 262d:21d6 : 2 bytes */
-extern std::uint16_t g_semaphoreCount;
-
 /* 262d:6ef4 : 4 bytes */
 extern ChunkReference x_unknownChunkConst;
-
-/* 262d:6954 : 1440 bytes */
-extern Switch g_switches[80];
-
-/* 262d:6f9c : 48 bytes */
-extern Semaphore x_newSemaphores[4];
-
-/* 262d:6f60 : 48 bytes */
-extern Semaphore x_erasedSemaphores[4];
-
-/* 262d:6f90 : 2 bytes */
-extern std::int16_t x_newSemaphoreCount;
-
-/* 262d:6f92 : 2 bytes */
-extern std::int16_t x_erasedSemaphoreCount;
-
-/* 262d:58aa : 600 bytes */
-extern Semaphore g_semaphores[50];
 
 } // namespace resl

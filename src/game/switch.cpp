@@ -6,6 +6,7 @@
 #include "resources/rail_info.h"
 #include "resources/s4arr.h"
 #include "resources/semaphore_glyph_bias.h"
+#include "train.h"
 #include "types/chunk.h"
 #include "types/rail_info.h"
 #include <graphics/color.h>
@@ -17,6 +18,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <cstdlib>
 #include <utility>
 
 namespace resl {
@@ -32,10 +34,10 @@ Switch g_switches[80];
 /* 19de:02ee */
 static void updateSwitchPosition(Switch& s)
 {
-    const s4& s4obj = s4arr[s.c1.chunk->type][s.c1.slot];
-    const SemaphoreGlyphBias& sb = g_semaphoreGlyphBias[s.c1.chunk->type][s.c1.slot];
-    s.x = s.c1.chunk->x + (s4obj.tileOffsetX - s4obj.tileOffsetY) * 88 + sb.dx;
-    s.y = s.c1.chunk->y + (s4obj.tileOffsetX - s4obj.tileOffsetY) * 21 + sb.dy;
+    const s4& s4obj = s4arr[s.exit.chunk->type][s.exit.slot];
+    const SemaphoreGlyphBias& sb = g_semaphoreGlyphBias[s.exit.chunk->type][s.exit.slot];
+    s.x = s.exit.chunk->x + (s4obj.tileOffsetX - s4obj.tileOffsetY) * 88 + sb.dx;
+    s.y = s.exit.chunk->y + (s4obj.tileOffsetX + s4obj.tileOffsetY) * 21 + sb.dy;
 }
 
 /* 19de:00b6 */
@@ -49,7 +51,7 @@ static void configChunkStepsForSwitch(ChunkReference r)
 }
 
 /* 1ad3:000c */
-void createSwitches(RailInfo& r)
+void createSwitches(const RailInfo& r)
 {
     assert(r.tileX < 11);
     assert(r.tileY < 11);
@@ -77,27 +79,27 @@ void createSwitches(RailInfo& r)
             } else if (c1_neighb.chunk != specialChunkPtr) {
                 Switch& s = g_switches[g_nSwitches++];
                 s.x_someSwitchIndex = -1;
-                s.c1.chunk = &chunk;
-                s.c1.slot = ri._type1;
-                s.c3.chunk = &chunk2;
-                s.c3.slot = ri._type2;
-                s.curChunk = c1_neighb;
+                s.exit.chunk = &chunk;
+                s.exit.slot = ri._type1;
+                s.disabledPath.chunk = &chunk2;
+                s.disabledPath.slot = ri._type2;
+                s.entry = c1_neighb;
                 updateSwitchPosition(s);
-                configChunkStepsForSwitch(s.c3);
+                configChunkStepsForSwitch(s.disabledPath);
             }
         } else if (c2_neighb.chunk != specialChunkPtr) {
             Switch& s = g_switches[g_nSwitches++];
             s.x_someSwitchIndex = -1;
-            s.c1.chunk = &chunk2;
-            s.c1.slot = ri._type2;
-            s.c3.chunk = &chunk;
-            s.c3.slot = ri._type1;
-            s.curChunk = c2_neighb;
+            s.exit.chunk = &chunk2;
+            s.exit.slot = ri._type2;
+            s.disabledPath.chunk = &chunk;
+            s.disabledPath.slot = ri._type1;
+            s.entry = c2_neighb;
             updateSwitchPosition(s);
-            configChunkStepsForSwitch(s.c3);
+            configChunkStepsForSwitch(s.disabledPath);
 
             for (Switch* s2 = g_switches; s2 < &s; ++s2) {
-                if (s2->curChunk.chunk != &chunk2)
+                if (s2->entry.chunk != &chunk2)
                     continue;
 
                 s.x_someSwitchIndex = s2 - g_switches;
@@ -111,19 +113,19 @@ void createSwitches(RailInfo& r)
 /* 19de:00ec */
 void toggleSwitch(Switch& s)
 {
-    s.c1.chunk->x_neighbours[s.c1.slot] = s.c3;
-    s.c3.chunk->x_neighbours[s.c3.slot] = s.c1;
+    s.exit.chunk->x_neighbours[s.exit.slot] = s.disabledPath;
+    s.disabledPath.chunk->x_neighbours[s.disabledPath.slot] = s.exit;
 
-    configChunkStepsForSwitch(s.curChunk);
-    if (s.c3.slot == 0)
-        s.c3.chunk->minPathStep = 0;
+    configChunkStepsForSwitch(s.entry);
+    if (s.disabledPath.slot == 0)
+        s.disabledPath.chunk->minPathStep = 0;
     else
-        s.c3.chunk->maxPathStep = g_movementPaths[s.c3.chunk->type].size - 1;
+        s.disabledPath.chunk->maxPathStep = g_movementPaths[s.disabledPath.chunk->type].size - 1;
 
-    std::swap(s.curChunk, s.c3);
+    std::swap(s.entry, s.disabledPath);
 
     if (s.x_someSwitchIndex != -1)
-        g_switches[s.x_someSwitchIndex].c1 = s.curChunk;
+        g_switches[s.x_someSwitchIndex].exit = s.entry;
 }
 
 /* 13d1:010f */
@@ -131,11 +133,10 @@ void drawSwitch(std::int16_t idx, bool drawToScreen)
 {
     auto& vga = Driver::instance().vga();
 
-    VideoMemPtr dstPtr = VIDEO_MEM_START_ADDR + (idx + 1) * 30 - 1;
-    // TODO implement properly!!!
+    VideoMemPtr dstPtr = VIDEO_MEM_START_ADDR + static_cast<std::uint16_t>(-(idx + 1) * 30 - 1);
     Switch& s = g_switches[idx];
-    Chunk* rail = s.curChunk.chunk;
-    const RailGlyph* rg = railBackgrounds[rail->type].switches[s.curChunk.slot];
+    Chunk* rail = s.entry.chunk;
+    const RailGlyph* rg = railBackgrounds[rail->type].switches[s.entry.slot];
 
     drawing::setVideoModeR0W1();
     const std::uint8_t* glyphData = rg->glyph.data;
@@ -158,13 +159,83 @@ void drawSwitch(std::int16_t idx, bool drawToScreen)
     drawGlyphAlignX8(&rg->glyph, rail->x + rg->dx, rail->y + rg->dy + 350, Color::Black);
 }
 
+/* 13d1:0001 */
+void eraseSwitch(std::int16_t idx)
+{
+    auto& vga = Driver::instance().vga();
+
+    VideoMemPtr srcPtr = VIDEO_MEM_START_ADDR + static_cast<std::uint16_t>(-(idx + 1) * 30 - 1);
+    Switch& s = g_switches[idx];
+    Chunk* rail = s.entry.chunk;
+    const RailGlyph* rg = railBackgrounds[rail->type].switches[s.entry.slot];
+
+    drawing::setVideoModeR0W1();
+    const std::uint8_t* glyphData = rg->glyph.data;
+    for (std::uint8_t y = 0; y < rg->glyph.height; ++y) {
+        std::int16_t yPos = rail->y + rg->dy + y;
+        for (std::uint8_t xBytes = 0; xBytes < rg->glyph.width; ++xBytes) {
+            if (*glyphData) {
+                const std::int16_t xPos = rail->x + rg->dx + xBytes * 8;
+                const std::int16_t offset = yPos * VIDEO_MEM_ROW_BYTES + sar(xPos, 3);
+                std::uint8_t data = vga.read(srcPtr++);
+                vga.write(VIDEO_MEM_START_ADDR + offset, data);
+                vga.write(drawing::VIDEO_MEM_SHADOW_BUFFER + offset, data);
+            }
+            ++glyphData;
+        }
+    }
+    drawing::setVideoModeR0W2();
+}
+
 /* 13d1:026c */
-void drawSwitch2(std::int16_t idx, std::int16_t yOffset)
+void drawSwitchNoBackup(std::int16_t idx, std::int16_t yOffset)
 {
     const Switch& s = g_switches[idx];
-    const Chunk* rail = s.curChunk.chunk;
-    const RailGlyph* rg = railBackgrounds[rail->type].switches[s.curChunk.slot];
+    const Chunk* rail = s.entry.chunk;
+    const RailGlyph* rg = railBackgrounds[rail->type].switches[s.entry.slot];
     drawGlyphAlignX8(&rg->glyph, rail->x + rg->dx, rail->y + rg->dy + yOffset, Color::Black);
+}
+
+/* 19de:020b */
+Switch* findClosestSwitch(std::int16_t x, std::int16_t y)
+{
+    Switch* res = nullptr;
+    std::int16_t bestDistance = 60;
+
+    for (Switch* s = g_switches + g_nSwitches - 1; s >= g_switches; --s) {
+        const std::int16_t dx = std::abs(x - s->x);
+        const std::int16_t dy = std::abs(y - s->y);
+        const std::int16_t dist = dx + dy * 4;
+        if (dist < bestDistance) {
+            res = s;
+            bestDistance = dist;
+        }
+    }
+    return res;
+}
+
+/* 19de:0007 */
+bool switchIsBusy(const Switch& s)
+{
+    for (const Train& t : g_trains) {
+        if (t.isFreeSlot)
+            continue;
+
+        // switch is locked if a train occupies both parts of the switch
+        bool entryBusy = s.entry.chunk == t.head.chunk || s.entry.chunk == t.tail.chunk;
+        bool exitBusy = s.exit.chunk == t.head.chunk || s.exit.chunk == t.tail.chunk;
+
+        for (std::uint8_t i = 0; i < t.carriageCnt; ++i) {
+            const Carriage& c = t.carriages[i];
+            if (s.entry.chunk == c.location.chunk)
+                entryBusy = true;
+            if (s.exit.chunk == c.location.chunk)
+                exitBusy = true;
+            if (entryBusy && exitBusy)
+                return true;
+        }
+    }
+    return false;
 }
 
 } // namespace resl

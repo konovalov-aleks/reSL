@@ -11,6 +11,9 @@
 #include <graphics/glyph.h>
 
 #include <cstdint>
+#include <cstdlib>
+// IWYU pragma: no_include <cmath>
+#include <iostream>
 
 namespace resl {
 
@@ -86,7 +89,7 @@ static void removeSemaphore(Chunk& c, SemaphoreType type)
 }
 
 /* 17bf:07dd */
-void createSemaphores(RailInfo& ri)
+void createSemaphores(const RailInfo& ri)
 {
     Chunk& chunk = g_chunks[ri.tileX][ri.tileY][ri.railType];
     x_erasedSemaphoreCount = 0;
@@ -160,7 +163,7 @@ void createSemaphores(RailInfo& ri)
 }
 
 /* 137c:0135 */
-void drawSemaphore(Semaphore& s, std::int16_t yOffset)
+void drawSemaphore(const Semaphore& s, std::int16_t yOffset)
 {
     const SemaphoreGlyph& glyph = *s.glyph;
     std::int16_t x = s.pixelX + glyph.xOffset;
@@ -174,6 +177,31 @@ void drawSemaphore(Semaphore& s, std::int16_t yOffset)
     drawGlyphW16(
         s.glyph->glyphLight, x + glyph.lightXOffset, y + glyph.lightYOffset,
         s.isRed ? Color::Red : Color::LightGreen);
+}
+
+/* 19de:0414 */
+void toggleSemaphore(Semaphore& s)
+{
+    s.isRed = !s.isRed;
+}
+
+/* 19de:038e */
+Semaphore* findClosestSemaphore(std::int16_t x, std::int16_t y)
+{
+    Semaphore* res = nullptr;
+    std::int16_t bestDistance = 60;
+
+    for (Semaphore* s = g_semaphores + g_semaphoreCount - 1; s >= g_semaphores; --s) {
+        const std::int16_t dx = std::abs(x - s->pixelX);
+        const std::int16_t dy = std::abs(y - s->pixelY + 10);
+        const std::int16_t dist = dx + dy * 4;
+        if (dist < bestDistance) {
+            res = s;
+            bestDistance = dist;
+        }
+    }
+    std::cout << "best dist = " << bestDistance << std::endl;
+    return res;
 }
 
 } // namespace resl

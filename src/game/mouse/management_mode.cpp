@@ -47,31 +47,33 @@ namespace {
 
     constexpr VideoMemPtr g_cursorAreaBackup = VIDEO_MEM_START_ADDR + 0x7861;
 
-    /* 14af:0089 */
-    void drawCursor()
-    {
-        assert(g_state.mode && g_state.mode == &g_modeManagement);
-        MouseMode& mode = *g_state.mode;
-
-        drawing::saveVideoMemRegion24x16(mode.x, mode.y, g_cursorAreaBackup);
-        drawing::setVideoModeR0W2();
-
-        static_assert(std::size(MouseMode{}.glyphs) == std::size(MouseMode{}.colors));
-        g_glyphHeight = 16;
-        for (std::size_t i = 0; i < std::size(mode.glyphs); ++i)
-            drawGlyphW16(mode.glyphs[i], mode.x, mode.y, mode.colors[i]);
-    }
-
-    /* 14af:00e6 */
-    void clearCursor()
-    {
-        assert(g_state.mode && g_state.mode == &g_modeManagement);
-        MouseMode& mode = *g_state.mode;
-        drawing::restoreVideoMemRegion24x16(mode.x, mode.y, g_cursorAreaBackup);
-        drawing::setVideoModeR0W2();
-    }
-
 } // namespace
+
+/* 14af:0089 */
+void drawArrowCursor()
+{
+    assert(g_state.mode && g_state.mode == &g_modeManagement);
+    MouseMode& mode = *g_state.mode;
+
+    drawing::saveVideoMemRegion24x16(mode.x, mode.y, g_cursorAreaBackup);
+    drawing::setVideoModeR0W2();
+
+    static_assert(std::size(MouseMode{}.glyphs) == std::size(MouseMode{}.colors));
+    g_glyphHeight = 16;
+    for (std::size_t i = 0; i < std::size(mode.glyphs); ++i)
+        drawGlyphW16(mode.glyphs[i], mode.x, mode.y, mode.colors[i]);
+}
+
+/* 14af:00e6 */
+void clearArrowCursor()
+{
+    assert(g_state.mode && g_state.mode == &g_modeManagement);
+    MouseMode& mode = *g_state.mode;
+    drawing::restoreVideoMemRegion24x16(mode.x, mode.y, g_cursorAreaBackup);
+    drawing::setVideoModeR0W2();
+}
+
+//-----------------------------------------------------------------------------
 
 /* 1d7d:1cae : 32 bytes */
 MouseMode g_modeManagement = {
@@ -80,8 +82,8 @@ MouseMode g_modeManagement = {
     -10, 650,   // min/max X
     0, 334,     // min/max Y
     320, 200,   // x, y
-    &drawCursor,
-    &clearCursor,
+    &drawArrowCursor,
+    &clearArrowCursor,
     &updateCursorPos
 };
 

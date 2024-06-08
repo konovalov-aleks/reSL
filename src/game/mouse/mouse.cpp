@@ -8,6 +8,8 @@
 #include <game/entrance.h>
 #include <game/header.h>
 #include <game/melody.h>
+#include <game/semaphore.h>
+#include <game/switch.h>
 #include <game/types/header_field.h>
 #include <system/mouse.h>
 #include <tasks/message_queue.h>
@@ -63,7 +65,7 @@ void handleMouseInput(std::uint16_t mouseEventFlags,
             if (mouseEventFlags & ME_LEFTRELEASED) {
                 // left button clicked
                 if (g_state.mode == &g_modeManagement)
-                    msg.action = MouseAction::MouseMove;
+                    msg.action = MouseAction::MouseClick;
                 else
                     msg.action = MouseAction::ToggleNextRailType;
             } else {
@@ -92,6 +94,7 @@ Task taskMouseEventHandling()
 
         switch (e.action) {
         case MouseAction::CallServer:
+            /* 14af:05e7 */
             {
                 Entrance* entrance = findClosestEntrance(mode.x, mode.y);
                 if (!entrance) {
@@ -103,7 +106,7 @@ Task taskMouseEventHandling()
                 } else {
                     const std::int16_t entranceIdx =
                         static_cast<std::int16_t>(entrance - &g_entrances[0]);
-                    if (!checkEntranceIsFree(entranceIdx)) {
+                    if (!entranceIsFree(entranceIdx)) {
                         showStatusMessage("Entrance is locked by train");
                         playErrorMelody();
                     } else {
@@ -115,6 +118,35 @@ Task taskMouseEventHandling()
                         }
                     }
                 }
+            }
+            break;
+        case MouseAction::MouseClick:
+            /* 14af:0364 */
+            {
+                if (Switch* sw = findClosestSwitch(mode.x, mode.y)) {
+                    if (switchIsBusy(*sw)) {
+                        showStatusMessage("Switch is locked by train");
+                        playErrorMelody();
+                    } else {
+                        clearArrowCursor();
+                        const std::int16_t switchIdx = static_cast<std::int16_t>(sw - g_switches);
+                        eraseSwitch(switchIdx);
+                        toggleSwitch(*sw);
+                        drawSwitch(switchIdx, true);
+                        drawArrowCursor();
+                        scheduleAllTrainsRedrawing();
+                        playSwitchSwitchedMelody();
+                    }
+                } else if (Semaphore* sem = findClosestSemaphore(mode.x, mode.y)) {
+                    clearArrowCursor();
+                    toggleSemaphore(*sem);
+                    drawSemaphore(*sem, 0);
+                    drawSemaphore(*sem, 350);
+                    drawArrowCursor();
+                    scheduleAllTrainsRedrawing();
+                    playEntitySwitchedSound(sem->isRed);
+                } else
+                    playErrorMelody();
             }
             break;
         }

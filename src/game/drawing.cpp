@@ -154,7 +154,7 @@ void drawWorld()
     }
 
     for (std::uint16_t i = 0; i < g_nSwitches; ++i)
-        drawSwitch2(i, 350);
+        drawSwitchNoBackup(i, 350);
 
     drawStaticObjects(350);
 

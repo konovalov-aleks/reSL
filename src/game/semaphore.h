@@ -49,9 +49,15 @@ extern std::uint16_t g_semaphoreCount;
 //-----------------------------------------------------------------------------
 
 /* 17bf:07dd */
-void createSemaphores(RailInfo&);
+void createSemaphores(const RailInfo&);
 
 /* 137c:0135 */
-void drawSemaphore(Semaphore&, std::int16_t yOffset);
+void drawSemaphore(const Semaphore&, std::int16_t yOffset);
+
+/* 19de:0414 */
+void toggleSemaphore(Semaphore&);
+
+/* 19de:038e */
+Semaphore* findClosestSemaphore(std::int16_t x, std::int16_t y);
 
 } // namespace resl

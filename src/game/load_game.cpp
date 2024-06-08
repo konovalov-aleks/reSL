@@ -227,7 +227,7 @@ IOStatus loadSavedGame(const char* fileName)
         }
         for (int i = 0; i < g_nSwitches; ++i) {
             Switch& s = g_switches[i];
-            if ((s.curChunk.chunk < s.c3.chunk) != switchStatesBuf[i])
+            if ((s.entry.chunk < s.disabledPath.chunk) != switchStatesBuf[i])
                 toggleSwitch(s);
         }
         for (int i = 0; i < g_semaphoreCount; ++i)

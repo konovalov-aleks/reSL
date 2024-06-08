@@ -38,7 +38,7 @@ Entrance* findClosestEntrance(std::int16_t x, std::int16_t y)
 }
 
 /* 1a65:039d */
-bool checkEntranceIsFree(std::int16_t entranceIdx)
+bool entranceIsFree(std::int16_t entranceIdx)
 {
     const Entrance& entrance = g_entrances[entranceIdx];
     for (const Train& train : g_trains) {

@@ -41,6 +41,6 @@ extern Entrance g_entrances[9];
 Entrance* findClosestEntrance(std::int16_t x, std::int16_t y);
 
 /* 1a65:039d */
-bool checkEntranceIsFree(std::int16_t entranceIdx);
+bool entranceIsFree(std::int16_t entranceIdx);
 
 } // namespace resl

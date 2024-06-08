@@ -20,12 +20,12 @@ public:
     void flush();
     void setDebugMode(bool debug);
 
-    std::uint8_t read(VideoMemPtr);
+    [[nodiscard]] std::uint8_t read(VideoMemPtr);
     void write(VideoMemPtr, std::uint8_t color);
 
     void setWriteMask(std::uint8_t);
 
-    std::uint8_t writeMode();
+    [[nodiscard]] std::uint8_t writeMode();
     void setMode(std::uint8_t);
 
     void setMapMask(std::uint8_t);

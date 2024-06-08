@@ -199,7 +199,7 @@ void VGAEmulation::write(VideoMemPtr memPtr, std::uint8_t color)
     }
 }
 
-std::uint8_t VGAEmulation::read(VideoMemPtr memPtr)
+[[nodiscard]] std::uint8_t VGAEmulation::read(VideoMemPtr memPtr)
 {
     unsigned offset = memPtr - VIDEO_MEM_START_ADDR;
     int x0 = (offset * 8) % (VIDEO_MEM_ROW_BYTES * 8);

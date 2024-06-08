@@ -12,7 +12,7 @@ enum MouseAction : std::uint8_t {
     ToggleNextRailType = 6,
     ToggleMouseMode = 7,
     CallServer = 8,
-    MouseMove = 10
+    MouseClick = 10
 };
 
 struct MsgMouseEvent {

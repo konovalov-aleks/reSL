@@ -69,7 +69,7 @@ void Scheduler::run()
                 m_tasks.erase(iter);
             } else if (!taskToResume.promise().m_suspended) {
                 if (taskToResume.promise().m_sleepUntil == 0)
-                    m_readyTasks.push_front(taskToResume);
+                    m_readyTasks.push_back(taskToResume);
                 else
                     m_sleepingTasks.insert(taskToResume);
             }

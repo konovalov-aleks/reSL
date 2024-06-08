@@ -178,7 +178,7 @@ Task sdlLoop()
 {
     while (Driver::instance().pollEvent()) {
         Driver::instance().vga().flush();
-        co_await sleep(1);
+        co_await yield();
     }
     stopScheduler();
     co_return;

@@ -18,6 +18,7 @@
 #include <sys/types.h> // IWYU pragma: no_include <sys/_types/_seek_set.h>
 #include <unistd.h>
 
+#include <array>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -130,7 +131,7 @@ static void loadGameState(const char* fileName, void* switchStates, void* semaph
 
         if constexpr (sizeof(void*) == 2) {
             // static_assert(sizeof(trains) == 0xa50);
-            read(fd, g_trains, 0xa50);
+            read(fd, &g_trains[0], 0xa50);
         } else {
             off_t pos = lseek(fd, 0, SEEK_CUR);
             for (Train& train : g_trains) {

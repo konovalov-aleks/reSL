@@ -9,6 +9,7 @@
 #include "game/move_trains.h"
 #include "game/records.h"
 #include "game/resources/train_glyph.h"
+#include "game/train.h"
 #include "graphics/color.h"
 #include "graphics/drawing.h"
 #include "graphics/glyph.h"
@@ -55,6 +56,14 @@ void drawTextDemo(int, const char*[])
     }
 }
 
+Task taskGameMainLoop()
+{
+    for (;;) {
+        co_await sleep(50);
+        accelerateTrains(5);
+    }
+}
+
 void loadGame(const char* fname)
 {
     if (!fname) {
@@ -95,6 +104,7 @@ void loadGame(const char* fname)
 
     mouse::g_state.mode->drawFn();
 
+    addTask(taskGameMainLoop());
     addTask(taskMouseEventHandling());
     addTask(taskHeaderFieldAnimation());
     addTask(taskMoveAndRedrawTrains());

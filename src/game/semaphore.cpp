@@ -13,7 +13,6 @@
 #include <cstdint>
 #include <cstdlib>
 // IWYU pragma: no_include <cmath>
-#include <iostream>
 
 namespace resl {
 
@@ -200,7 +199,6 @@ Semaphore* findClosestSemaphore(std::int16_t x, std::int16_t y)
             bestDistance = dist;
         }
     }
-    std::cout << "best dist = " << bestDistance << std::endl;
     return res;
 }
 

@@ -16,7 +16,9 @@
 #include <system/driver/driver.h>
 #include <utility/sar.h>
 
+#include <array>
 #include <cassert>
+#include <cmath>
 #include <cstdint>
 #include <cstdlib>
 #include <utility>

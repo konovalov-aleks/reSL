@@ -18,13 +18,14 @@
 #include <system/time.h>
 #include <utility/sar.h>
 
+#include <array>
 #include <cassert>
 #include <utility>
 
 namespace resl {
 
 /* 262d:5f02 : 2640 bytes */
-Train g_trains[20];
+std::array<Train, 20> g_trains;
 
 /* 262d:6fd2 : 2 bytes */
 std::uint16_t g_collidedTrainsArrayLen;
@@ -49,17 +50,17 @@ Rectangle g_carriagesBoundingBoxes[100];
 /* 146b:0153 */
 void initTrains()
 {
-    for (int trainIdx = 0; trainIdx < 20; ++trainIdx) {
+    for (Train& train : g_trains) {
         for (int carriageIdx = 0; carriageIdx < 5; ++carriageIdx)
-            g_trains[trainIdx].carriages[carriageIdx].train = &g_trains[trainIdx];
+            train.carriages[carriageIdx].train = &train;
     }
 }
 
 /* 146b:018c */
 void resetCarriages()
 {
-    for (int i = 0; i < 20; ++i)
-        g_trains[i].isFreeSlot = true;
+    for (Train& train : g_trains)
+        train.isFreeSlot = true;
 }
 
 /* 18fa:0142 */
@@ -153,8 +154,8 @@ void scheduleTrainsDrawing()
 /* 19de:0841 */
 void scheduleAllTrainsRedrawing()
 {
-    for (std::int16_t i = 0; i < sizeof(g_trains) / sizeof(*g_trains); ++i)
-        g_trains[i].needToRedraw = true;
+    for (Train& train : g_trains)
+        train.needToRedraw = true;
 }
 
 /* 18fa:08d6 */
@@ -245,8 +246,8 @@ Train* spawnServer(std::int16_t entranceIdx)
         Entrance& entrance = g_entrances[entranceIdx];
 
         train->carriageCnt = 1;
-        train->x_maxSpeed = 5;     // TODO use constants from the array 1d32:0000
-        train->x_acceleration = 5; // TODO use constants from the array 1d32:0000
+        train->maxSpeed = 5; // TODO use constants from the array 1d32:0000
+        train->speed = 5;    // TODO use constants from the array 1d32:0000
         train->carriages[0].type = CarriageType::Server;
 
         train->head.forwardDirection = true;
@@ -281,9 +282,30 @@ Train* spawnServer(std::int16_t entranceIdx)
 
         train->carriages[0].direction = entrance.chunk.x > 320;
         train->carriages[0].x_direction = 0;
-        train->x_headCarriageIdx = 0;
+        train->headCarriageIdx = 0;
     }
     return train;
+}
+
+/* 16a6:06e0 */
+void accelerateTrains(std::int16_t count)
+{
+    /* 262d:6f4e : 1 byte */
+    static std::uint8_t g_lastProcessedTrain = 0;
+
+    /* 262d:6f3a : 20 bytes */
+    static std::uint8_t g_lastProcessedCarriages[g_trains.size()] = {};
+
+    for (int16_t i = 0; i < count; ++i) {
+        g_lastProcessedTrain = (g_lastProcessedTrain + 1) % g_trains.size();
+
+        Train& train = g_trains[g_lastProcessedTrain];
+        if (!train.isFreeSlot) {
+            std::uint8_t c = ++g_lastProcessedCarriages[g_lastProcessedTrain];
+            if (c % train.carriageCnt == 0 && train.speed < train.maxSpeed)
+                ++train.speed;
+        }
+    }
 }
 
 } // namespace resl

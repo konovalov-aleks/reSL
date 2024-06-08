@@ -28,6 +28,7 @@
 #include <utility/sar.h>
 
 #include <chrono>
+#include <cmath>
 #include <cstdlib>
 #include <thread>
 #include <utility>
@@ -171,7 +172,7 @@ static void createCrashMarker(Carriage& c)
 {
     Train& train = *c.train;
     train.isFreeSlot = false;
-    train.x_headCarriageIdx = 0;
+    train.headCarriageIdx = 0;
     train.carriageCnt = 1;
     train.carriages[0] = c;
     train.carriages[0].dstEntranceIdx = 7; // TODO create a constant
@@ -229,17 +230,17 @@ static void reverseTrain(Train& train)
         train.carriages[i].location.forwardDirection = !train.carriages[i].location.forwardDirection;
     train.head.forwardDirection = !train.head.forwardDirection;
     train.tail.forwardDirection = !train.tail.forwardDirection;
-    if (train.x_headCarriageIdx == 0)
-        train.x_headCarriageIdx = train.carriageCnt - 1;
+    if (train.headCarriageIdx == 0)
+        train.headCarriageIdx = train.carriageCnt - 1;
     else
-        train.x_headCarriageIdx = 0;
-    train.x_acceleration = 1;
+        train.headCarriageIdx = 0;
+    train.speed = 1;
 }
 
 /* 18a5:0145 */
 bool moveTrain(Train& train, std::int16_t dTime)
 {
-    const std::int16_t speed = train.x_acceleration * dTime * 10 + train.x_speed;
+    const std::int16_t speed = train.speed * dTime * 10 + train.x_speed;
     const std::int16_t maxDistance = speed >> 8;
     train.x_speed = speed;
 
@@ -269,7 +270,7 @@ bool moveTrain(Train& train, std::int16_t dTime)
             animateCollisionAndPlaySound(carriagePosition(train.head));
             eraseTrain(train);
             train.carriages[0].location = train.head;
-            createCrashMarker(train.carriages[train.x_headCarriageIdx]);
+            createCrashMarker(train.carriages[train.headCarriageIdx]);
 
             if (passengerCnt)
                 showPassengerAccidentMessage(passengerCnt);
@@ -280,10 +281,10 @@ bool moveTrain(Train& train, std::int16_t dTime)
     } else {
         const Entrance& dstEntrance = g_entrances[train.carriages[0].dstEntranceIdx];
         if (train.head.chunk == dstEntrance.chunk.x_neighbours[0].chunk)
-            train.x_maxSpeed = 30;
+            train.maxSpeed = 30;
         if (train.head.chunk->type != 6) /* 6 means an entrance chunk; TODO make a constant */
             return false;
-        const Rectangle& rect = train.carriages[train.carriageCnt - 1 - train.x_headCarriageIdx].rect;
+        const Rectangle& rect = train.carriages[train.carriageCnt - 1 - train.headCarriageIdx].rect;
         if (rect.x1 < 638 && rect.x2 > 1)
             return false;
 
@@ -317,13 +318,13 @@ void processCarriageCollision(Carriage* c1, Carriage* c2, std::int16_t x, std::i
         if (c1->type == CarriageType::Server) {
             if (c2->type == CarriageType::CrashedTrain) {
                 // server should fix the damaged road
-                if (c1->train->x_acceleration) {
-                    c1->train->x_acceleration = 0;
+                if (c1->train->speed) {
+                    c1->train->speed = 0;
                     return;
                 }
                 playFixRoadMelody();
                 deleteTrain(*c2->train);
-                c1->train->x_acceleration = 1;
+                c1->train->speed = 1;
                 spendMoney(1);
                 return;
             }

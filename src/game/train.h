@@ -3,6 +3,7 @@
 #include "types/chunk.h"
 #include "types/rectangle.h"
 
+#include <array>
 #include <cstdint>
 #include <utility>
 
@@ -43,9 +44,9 @@ struct Train {
     std::uint8_t drawingChainIdx;
     bool needToRedraw;
     bool x_needToMove;
-    std::uint8_t x_acceleration;
-    std::uint8_t x_maxSpeed;
-    std::uint8_t x_headCarriageIdx;
+    std::uint8_t speed;
+    std::uint8_t maxSpeed;
+    std::uint8_t headCarriageIdx;
     std::uint8_t x_speed;
     char _padding;
     std::int16_t year;
@@ -60,7 +61,7 @@ struct Train {
 //-----------------------------------------------------------------------------
 
 /* 262d:5f02 : 2640 bytes */
-extern Train g_trains[20];
+extern std::array<Train, 20> g_trains;
 
 /* 262d:6fd2 : 2 bytes */
 extern std::uint16_t g_collidedTrainsArrayLen;
@@ -105,5 +106,8 @@ void eraseTrain(const Train&);
 
 /* 1a65:0256 */
 Train* spawnServer(std::int16_t entranceIdx);
+
+/* 16a6:06e0 */
+void accelerateTrains(std::int16_t count);
 
 } // namespace resl

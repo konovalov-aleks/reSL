@@ -3,6 +3,8 @@
 #include "train.h"
 #include "types/chunk.h"
 
+#include <array>
+#include <cmath>
 #include <cstdint>
 #include <cstdlib>
 

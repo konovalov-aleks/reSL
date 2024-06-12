@@ -1,5 +1,6 @@
 #include "train.h"
 
+#include "draw_header.h"
 #include "entrance.h"
 #include "header.h"
 #include "mouse/mouse_mode.h"
@@ -8,6 +9,8 @@
 #include "resources/carriage_bias.h"
 #include "resources/movement_paths.h"
 #include "resources/train_glyph.h"
+#include "resources/train_specification.h"
+#include "status_bar.h"
 #include "types/chunk.h"
 #include "types/header_field.h"
 #include "types/rectangle.h"
@@ -15,11 +18,14 @@
 #include <graphics/drawing.h>
 #include <graphics/glyph.h>
 #include <graphics/vga.h>
+#include <system/random.h>
 #include <system/time.h>
+#include <tasks/task.h>
 #include <utility/sar.h>
 
 #include <array>
 #include <cassert>
+#include <cstdlib>
 #include <utility>
 
 namespace resl {
@@ -238,6 +244,145 @@ static Train* allocateTrainSlot()
     return nullptr;
 }
 
+static std::int16_t getTrainSpawnInterval()
+{
+    std::int16_t res = 18000;
+    for (std::int16_t i = 0; i < g_headers[static_cast<int>(HeaderFieldId::Level)].value - 1; ++i)
+        res -= res / 25;
+    return res;
+}
+
+/* 19de:07b7 */
+static bool noTrainsExist()
+{
+    for (const Train& train : g_trains) {
+        if (!train.isFreeSlot)
+            return false;
+    }
+    return true;
+}
+
+/* 1a65:03fa */
+static bool isTrainAvailableInCurrentYear(CarriageType type)
+{
+    std::int16_t year = g_headers[static_cast<int>(HeaderFieldId::Year)].value;
+    const TrainSpecification& spec = g_trainSpecifications[type];
+    return year >= spec.minYear && year <= spec.maxYear;
+}
+
+/* 1a65:043a */
+static void generateTrain(Train& t, std::int16_t entranceIdx)
+{
+    t.carriageCnt = genRandomNumber(5) + 1;
+    do {
+        std::int16_t rnd = genRandomNumber(6);
+        t.carriages[0].type =
+            static_cast<CarriageType>(rnd + CarriageType::AncientLocomotive);
+    } while (!isTrainAvailableInCurrentYear(t.carriages[0].type));
+
+    t.maxSpeed = g_trainSpecifications[t.carriages[0].type].maxSpeed;
+    t.speed = t.maxSpeed;
+    t.carriages[0].direction = g_entrances[entranceIdx].chunk.x > 320;
+    t.carriages[0].x_direction = 0;
+    for (std::uint8_t i = 1; i < t.carriageCnt; ++i) {
+        do {
+            t.carriages[i].type =
+                g_trainSpecifications[t.carriages[0].type].possibleCarriages[genRandomNumber(5)];
+        } while (!isTrainAvailableInCurrentYear(t.carriages[i].type));
+    }
+}
+
+/* 1a65:0100 */
+static Train* spawnTrain(std::int16_t entranceIdx)
+{
+    Train* t = allocateTrainSlot();
+    if (t) {
+        generateTrain(*t, entranceIdx);
+        t->head.chunk = &g_entrances[entranceIdx].chunk;
+        t->head.forwardDirection = false;
+        t->head.pathStep = 0;
+        moveAlongPath(t->head, 60);
+
+        std::int16_t dstEntranceIdx;
+        do {
+            dstEntranceIdx = genRandomNumber(g_entranceCount);
+        } while (dstEntranceIdx == entranceIdx);
+
+        // In the original game they use a global variable here for some reason,
+        // but they don't use it anywhere else
+        Location loc = t->head;
+        loc.forwardDirection = !loc.forwardDirection;
+        for (std::uint8_t i = 0; i < t->carriageCnt; ++i) {
+            Carriage& c = t->carriages[i];
+            c.dstEntranceIdx = dstEntranceIdx;
+
+            const std::int16_t moveStep = g_trainGlyphs[c.type][0][0].width / 2 + 4;
+            moveAlongPath(loc, moveStep);
+            c.location = loc;
+            c.location.forwardDirection = !c.location.forwardDirection;
+            setEmptyRectangle(c.rect);
+            moveAlongPath(loc, moveStep);
+        }
+        t->tail = loc;
+        t->tail.forwardDirection = !t->tail.forwardDirection;
+
+        t->needToRedraw = true;
+        t->headCarriageIdx = 0;
+        t->year = g_headers[static_cast<int>(HeaderFieldId::Year)].value;
+        t->lastMovementTime = getTime();
+    }
+    return t;
+}
+
+/* 16a6:08bb */
+void tryRunWaitingTrains()
+{
+    for (std::int16_t i = g_entranceCount - 1; i >= 0; --i) {
+        if (g_entrances[i].waitingTrainsCount && entranceIsFree(i)) {
+            Train* train = spawnTrain(i);
+            if (train && !(--g_entrances[i].waitingTrainsCount))
+                drawDispatcher(i, false);
+        }
+    }
+}
+
+/* 1a65:0073 */
+static void spawnNewTrain()
+{
+    const std::int16_t entranceIdx = genRandomNumber(g_entranceCount);
+    if (g_entranceCount < 2)
+        return;
+
+    if (entranceIsFree(entranceIdx)) {
+        if (Train* train = spawnTrain(entranceIdx)) {
+            const std::uint16_t level =
+                static_cast<std::uint16_t>(g_headers[static_cast<int>(HeaderFieldId::Level)].value);
+            if (level >= 6 && level * 200 > static_cast<std::uint16_t>(std::rand())) {
+                // create an unmanaged blinking train
+                for (std::uint8_t i = 0; i < train->carriageCnt; ++i)
+                    train->carriages[i].dstEntranceIdx = blinkingTrainEntranceIdx;
+            }
+            return;
+        }
+        showStatusMessage("Railnet OVERFLOWED. New train waits outside");
+    }
+    addWaitingTrain(entranceIdx);
+}
+
+/* 1a65:0030 */
+Task taskSpawnTrains()
+{
+    for (;;) {
+        const std::uint16_t period = getTrainSpawnInterval();
+
+        if (!noTrainsExist())
+            co_await sleep(genRandomNumber(period / 2 + 1));
+
+        spawnNewTrain();
+        co_await sleep(genRandomNumber(period / 2 + 1));
+    }
+}
+
 /* 1a65:0256 */
 Train* spawnServer(std::int16_t entranceIdx)
 {
@@ -246,8 +391,8 @@ Train* spawnServer(std::int16_t entranceIdx)
         Entrance& entrance = g_entrances[entranceIdx];
 
         train->carriageCnt = 1;
-        train->maxSpeed = 5; // TODO use constants from the array 1d32:0000
-        train->speed = 5;    // TODO use constants from the array 1d32:0000
+        train->maxSpeed = g_trainSpecifications[0].maxSpeed;
+        train->speed = train->maxSpeed;
         train->carriages[0].type = CarriageType::Server;
 
         train->head.forwardDirection = true;
@@ -306,6 +451,15 @@ void accelerateTrains(std::int16_t count)
                 ++train.speed;
         }
     }
+}
+
+/* 16a6:0893 */
+std::int16_t waitingTrainsCount()
+{
+    std::int16_t res = 0;
+    for (std::int16_t i = 0; i < g_entranceCount; ++i)
+        res += g_entrances[i].waitingTrainsCount;
+    return res;
 }
 
 } // namespace resl

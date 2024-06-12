@@ -2,6 +2,7 @@
 
 #include "types/chunk.h"
 #include "types/rectangle.h"
+#include <tasks/task.h>
 
 #include <array>
 #include <cstdint>
@@ -12,8 +13,21 @@ namespace resl {
 enum CarriageType : std::uint8_t {
     Server = 0,
     AncientLocomotive = 1,
-    PassengerCarriage = 7,
-    FreightCarriage = 10,
+    SteamLocomotive = 2,
+    Trolley = 3,
+    DieselLocomotive = 4,
+    ElectricLocomotive = 5,
+    HighSpeedLocomotive = 6,
+
+    AncientPassengerCarriage = 7,
+    PassengerCarriage = 8,
+    HighSpeedPassengerCarriage = 9,
+    OpenFreightCarriage = 10,
+    CoveredFreightCarriage = 11,
+    PocketWagon = 12,
+    TankWagon = 13,
+
+    // special type - a crash marker
     CrashedTrain = 14
 };
 
@@ -104,10 +118,19 @@ void drawTrains();
 /* 132d:0002 */
 void eraseTrain(const Train&);
 
+/* 16a6:08bb */
+void tryRunWaitingTrains();
+
+/* 1a65:0030 */
+Task taskSpawnTrains();
+
 /* 1a65:0256 */
 Train* spawnServer(std::int16_t entranceIdx);
 
 /* 16a6:06e0 */
 void accelerateTrains(std::int16_t count);
+
+/* 16a6:0893 */
+std::int16_t waitingTrainsCount();
 
 } // namespace resl

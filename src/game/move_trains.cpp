@@ -28,7 +28,6 @@
 #include <utility/sar.h>
 
 #include <chrono>
-#include <cmath>
 #include <cstdlib>
 #include <thread>
 #include <utility>
@@ -112,10 +111,10 @@ static std::int16_t countPassengerCarriages(const Train& train)
     for (std::uint8_t i = 0; i < train.carriageCnt; ++i) {
         switch (train.carriages[i].type) {
         // TODO use enum values instead of magic values
-        case 6:
-        case 7:
-        case 8:
-        case 9:
+        case CarriageType::HighSpeedLocomotive:
+        case CarriageType::AncientPassengerCarriage:
+        case CarriageType::PassengerCarriage:
+        case CarriageType::HighSpeedPassengerCarriage:
             ++res;
             break;
         default:

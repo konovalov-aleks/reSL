@@ -1,10 +1,11 @@
 #include "entrance.h"
 
+#include "draw_header.h"
+#include "melody.h"
 #include "train.h"
 #include "types/chunk.h"
 
 #include <array>
-#include <cmath>
 #include <cstdint>
 #include <cstdlib>
 
@@ -53,6 +54,15 @@ bool entranceIsFree(std::int16_t entranceIdx)
             return false;
     }
     return true;
+}
+
+/* 1a65:0528 */
+void addWaitingTrain(std::int16_t entranceIdx)
+{
+    if (++g_entrances[entranceIdx].waitingTrainsCount == 1) {
+        playScheduledTrainMelody(200, 800, 6);
+        drawDispatcher(entranceIdx, true);
+    }
 }
 
 } // namespace resl

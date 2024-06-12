@@ -43,4 +43,7 @@ Entrance* findClosestEntrance(std::int16_t x, std::int16_t y);
 /* 1a65:039d */
 bool entranceIsFree(std::int16_t entranceIdx);
 
+/* 1a65:0528 */
+void addWaitingTrain(std::int16_t entranceIdx);
+
 } // namespace resl

@@ -14,6 +14,7 @@ set(SOURCES
     src/game/init.cpp
     src/game/io_status.cpp
     src/game/load_game.cpp
+    src/game/main_loop.cpp
     src/game/melody.cpp
     src/game/mouse/management_mode.cpp
     src/game/mouse/mouse.cpp
@@ -34,6 +35,7 @@ set(SOURCES
     src/game/resources/static_object_glyph.cpp
     src/game/resources/train_finished_exclamation_glyph.cpp
     src/game/resources/train_glyph.cpp
+    src/game/resources/train_specification.cpp
     src/game/semaphore.cpp
     src/game/status_bar.cpp
     src/game/switch.cpp

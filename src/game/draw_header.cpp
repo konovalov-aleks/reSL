@@ -19,6 +19,13 @@ namespace resl {
 static const char* const s_alphabet[12] = { "9", "0", "1", "2", "3", "4",
                                             "5", "6", "7", "8", "9", "0" };
 
+/* 1d7d:25c2 : 32 bytes */
+static const std::uint8_t g_glyphEmptyBackground[] = {
+    0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF,
+    0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF,
+    0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF
+};
+
 /* 12c5:0342 */
 void drawHeaderFieldFontTexture()
 {
@@ -87,6 +94,16 @@ void drawHeaderData(
     updateHeaderField(1, money, yOffset);
     updateHeaderField(2, year, yOffset);
     updateHeaderField(3, level, yOffset);
+}
+
+/* 137c:0450 */
+void drawDispatcher(std::int16_t entranceIdx, bool signalling)
+{
+    const std::int16_t x = entranceIdx * 22 + 481;
+    g_glyphHeight = 16;
+    drawGlyphW16(g_glyphEmptyBackground, x, 25, Color::Gray);
+    drawGlyphW16(g_dispatcherGlyphs[signalling].bg, x, 25, g_entrances[entranceIdx].bgColor);
+    drawGlyphW16(g_dispatcherGlyphs[signalling].fg, x, 25, Color::Black);
 }
 
 /* 137c:04c3 */

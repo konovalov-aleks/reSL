@@ -3,6 +3,7 @@
 #include "game/drawing.h"
 #include "game/header.h"
 #include "game/load_game.h"
+#include "game/main_loop.h"
 #include "game/mouse/mouse.h"
 #include "game/mouse/mouse_mode.h"
 #include "game/mouse/mouse_state.h"
@@ -21,6 +22,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
 #include <filesystem>
 #include <functional>
 #include <iostream>
@@ -53,14 +55,6 @@ void drawTextDemo(int, const char*[])
 
         if (c > 146)
             break;
-    }
-}
-
-Task taskGameMainLoop()
-{
-    for (;;) {
-        co_await sleep(50);
-        accelerateTrains(5);
     }
 }
 
@@ -108,6 +102,7 @@ void loadGame(const char* fname)
     addTask(taskMouseEventHandling());
     addTask(taskHeaderFieldAnimation());
     addTask(taskMoveAndRedrawTrains());
+    addTask(taskSpawnTrains());
 }
 
 Task implDrawTrainsDemo()
@@ -226,6 +221,8 @@ int main(int argc, const char* argv[])
     bool debugGraphics = false;
     const char* demo = nullptr;
     const char* file = nullptr;
+
+    std::srand(static_cast<unsigned>(std::time(nullptr)));
 
     for (int i = 1; i < argc; ++i) {
         if (!std::strcmp(argv[i], "--debug-graphics"))

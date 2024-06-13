@@ -7,39 +7,18 @@
 #include <SDL_pixels.h>
 #include <SDL_rect.h>
 
-#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-#include <iterator>
 
 namespace resl {
 
 // https://www.cs.utexas.edu/~lorenzo/corsi/439/ref/hardware/vgadoc/VGAREGS.TXT
 
 static const char g_windowTitle[] = "reSL - reverse engineered ShortLine game";
-
-static const std::array<std::uint32_t, 16> g_palette = {
-    0x55AA00, // Green
-    0x000000, // Black
-    0xAAAAAA, // Gray
-    0x555555, // Dark gray
-    0xFFFFFF, // White
-    0xFFFF55, // Yellow
-    0xAAAA00, // Brown
-    0x0055FF, // Blue
-    0x0055AA, // Dark blue
-    0xFF5500, // Red
-    0xAA5500, // Dark red
-    0x1AFFFF, // Cyan
-    0x00AAAA, // Dark cyan
-    0x00FF00, // Light green
-    0x00AA00, // Dark green
-    0xFFFFFF  // White / erase
-};
 
 VGAEmulation::VGAEmulation()
 {
@@ -53,6 +32,10 @@ VGAEmulation::~VGAEmulation()
 
 void VGAEmulation::flush()
 {
+    if (!m_dirty)
+        return;
+    m_dirty = false;
+
     unlockTexture();
 
     SDL_Rect srcRect = { 0, 0, m_wndWidth, m_wndHeight };
@@ -89,13 +72,31 @@ void VGAEmulation::init()
 
     m_screen = SDL_CreateTexture(
         m_renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING,
-        VIDEO_MEM_ROW_BYTES * 8,
-        VIDEO_MEM_N_ROWS);
+        VIDEO_MEM_ROW_BYTES * 8, VIDEO_MEM_N_ROWS);
     if (!m_screen) [[unlikely]] {
         std::cerr << "Unable to create SDL texture! SDL_Error: " << SDL_GetError() << std::endl;
         close();
         std::exit(EXIT_FAILURE);
     }
+
+    m_vgaState.palette = {
+        0x55AA00, // Green
+        0x000000, // Black
+        0xAAAAAA, // Gray
+        0x555555, // Dark gray
+        0xFFFFFF, // White
+        0xFFFF55, // Yellow
+        0xAAAA00, // Brown
+        0x0055FF, // Blue
+        0x0055AA, // Dark blue
+        0xFF5500, // Red
+        0xAA5500, // Dark red
+        0x1AFFFF, // Cyan
+        0x00AAAA, // Dark cyan
+        0x00FF00, // Light green
+        0x00AA00, // Dark green
+        0x000000  // Blinking color (Black/White)
+    };
 
     lockTexture();
 
@@ -123,106 +124,107 @@ void VGAEmulation::lockTexture()
         std::cerr << "Unable to lock the texture! SDL_Error: " << SDL_GetError() << std::endl;
         std::exit(EXIT_FAILURE);
     }
+    assert(m_screenPixels);
+    assert(m_screenPixelsPitch);
+    assert(m_screenPixelsPitch % sizeof(std::uint32_t) == 0);
+    m_screenPixelsPitch /= sizeof(std::uint32_t);
 }
 
 void VGAEmulation::unlockTexture()
 {
     SDL_UnlockTexture(m_screen);
+#ifndef NDEBUG
+    m_screenPixels = nullptr;
+    m_screenPixelsPitch = 0;
+#endif // !NDEBUG
+}
+
+void VGAEmulation::updateVideoMemory(unsigned srcByte)
+{
+    const int x = (srcByte * 8) % (VIDEO_MEM_ROW_BYTES * 8);
+    const int y = (srcByte * 8) / (VIDEO_MEM_ROW_BYTES * 8);
+
+    std::uint32_t* dst = &m_screenPixels[x + y * m_screenPixelsPitch];
+    for (int bit = 0; bit < 8; ++bit) {
+        std::uint8_t color =
+            (((m_vgaState.mem[srcByte][3] << bit) & 0x80) >> 4) |
+            (((m_vgaState.mem[srcByte][2] << bit) & 0x80) >> 5) |
+            (((m_vgaState.mem[srcByte][1] << bit) & 0x80) >> 6) |
+            (((m_vgaState.mem[srcByte][0] << bit) & 0x80) >> 7);
+        dst[bit] = m_vgaState.palette[color];
+    }
+    m_dirty = true;
 }
 
 void VGAEmulation::write(VideoMemPtr memPtr, std::uint8_t color)
 {
     unsigned offset = memPtr - VIDEO_MEM_START_ADDR;
-    std::uint8_t mask = m_vgaState.writeMask;
-    int x0 = (offset * 8) % (VIDEO_MEM_ROW_BYTES * 8);
-    int y = (offset * 8) / (VIDEO_MEM_ROW_BYTES * 8);
-    std::uint32_t rgb = 0;
+
+    bool changed = false;
+
     switch (m_vgaState.writeMode) {
     case 0:
-        mask = color;
+        if (m_vgaState.regPlaneMask && m_vgaState.writeMask) {
+            // rotation and logical operations are not used in SL
+            // => not implemented here
+            const std::uint8_t mask = m_vgaState.writeMask;
+            for (int plane = 0; plane < 4; ++plane) {
+                if (!(m_vgaState.regPlaneMask & (1 << plane)))
+                    continue;
+                std::uint8_t& v = m_vgaState.mem[offset][plane];
+                v = (v & ~mask) | (mask & color);
+            }
+            changed = true;
+        }
         break;
     case 1:
-        mask = 0xFF;
+        std::memcpy(&m_vgaState.mem[offset], &m_vgaState.latches,
+                    sizeof(m_vgaState.latches));
+        changed = true;
         break;
+
     case 2:
-        rgb = g_palette[color];
-        break;
-    };
-    for (int x = x0; x < x0 + 8; ++x) {
-        if (m_vgaState.writeMode == 1) {
-            // read from latches
-            std::uint8_t c = 0;
-            const std::uint8_t bitMask = 1 << (7 - (x - x0));
-            for (int plane = 0; plane < 4; ++plane)
-                c |= ((m_vgaState.latches[plane] & bitMask) != 0) << plane;
-            rgb = g_palette[c];
-        }
+        if (m_vgaState.writeMask) {
+            const std::uint8_t mask = m_vgaState.writeMask;
+            for (int plane = 0; plane < 4; ++plane) {
+                std::uint8_t& v = m_vgaState.mem[offset][plane];
 
-        const auto getPixel = [this, &x, &y]() {
-            std::uint32_t rgb;
-            std::memcpy(
-                &rgb, &m_screenPixels[m_screenPixelsPitch * y + x * sizeof(rgb)], sizeof(rgb));
-            auto iter = std::find(g_palette.begin(), g_palette.end(), rgb);
-            assert(iter != g_palette.end());
-            return static_cast<std::uint8_t>(std::distance(g_palette.begin(), iter));
-        };
-
-        if (m_vgaState.writeMode == 0) {
-            std::uint8_t c = getPixel();
-            c = (c & ~m_vgaState.regMapMask) | (((mask & 0x80) ? m_vgaState.regMapMask : 0));
-            rgb = g_palette[c];
-            std::memcpy(
-                &m_screenPixels[m_screenPixelsPitch * y + x * sizeof(rgb)], &rgb, sizeof(rgb));
-        } else if (mask & 0x80) {
-            std::uint8_t c = color;
-            if (m_vgaState.writeOperation != WriteOperation::Copy) {
-                std::uint8_t oldColor = getPixel();
+                std::uint8_t bitsToSet = mask * (color & 1);
                 switch (m_vgaState.writeOperation) {
                 case WriteOperation::Copy:
                     break;
                 case WriteOperation::And:
-                    c &= oldColor;
+                    bitsToSet &= v;
                     break;
                 case WriteOperation::Or:
-                    c |= oldColor;
+                    bitsToSet |= v;
                     break;
                 case WriteOperation::Xor:
-                    c ^= oldColor;
+                    bitsToSet ^= v;
                     break;
                 }
-                rgb = g_palette[c];
+                v = (v & ~mask) | bitsToSet;
+                color >>= 1;
             }
-            std::memcpy(
-                &m_screenPixels[m_screenPixelsPitch * y + x * sizeof(rgb)], &rgb, sizeof(rgb));
+            changed = true;
         }
-        mask <<= 1;
-    }
+        break;
+    };
+
+    if (changed)
+        updateVideoMemory(offset);
 }
 
 [[nodiscard]] std::uint8_t VGAEmulation::read(VideoMemPtr memPtr)
 {
     unsigned offset = memPtr - VIDEO_MEM_START_ADDR;
-    int x0 = (offset * 8) % (VIDEO_MEM_ROW_BYTES * 8);
-    int y = (offset * 8) / (VIDEO_MEM_ROW_BYTES * 8);
 
-    const std::uint8_t planeMask = (1 << m_vgaState.readPlane);
-    std::uint8_t res = 0;
-    for (int plane = 0; plane < 4; ++plane)
-        m_vgaState.latches[plane] = 0;
-    for (int i = 0; i < 8; ++i) {
-        std::uint32_t rgb = 0;
-        std::memcpy(
-            &rgb, &m_screenPixels[m_screenPixelsPitch * y + (x0 + i) * sizeof(rgb)], sizeof(rgb));
-        auto iter = std::find(g_palette.begin(), g_palette.end(), rgb);
-        assert(iter != g_palette.end());
-        std::uint8_t c = std::distance(g_palette.begin(), iter);
-        res |= ((c & planeMask) != 0) << (7 - i);
-        for (int plane = 0; plane < 4; ++plane) {
-            m_vgaState.latches[plane] |= (c & 1) << (7 - i);
-            c >>= 1;
-        }
-    }
-    return res;
+    std::memcpy(&m_vgaState.latches, &m_vgaState.mem[offset], sizeof(m_vgaState.latches));
+
+    // SL uses only read mode 0, so all other modes are not implemented
+    assert(m_vgaState.readMode == 0);
+
+    return m_vgaState.mem[offset][m_vgaState.readPlane];
 }
 
 void VGAEmulation::setWriteMask(std::uint8_t mask)
@@ -241,9 +243,9 @@ void VGAEmulation::setMode(std::uint8_t mode)
     m_vgaState.readMode = (mode >> 2) & 1;
 }
 
-void VGAEmulation::setMapMask(std::uint8_t mask)
+void VGAEmulation::setPlaneMask(std::uint8_t mask)
 {
-    m_vgaState.regMapMask = mask;
+    m_vgaState.regPlaneMask = mask;
 }
 
 void VGAEmulation::setReadPlane(std::uint8_t p)
@@ -254,6 +256,34 @@ void VGAEmulation::setReadPlane(std::uint8_t p)
 void VGAEmulation::setWriteOperation(WriteOperation op)
 {
     m_vgaState.writeOperation = op;
+}
+
+void VGAEmulation::setPaletteItem(std::uint8_t idx, std::uint32_t rgb)
+{
+    assert(idx < m_vgaState.palette.size());
+    m_vgaState.palette[idx] = rgb;
+
+    std::size_t srcByte = 0;
+    std::uint32_t* dst = m_screenPixels;
+    for (int y = 0; y < m_wndHeight; ++y) {
+        std::size_t s = srcByte;
+        for (int x = 0; x <= m_wndWidth; x += 8) {
+            for (int bit = 0; bit < 8; ++bit) {
+                std::uint8_t color =
+                    (((m_vgaState.mem[srcByte][3] << bit) & 0x80) >> 4) |
+                    (((m_vgaState.mem[srcByte][2] << bit) & 0x80) >> 5) |
+                    (((m_vgaState.mem[srcByte][1] << bit) & 0x80) >> 6) |
+                    (((m_vgaState.mem[srcByte][0] << bit) & 0x80) >> 7);
+                if (color == idx) {
+                    m_dirty = true;
+                    dst[x + bit] = rgb;
+                }
+            }
+            ++srcByte;
+        }
+        dst += m_screenPixelsPitch;
+        srcByte = s + VIDEO_MEM_ROW_BYTES;
+    }
 }
 
 } // namespace resl

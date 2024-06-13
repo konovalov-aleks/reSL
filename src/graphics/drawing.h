@@ -14,6 +14,10 @@ void setVideoModeR0W1();
 /* 1b06:0285 */
 void setVideoModeR0W2();
 
+// The function in the original game receives an uint8 value here (VGA color code)
+/* 1b06:02ec */
+void setPaletteItem(Color, std::uint32_t rgb);
+
 /* Configures the data rotation register
 
    bit 0-2  Number of positions to rotate data right before it is written to

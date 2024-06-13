@@ -1,5 +1,7 @@
 #include "main_loop.h"
 
+#include <graphics/color.h>
+#include <graphics/drawing.h>
 #include "header.h"
 #include "status_bar.h"
 #include "train.h"
@@ -32,10 +34,18 @@ Task taskGameMainLoop()
 {
     g_gameTime = 0;
 
+    // The original game uses uint8 here - VGA color code.
+    // They alternate between 0 and 0x3F.
+    std::uint32_t blinkingColor = 0xFFFFFF;
+
     for (;;) {
         co_await sleep(50);
 
         accelerateTrains(5);
+
+        blinkingColor ^= 0xFFFFFF;
+        drawing::setPaletteItem(Color::BWBlinking, blinkingColor);
+
         tryRunWaitingTrains();
 
         std::int16_t newYear = incrementGameTime(100);

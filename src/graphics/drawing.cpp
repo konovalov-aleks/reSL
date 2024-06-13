@@ -34,6 +34,11 @@ void setVideoModeR0W2()
     Driver::instance().vga().setWriteMask(0xFF);
 }
 
+void setPaletteItem(Color c, std::uint32_t rgb)
+{
+    Driver::instance().vga().setPaletteItem(static_cast<std::uint8_t>(c), rgb);
+}
+
 /* 1b06:02a5 */
 void setDataRotation(std::uint8_t rotation)
 {
@@ -46,7 +51,7 @@ void setDataRotation(std::uint8_t rotation)
 /* 1b06:02b5 */
 static void videoChoosePlanes(std::uint8_t mask)
 {
-    Driver::instance().vga().setMapMask(mask);
+    Driver::instance().vga().setPlaneMask(mask);
 }
 
 /* 1b06:06f9 */

@@ -5,6 +5,7 @@
 #include <SDL_render.h>
 #include <SDL_video.h>
 
+#include <array>
 #include <cstdint>
 
 namespace resl {
@@ -28,14 +29,20 @@ public:
     [[nodiscard]] std::uint8_t writeMode();
     void setMode(std::uint8_t);
 
-    void setMapMask(std::uint8_t);
+    void setPlaneMask(std::uint8_t);
     void setReadPlane(std::uint8_t);
     void setWriteOperation(WriteOperation);
 
-private:
-    struct VGAState {
-        std::uint8_t latches[4];
+    void setPaletteItem(std::uint8_t idx, std::uint32_t rgb);
 
+private:
+
+    static constexpr int s_maxFPS = 60;
+
+    struct VGAState {
+        std::uint8_t latches[4] = {};
+
+        // 3CEh index 8
         std::uint8_t writeMask = 0;
         std::uint8_t writeMode = 2;
 
@@ -54,7 +61,12 @@ private:
         // bit 0-1  Number of the plane Read Mode 0 will read from.
         std::uint8_t readPlane = 0;
 
-        std::uint8_t regMapMask = 0xF;
+        // 3C4h index 2 (Color Plane Write Enable Register)
+        std::uint8_t regPlaneMask = 0xF;
+
+        std::array<std::uint32_t, 16> palette;
+
+        std::uint8_t mem[0x10000][4];
     };
 
     void init();
@@ -63,16 +75,20 @@ private:
     void lockTexture();
     void unlockTexture();
 
+    void updateVideoMemory(unsigned);
+
     SDL_Window* m_window = nullptr;
     SDL_Renderer* m_renderer = nullptr;
     SDL_Texture* m_screen = nullptr;
-    char* m_screenPixels = nullptr;
+    std::uint32_t* m_screenPixels = nullptr;
     int m_screenPixelsPitch = 0;
 
     int m_wndWidth = SCREEN_WIDTH;
     int m_wndHeight = SCREEN_HEIGHT;
 
     VGAState m_vgaState;
+
+    bool m_dirty = true;
 };
 
 } // namespace resl

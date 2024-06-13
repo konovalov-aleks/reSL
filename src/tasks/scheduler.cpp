@@ -1,7 +1,6 @@
 #include "scheduler.h"
 
 #include "task.h"
-#include <system/time.h>
 
 #include <algorithm>
 #include <cassert>
@@ -9,6 +8,10 @@
 #include <thread>
 
 namespace resl {
+
+using Clock = std::chrono::steady_clock;
+
+static constexpr Clock::duration s_noTasksSleepTime = std::chrono::milliseconds(10);
 
 Scheduler::~Scheduler()
 {
@@ -51,7 +54,7 @@ void Scheduler::run()
 
         Task taskToResume;
         if (auto iter = m_sleepingTasks.begin();
-            iter != m_sleepingTasks.end() && iter->promise().m_sleepUntil <= getTime()) {
+            iter != m_sleepingTasks.end() && iter->promise().m_sleepUntil <= Clock::now()) {
             taskToResume = *iter;
             m_sleepingTasks.erase(iter);
         } else if (!m_readyTasks.empty()) {
@@ -68,7 +71,7 @@ void Scheduler::run()
                 taskToResume.destroy();
                 m_tasks.erase(iter);
             } else if (!taskToResume.promise().m_suspended) {
-                if (taskToResume.promise().m_sleepUntil == 0)
+                if (!taskToResume.promise().m_sleepUntil)
                     m_readyTasks.push_back(taskToResume);
                 else
                     m_sleepingTasks.insert(taskToResume);
@@ -76,17 +79,17 @@ void Scheduler::run()
             continue;
         }
 
-        TimeT sleepTime = 1;
+        Clock::duration sleepTime = s_noTasksSleepTime;
         if (!m_sleepingTasks.empty()) {
-            TimeT t = m_sleepingTasks.begin()->promise().m_sleepUntil;
-            TimeT now = getTime();
+            assert(m_sleepingTasks.begin()->promise().m_sleepUntil);
+            auto t = *m_sleepingTasks.begin()->promise().m_sleepUntil;
+            const Clock::time_point now = Clock::now();
             if (now > t)
                 continue;
             sleepTime = t - now;
         }
         assert(m_tasks.size() == m_sleepingTasks.size() + m_readyTasks.size() + std::count_if(m_tasks.begin(), m_tasks.end(), [](const Task& t) { return t.promise().m_suspended; }));
-        std::this_thread::sleep_for(
-            std::chrono::milliseconds(MsPerTick * sleepTime));
+        std::this_thread::sleep_for(sleepTime);
     }
 }
 

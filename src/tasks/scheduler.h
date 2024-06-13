@@ -2,7 +2,10 @@
 
 #include "task.h"
 
+#include <chrono>
+#include <compare>
 #include <deque>
+#include <optional>
 #include <set>
 #include <vector>
 

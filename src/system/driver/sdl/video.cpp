@@ -144,6 +144,9 @@ void VGAEmulation::updateVideoMemory(unsigned srcByte)
     const int x = (srcByte * 8) % (VIDEO_MEM_ROW_BYTES * 8);
     const int y = (srcByte * 8) / (VIDEO_MEM_ROW_BYTES * 8);
 
+    if (x >= m_wndWidth || y >= m_wndHeight)
+        return;
+
     std::uint32_t* dst = &m_screenPixels[x + y * m_screenPixelsPitch];
     for (int bit = 0; bit < 8; ++bit) {
         std::uint8_t color =

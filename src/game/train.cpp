@@ -376,10 +376,10 @@ Task taskSpawnTrains()
         const std::uint16_t period = getTrainSpawnInterval();
 
         if (!noTrainsExist())
-            co_await sleep(genRandomNumber(period / 2 + 1));
+            co_await sleep(genRandomNumber(period / 2) + 1);
 
         spawnNewTrain();
-        co_await sleep(genRandomNumber(period / 2 + 1));
+        co_await sleep(genRandomNumber(period / 2) + 1);
     }
 }
 

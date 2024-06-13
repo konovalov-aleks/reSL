@@ -1,11 +1,11 @@
 #include "main_loop.h"
 
-#include <graphics/color.h>
-#include <graphics/drawing.h>
 #include "header.h"
 #include "status_bar.h"
 #include "train.h"
 #include "types/header_field.h"
+#include <graphics/color.h>
+#include <graphics/drawing.h>
 #include <tasks/task.h>
 
 #include <cstdint>

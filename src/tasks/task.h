@@ -3,14 +3,18 @@
 #include <system/time.h>
 
 #include <cassert>
+#include <chrono>
 #include <coroutine> // IWYU pragma: export
 #include <cstdlib>
+#include <optional>
 
 namespace resl {
 
 struct TaskPromise;
 
 struct Task : public std::coroutine_handle<TaskPromise> {
+    using Time = std::chrono::steady_clock::time_point;
+
     using promise_type = TaskPromise;
 };
 
@@ -21,18 +25,17 @@ struct TaskPromise {
     void return_void() { }
     void unhandled_exception() { std::abort(); }
 
-    TimeT m_sleepUntil = 0;
+    std::optional<Task::Time> m_sleepUntil;
     bool m_suspended = false;
 };
 
 class SleepAwaitable {
 public:
-    SleepAwaitable()
-        : m_awakeTime(0)
-    {
-    }
-    SleepAwaitable(TimeT sleepFor)
-        : m_awakeTime(getTime() + sleepFor)
+    SleepAwaitable() = default;
+
+    template <typename DurationT>
+    SleepAwaitable(DurationT sleepFor)
+        : m_awakeTime(std::chrono::steady_clock::now() + sleepFor)
     {
     }
 
@@ -41,20 +44,24 @@ public:
     void await_resume() { }
 
 private:
-    TimeT m_awakeTime;
+    std::optional<Task::Time> m_awakeTime;
 };
 
 void addTask(Task&&);
 
 inline SleepAwaitable yield()
 {
-    return {};
+    // Here we could instantly switch to another task ('return {}').
+    // But in case of this game this makes no sense - we have no tasks that
+    // need to be called as often as possible.
+    // So, make a small sleep here to reduce the CPU overhead.
+    return { std::chrono::milliseconds(1) };
 }
 
 inline SleepAwaitable sleep(TimeT time)
 {
     assert(time > 0);
-    return { time };
+    return { std::chrono::milliseconds(time * MsPerTick) };
 }
 
 void runScheduler();

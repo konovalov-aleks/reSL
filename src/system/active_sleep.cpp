@@ -1,6 +1,5 @@
 #include "active_sleep.h"
 
-#include "time.h"
 #include <system/driver/driver.h>
 
 #include <chrono>
@@ -27,7 +26,7 @@ void calibrateActiveSleep()
 /* 1594:0113 */
 void activeSleep(std::int16_t ticks)
 {
-    std::this_thread::sleep_for(std::chrono::microseconds(MsPerTick * ticks));
+    std::this_thread::sleep_for(std::chrono::milliseconds(ticks));
 
     // activeSleep is often used to implement animation.
     // The VGA hardware draws the picture independently of the program code flow

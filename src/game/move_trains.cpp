@@ -1,5 +1,6 @@
 #include "move_trains.h"
 
+#include "chunk.h"
 #include "drawing.h"
 #include "entrance.h"
 #include "header.h"
@@ -12,7 +13,6 @@
 #include "semaphore.h"
 #include "status_bar.h"
 #include "train.h"
-#include "types/chunk.h"
 #include "types/header_field.h"
 #include "types/position.h"
 #include "types/rectangle.h"
@@ -20,16 +20,13 @@
 #include <graphics/drawing.h>
 #include <graphics/vga.h>
 #include <system/active_sleep.h>
-#include <system/driver/driver.h>
 #include <system/random.h>
 #include <system/sound.h>
 #include <system/time.h>
 #include <tasks/task.h>
 #include <utility/sar.h>
 
-#include <chrono>
 #include <cstdlib>
-#include <thread>
 #include <utility>
 
 namespace resl {
@@ -135,7 +132,7 @@ static Position carriagePosition(const Location& loc)
 /* 132d:0239 */
 static void animateCollisionAndPlaySound(Position pos)
 {
-    drawing::setDataRotation(0x18); // rotation = 0, mode = XOR
+    vga::setDataRotation(0x18); // rotation = 0, mode = XOR
 
     std::int16_t x1[125];
     std::int16_t y1[125];
@@ -163,7 +160,7 @@ static void animateCollisionAndPlaySound(Position pos)
     }
     nosound();
 
-    drawing::setDataRotation(0); // default mode - simple copying without rotation
+    vga::setDataRotation(0); // default mode - simple copying without rotation
 }
 
 /* 18fa:023d */
@@ -210,15 +207,6 @@ static void deleteTrain(Train& train)
     removeTrainFromDrawingChain(train);
     eraseTrain(train);
     train.isFreeSlot = true;
-}
-
-/* 19b2:0077 */
-static void playTrainFinishedMelody(std::int16_t trainLen)
-{
-    // TODO implement
-    Driver::instance().vga().flush();
-    Driver::instance().pollEvent();
-    std::this_thread::sleep_for(std::chrono::milliseconds(trainLen * 100000 / 5994));
 }
 
 /* 18a5:03a5 */
@@ -436,7 +424,7 @@ static bool handleCollisions(Carriage& c1, Carriage& c2)
 }
 
 /* 18fa:0b10 */
-static void eraseCarriagesInShadowBuffer(const Carriage& c, VideoMemPtr ptr)
+static void eraseCarriagesInShadowBuffer(const Carriage& c, vga::VideoMemPtr ptr)
 {
     std::int16_t widthBytes = sar<std::int16_t>((c.rect.x2 - 1), 3) - sar(c.rect.x1, 3) + 1;
     std::int16_t height = c.rect.y2 - c.rect.y1;
@@ -529,24 +517,23 @@ Task taskMoveAndRedrawTrains()
                     drawSemaphore(g_semaphores[i], 350);
             }
 
-            // TODO
-            // waitVGARetrace();
+            vga::waitVerticalRetrace();
             if (needToRedrawCursor)
                 mouse::g_state.mode->clearFn();
 
-            drawing::setVideoModeR0W1();
+            vga::setVideoModeR0W1();
             do {
                 drawing::copyFromShadowBuffer(*curCarriageRect++);
                 carriage = carriage->next;
             } while (carriage);
-            drawing::setVideoModeR0W2();
+            vga::setVideoModeR0W2();
 
             if (needToRedrawCursor)
                 mouse::g_state.mode->drawFn();
 
-            drawing::setVideoModeR0W1();
+            vga::setVideoModeR0W1();
             eraseCarriagesInShadowBuffer(*g_trainDrawingChains[curChain], drawing::VIDEO_MEM_SHADOW_BUFFER);
-            drawing::setVideoModeR0W2();
+            vga::setVideoModeR0W2();
         }
     }
     co_return;

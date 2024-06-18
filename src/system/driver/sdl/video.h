@@ -6,6 +6,7 @@
 #include <SDL_video.h>
 
 #include <array>
+#include <chrono>
 #include <cstdint>
 
 namespace resl {
@@ -19,10 +20,12 @@ public:
     VGAEmulation& operator=(const VGAEmulation&) = delete;
 
     void flush();
+    void waitVerticalRetrace();
+
     void setDebugMode(bool debug);
 
-    [[nodiscard]] std::uint8_t read(VideoMemPtr);
-    void write(VideoMemPtr, std::uint8_t color);
+    [[nodiscard]] std::uint8_t read(vga::VideoMemPtr);
+    void write(vga::VideoMemPtr, std::uint8_t color);
 
     void setWriteMask(std::uint8_t);
 
@@ -31,13 +34,15 @@ public:
 
     void setPlaneMask(std::uint8_t);
     void setReadPlane(std::uint8_t);
-    void setWriteOperation(WriteOperation);
+    void setWriteOperation(vga::WriteOperation);
 
     void setPaletteItem(std::uint8_t idx, std::uint32_t rgb);
 
 private:
 
-    static constexpr int s_maxFPS = 60;
+    static constexpr int s_FPS = 60;
+
+    using ClockT = std::chrono::steady_clock;
 
     struct VGAState {
         std::uint8_t latches[4] = {};
@@ -46,7 +51,7 @@ private:
         std::uint8_t writeMask = 0;
         std::uint8_t writeMode = 2;
 
-        WriteOperation writeOperation = WriteOperation::Copy;
+        vga::WriteOperation writeOperation = vga::WriteOperation::Copy;
 
         /* Read Mode
          0: Data is read from one of 4 bit planes depending on the Read Map
@@ -87,6 +92,8 @@ private:
     int m_wndHeight = SCREEN_HEIGHT;
 
     VGAState m_vgaState;
+
+    ClockT::time_point m_nextFrameTime = {};
 
     bool m_dirty = true;
 };

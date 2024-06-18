@@ -5,12 +5,13 @@ project(reSL)
 file(GLOB_RECURSE HEADERS "*.h")
 
 set(SOURCES
+    src/game/chunk.cpp
     src/game/draw_header.cpp
-    src/game/draw_impasse.cpp
     src/game/drawing.cpp
     src/game/entrance.cpp
     src/game/game_data.cpp
     src/game/header.cpp
+    src/game/impasse.cpp
     src/game/init.cpp
     src/game/io_status.cpp
     src/game/load_game.cpp
@@ -22,8 +23,11 @@ set(SOURCES
     src/game/move_trains.cpp
     src/game/records.cpp
     src/game/resources/carriage_bias.cpp
+    src/game/resources/chunk_bounding_boxes.cpp
     src/game/resources/dispatcher_glyph.cpp
     src/game/resources/entrance.cpp
+    src/game/resources/entrance_rails.cpp
+    src/game/resources/glyph_empty_background.cpp
     src/game/resources/impasse_glyph.cpp
     src/game/resources/movement_paths.cpp
     src/game/resources/rail_glyph.cpp
@@ -37,12 +41,14 @@ set(SOURCES
     src/game/resources/train_glyph.cpp
     src/game/resources/train_specification.cpp
     src/game/semaphore.cpp
+    src/game/static_object.cpp
     src/game/status_bar.cpp
     src/game/switch.cpp
     src/game/train.cpp
     src/graphics/drawing.cpp
     src/graphics/glyph.cpp
     src/graphics/text.cpp
+    src/graphics/vga.cpp
     src/main.cpp
     src/system/active_sleep.cpp
     src/system/buffer.cpp

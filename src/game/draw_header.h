@@ -6,6 +6,10 @@
 
 namespace resl {
 
+static constexpr std::int16_t g_headerHeight = 47;
+
+//-----------------------------------------------------------------------------
+
 /* 12c5:0342 */
 void drawHeaderFieldFontTexture();
 

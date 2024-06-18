@@ -1,28 +1,31 @@
 #include "drawing.h"
 
+#include "chunk.h"
 #include "draw_header.h"
-#include "draw_impasse.h"
 #include "game_data.h"
 #include "graphics/drawing.h"
 #include "header.h"
+#include "impasse.h"
+#include "mouse/management_mode.h"
+#include "mouse/mouse_mode.h"
+#include "mouse/mouse_state.h"
+#include "resources/chunk_bounding_boxes.h"
 #include "resources/rail_glyph.h"
-#include "resources/static_object_glyph.h"
 #include "resources/train_finished_exclamation_glyph.h"
 #include "semaphore.h"
+#include "static_object.h"
 #include "status_bar.h"
 #include "switch.h"
 #include "train.h"
-#include "types/chunk.h"
 #include "types/header_field.h"
 #include "types/rail_info.h"
-#include "types/static_object.h"
+#include "types/rectangle.h"
 #include <graphics/color.h>
 #include <graphics/glyph.h>
+#include <graphics/vga.h>
 #include <system/buffer.h>
-#include <system/random.h>
 #include <system/read_file.h>
 
-#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <cstdlib>
@@ -32,6 +35,49 @@
 #endif
 
 namespace resl {
+
+/* 262d:6f94 : 8 bytes */
+Rectangle g_areaToRedraw;
+
+//-----------------------------------------------------------------------------
+
+/* 17bf:0e1b */
+void redrawScreenArea()
+{
+    vga::waitVerticalRetrace();
+    if (mouse::g_state.mode == &mouse::g_modeManagement)
+        mouse::g_state.mode->clearFn();
+
+    vga::setVideoModeR0W1();
+    drawing::copyFromShadowBuffer(g_areaToRedraw);
+    vga::setVideoModeR0W2();
+
+    if (mouse::g_state.mode == &mouse::g_modeManagement)
+        mouse::g_state.mode->drawFn();
+}
+
+/* 17bf:0599 */
+void scheduleChunkAreaRedrawing(const Chunk& c)
+{
+    g_areaToRedraw = g_chunkBoundingBoxes[c.type];
+    g_areaToRedraw.x1 += c.x;
+    g_areaToRedraw.y1 += c.y;
+    g_areaToRedraw.x2 += c.x;
+    g_areaToRedraw.y2 += c.y;
+}
+
+/* 17bf:05dc */
+void clampRectToGameFieldBoundaries(Rectangle& r)
+{
+    if (r.y1 < g_headerHeight)
+        r.y1 = g_headerHeight;
+    if (r.y2 > g_footerYPos)
+        r.y2 = g_footerYPos;
+    if (r.x1 < 0)
+        r.x1 = 0;
+    if (r.x2 > SCREEN_WIDTH)
+        r.x2 = SCREEN_WIDTH;
+}
 
 /* 137c:006f */
 void drawRailBg1(std::int16_t tileX, std::int16_t tileY,
@@ -61,52 +107,6 @@ void drawRail(std::int16_t tileX, std::int16_t tileY,
     RailGlyph* rg = railBackgrounds[railType].mainGlyph;
     drawGlyphAlignX8(&rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
                      (tileX + tileY) * 21 + rg->dy + yOffset - 22, color);
-}
-
-/* 1530:0203 */
-inline bool isInsideGameField(int x, int y)
-{
-    return y >= 47 && y <= 333 && x >= 0 && x <= 639;
-}
-
-/* 1530:013e */
-static void drawGrass(std::int16_t yOffset)
-{
-    const int seed = std::rand();
-    std::srand(g_staticObjects[119].x);
-    for (int i = 0; i < 25; ++i) {
-        int x = genRandomNumber(640);
-        int y = genRandomNumber(287) + 47;
-        for (int j = 0; j < 45; ++j) {
-            if (isInsideGameField(x, y)) {
-                Color c = drawing::getPixel(x, y + yOffset);
-                if (c == Color::Green)
-                    drawing::putPixel(x, y + yOffset, Color::Black);
-            }
-            x += symmetricRand(20);
-            y += symmetricRand(20) / 4;
-        }
-    }
-    std::srand(seed);
-}
-
-/* 1530:0229 */
-void drawStaticObjects(std::int16_t yOffset)
-{
-    drawGrass(yOffset);
-
-    g_glyphHeight = 16;
-    for (StaticObject& obj : g_staticObjects) {
-        if (obj.kind == StaticObjectKind::House) {
-            g_glyphHeight = std::min(334 - obj.y, 16);
-            drawGlyphW16(g_houseGlyphs[obj.type].bg, obj.x, obj.y + yOffset, obj.color);
-            drawGlyphW16(g_houseGlyphs[obj.type].fg, obj.x, obj.y + yOffset, Color::Black);
-        } else if (obj.kind == StaticObjectKind::Tree) {
-            g_glyphHeight = 16;
-            drawGlyphW16(g_treeGlyphs[obj.type].bg, obj.x, obj.y + yOffset, obj.color);
-            drawGlyphW16(g_treeGlyphs[obj.type].fg, obj.x, obj.y + yOffset, Color::Black);
-        }
-    }
 }
 
 /* 17bf:0cd0 */
@@ -199,9 +199,9 @@ void drawEraseTrainFinishedExclamation(std::int16_t entranceX, std::int16_t entr
         glyph = &g_glyphTrainFinishedRightEntrance;
     }
 
-    drawing::setDataRotation(0x18); // rotation = 0, mode = XOR
+    vga::setDataRotation(0x18); // rotation = 0, mode = XOR
     drawGlyphAlignX8(glyph, x, entranceY - 9, Color::White);
-    drawing::setDataRotation(0); // default mode
+    vga::setDataRotation(0); // default mode
 }
 
 /* 132d:00f9 */

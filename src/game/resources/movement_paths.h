@@ -16,6 +16,6 @@ struct Path {
 };
 
 /* 1d7d:02d4 - 6594 bytes */
-extern const Path g_movementPaths[7];
+extern const Path g_movementPaths[7]; // [chunk type]
 
 } // namespace resl

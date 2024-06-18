@@ -1,12 +1,12 @@
 #include "init.h"
 
+#include "chunk.h"
 #include "entrance.h"
 #include "game_data.h"
 #include "resources/movement_paths.h"
 #include "semaphore.h"
 #include "switch.h"
 #include "train.h"
-#include "types/chunk.h"
 
 #include <cstdint>
 

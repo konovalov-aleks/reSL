@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types/chunk.h"
+#include "chunk.h"
 #include "types/rail_info.h"
 #include <game/resources/semaphore_glyph.h>
 
@@ -31,14 +31,15 @@ struct Semaphore {
 /* 262d:6f9c : 48 bytes */
 extern Semaphore x_newSemaphores[4];
 
+// Semaphores that have just been deleted
 /* 262d:6f60 : 48 bytes */
-extern Semaphore x_erasedSemaphores[4];
+extern Semaphore g_erasedSemaphores[4];
 
 /* 262d:6f90 : 2 bytes */
 extern std::int16_t x_newSemaphoreCount;
 
 /* 262d:6f92 : 2 bytes */
-extern std::int16_t x_erasedSemaphoreCount;
+extern std::int16_t g_erasedSemaphoreCount;
 
 /* 262d:58aa : 600 bytes */
 extern Semaphore g_semaphores[50];
@@ -53,6 +54,9 @@ void createSemaphores(const RailInfo&);
 
 /* 137c:0135 */
 void drawSemaphore(const Semaphore&, std::int16_t yOffset);
+
+/* 137c:01d3 */
+void eraseSemaphore(const Semaphore&, std::int16_t yOffset);
 
 /* 19de:0414 */
 void toggleSemaphore(Semaphore&);

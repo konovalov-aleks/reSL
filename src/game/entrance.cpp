@@ -1,9 +1,16 @@
 #include "entrance.h"
 
+#include "chunk.h"
 #include "draw_header.h"
+#include "drawing.h"
+#include "game_data.h"
+#include "impasse.h"
 #include "melody.h"
+#include "semaphore.h"
+#include "static_object.h"
+#include "switch.h"
 #include "train.h"
-#include "types/chunk.h"
+#include "types/rail_info.h"
 
 #include <array>
 #include <cstdint>
@@ -21,6 +28,32 @@ std::int16_t g_entranceCount;
 // EntranceInfo g_entrances[9];
 
 //-----------------------------------------------------------------------------
+
+/* 17bf:03ba */
+void spawnNewEntrance(RailInfo ri)
+{
+    Chunk& c = g_chunks[ri.tileX][ri.tileY][ri.railType];
+    scheduleChunkAreaRedrawing(c);
+    destroyStaticObjectsForRoadConstruction(c);
+
+    clampRectToGameFieldBoundaries(g_areaToRedraw);
+
+    eraseImpasse(c, 350);
+    createSwitches(ri);
+
+    g_railRoad[g_railRoadCount++] = ri;
+
+    createSemaphores(ri);
+    for (std::int16_t i = 0; i < g_erasedSemaphoreCount; ++i)
+        eraseSemaphore(g_erasedSemaphores[i], 350);
+
+    drawFieldBackground(350);
+    redrawScreenArea();
+
+    playSpawnedEntranceMelody();
+
+    drawDispatcher(g_entranceCount++, false);
+}
 
 /* 19de:028b */
 Entrance* findClosestEntrance(std::int16_t x, std::int16_t y)

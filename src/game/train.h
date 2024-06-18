@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types/chunk.h"
+#include "chunk.h"
 #include "types/rectangle.h"
 #include <tasks/task.h>
 

@@ -4,6 +4,10 @@
 
 namespace resl {
 
+static constexpr std::int16_t g_footerYPos = 334;
+
+//-----------------------------------------------------------------------------
+
 /* 12ba:0097 */
 void drawCopyright(std::int16_t yOffset);
 

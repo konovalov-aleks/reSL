@@ -1,5 +1,6 @@
 #include "switch.h"
 
+#include "chunk.h"
 #include "game_data.h"
 #include "resources/movement_paths.h"
 #include "resources/rail_glyph.h"
@@ -7,7 +8,6 @@
 #include "resources/s4arr.h"
 #include "resources/semaphore_glyph_bias.h"
 #include "train.h"
-#include "types/chunk.h"
 #include "types/rail_info.h"
 #include <graphics/color.h>
 #include <graphics/drawing.h>
@@ -134,25 +134,27 @@ void drawSwitch(std::int16_t idx, bool drawToScreen)
 {
     auto& vga = Driver::instance().vga();
 
-    VideoMemPtr dstPtr = VIDEO_MEM_START_ADDR + static_cast<std::uint16_t>(-(idx + 1) * 30 - 1);
+    vga::VideoMemPtr dstPtr =
+        vga::VIDEO_MEM_START_ADDR + static_cast<std::uint16_t>(-(idx + 1) * 30 - 1);
     Switch& s = g_switches[idx];
     Chunk* rail = s.entry.chunk;
     const RailGlyph* rg = railBackgrounds[rail->type].switches[s.entry.slot];
 
-    drawing::setVideoModeR0W1();
+    vga::setVideoModeR0W1();
     const std::uint8_t* glyphData = rg->glyph.data;
     for (std::uint8_t y = 0; y < rg->glyph.height; ++y) {
         std::int16_t yPos = rail->y + rg->dy + y;
         for (std::uint8_t xBytes = 0; xBytes < rg->glyph.width; ++xBytes) {
             if (*glyphData) {
                 std::int16_t xPos = rail->x + rg->dx + xBytes * 8;
-                VideoMemPtr srcPtr = VIDEO_MEM_START_ADDR + (yPos + 350) * VIDEO_MEM_ROW_BYTES + sar(xPos, 3);
+                vga::VideoMemPtr srcPtr =
+                    vga::VIDEO_MEM_START_ADDR + (yPos + 350) * vga::VIDEO_MEM_ROW_BYTES + sar(xPos, 3);
                 vga.write(dstPtr++, vga.read(srcPtr));
             }
             ++glyphData;
         }
     }
-    drawing::setVideoModeR0W2();
+    vga::setVideoModeR0W2();
 
     if (drawToScreen)
         drawGlyphAlignX8(&rg->glyph, rail->x + rg->dx, rail->y + rg->dy, Color::Black);
@@ -165,27 +167,28 @@ void eraseSwitch(std::int16_t idx)
 {
     auto& vga = Driver::instance().vga();
 
-    VideoMemPtr srcPtr = VIDEO_MEM_START_ADDR + static_cast<std::uint16_t>(-(idx + 1) * 30 - 1);
+    vga::VideoMemPtr srcPtr =
+        vga::VIDEO_MEM_START_ADDR + static_cast<std::uint16_t>(-(idx + 1) * 30 - 1);
     Switch& s = g_switches[idx];
     Chunk* rail = s.entry.chunk;
     const RailGlyph* rg = railBackgrounds[rail->type].switches[s.entry.slot];
 
-    drawing::setVideoModeR0W1();
+    vga::setVideoModeR0W1();
     const std::uint8_t* glyphData = rg->glyph.data;
     for (std::uint8_t y = 0; y < rg->glyph.height; ++y) {
         std::int16_t yPos = rail->y + rg->dy + y;
         for (std::uint8_t xBytes = 0; xBytes < rg->glyph.width; ++xBytes) {
             if (*glyphData) {
                 const std::int16_t xPos = rail->x + rg->dx + xBytes * 8;
-                const std::int16_t offset = yPos * VIDEO_MEM_ROW_BYTES + sar(xPos, 3);
+                const std::int16_t offset = yPos * vga::VIDEO_MEM_ROW_BYTES + sar(xPos, 3);
                 std::uint8_t data = vga.read(srcPtr++);
-                vga.write(VIDEO_MEM_START_ADDR + offset, data);
+                vga.write(vga::VIDEO_MEM_START_ADDR + offset, data);
                 vga.write(drawing::VIDEO_MEM_SHADOW_BUFFER + offset, data);
             }
             ++glyphData;
         }
     }
-    drawing::setVideoModeR0W2();
+    vga::setVideoModeR0W2();
 }
 
 /* 13d1:026c */

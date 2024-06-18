@@ -1,10 +1,27 @@
 #pragma once
 
+#include "chunk.h"
+#include "types/rectangle.h"
 #include <graphics/color.h>
 
 #include <cstdint>
 
 namespace resl {
+
+/* 262d:6f94 : 8 bytes */
+extern Rectangle g_areaToRedraw;
+
+//-----------------------------------------------------------------------------
+
+// copies the area specified by g_areaToRedraw from the shadow buffer to the screen
+/* 17bf:0e1b */
+void redrawScreenArea();
+
+/* 17bf:0599 */
+void scheduleChunkAreaRedrawing(const Chunk&);
+
+/* 17bf:05dc */
+void clampRectToGameFieldBoundaries(Rectangle&);
 
 /* 137c:006f */
 void drawRailBg1(

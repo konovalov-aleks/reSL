@@ -3,11 +3,13 @@
 #include "entrance.h"
 #include "header.h"
 #include "resources/dispatcher_glyph.h"
+#include "resources/glyph_empty_background.h"
 #include "types/header_field.h"
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/glyph.h>
 #include <graphics/text.h>
+#include <graphics/vga.h>
 #include <system/buffer.h>
 #include <system/read_file.h>
 
@@ -18,13 +20,6 @@ namespace resl {
 /* 1d7d:0138 : 48 bytes */
 static const char* const s_alphabet[12] = { "9", "0", "1", "2", "3", "4",
                                             "5", "6", "7", "8", "9", "0" };
-
-/* 1d7d:25c2 : 32 bytes */
-static const std::uint8_t g_glyphEmptyBackground[] = {
-    0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF,
-    0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF,
-    0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF, 0XFF
-};
 
 /* 12c5:0342 */
 void drawHeaderFieldFontTexture()
@@ -44,7 +39,7 @@ void drawHeaderBackground(std::int16_t yOffset)
     // and name in the code are in different case is not a problem there.
     // For portability, I use a name identical to the file name on disk.
     readIfNotLoaded("PLAY.7", g_pageBuffer);
-    drawing::imageDot7(0, yOffset, 640, 47, g_pageBuffer);
+    drawing::imageDot7(0, yOffset, 640, g_headerHeight, g_pageBuffer);
 }
 
 /* 12c5:01d7 */
@@ -57,7 +52,7 @@ void drawHeaderField(const HeaderField& hdrField)
             (hdrField.digitValues[i] + 1) * 16 + hdrField.yScroll + 397,
             2, 16);
     }
-    drawing::setVideoModeR0W2();
+    vga::setVideoModeR0W2();
 }
 
 /* 12c5:022d */

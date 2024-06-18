@@ -23,4 +23,15 @@ struct Chunk {
     ChunkReference x_neighbours[2];
 };
 
+//-----------------------------------------------------------------------------
+
+/* 262d:259a : 11880 bytes */
+extern Chunk g_chunks[11][11][6]; /* [tileX][tileY][railType] */
+
+/* 262d:6954 : 1440 bytes */
+extern Chunk x_chunks_1[80];
+
+/* 262d:6ef4 : 4 bytes */
+extern ChunkReference x_unknownChunkConst;
+
 } // namespace resl

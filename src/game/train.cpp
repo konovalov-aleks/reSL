@@ -1,5 +1,6 @@
 #include "train.h"
 
+#include "chunk.h"
 #include "draw_header.h"
 #include "entrance.h"
 #include "header.h"
@@ -11,7 +12,6 @@
 #include "resources/train_glyph.h"
 #include "resources/train_specification.h"
 #include "status_bar.h"
-#include "types/chunk.h"
 #include "types/header_field.h"
 #include "types/rectangle.h"
 #include <graphics/color.h>
@@ -168,7 +168,7 @@ void scheduleAllTrainsRedrawing()
 void drawTrainList(Carriage* c)
 {
     Rectangle* curBoundingBox = g_carriagesBoundingBoxes;
-    VideoMemPtr shadowBufPtr = drawing::VIDEO_MEM_SHADOW_BUFFER;
+    vga::VideoMemPtr shadowBufPtr = drawing::VIDEO_MEM_SHADOW_BUFFER;
 
     for (; c; c = c->next) {
         const PathStep& p = g_movementPaths[c->location.chunk->type].data[c->location.pathStep];
@@ -195,11 +195,11 @@ void drawTrainList(Carriage* c)
         if (c->rect.y2 > curBoundingBox->y2)
             curBoundingBox->y2 = c->rect.y2;
 
-        drawing::setVideoModeR0W1();
+        vga::setVideoModeR0W1();
         shadowBufPtr = drawing::copySpriteToShadowBuffer(shadowBufPtr, c->rect.x1, c->rect.y1 + 350,
                                                          sar<std::int16_t>(c->rect.x2 - 1, 3) - sar(c->rect.x1, 3) + 1,
                                                          glyph.height);
-        drawing::setVideoModeR0W2();
+        vga::setVideoModeR0W2();
 
         if (c->location.chunk->type != 6) {
             drawGlyph(glyph.glyph1, c->rect.x1, c->rect.y1 + 350, Color::Black);
@@ -224,10 +224,10 @@ void eraseTrain(const Train& train)
     assert(mouse::g_state.mode);
     mouse::g_state.mode->clearFn();
 
-    drawing::setVideoModeR0W1();
+    vga::setVideoModeR0W1();
     for (uint8_t i = 0; i < train.carriageCnt; ++i)
         drawing::copyFromShadowBuffer(train.carriages[i].rect);
-    drawing::setVideoModeR0W2();
+    vga::setVideoModeR0W2();
 
     mouse::g_state.mode->drawFn();
 }

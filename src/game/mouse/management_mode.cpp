@@ -2,6 +2,7 @@
 
 #include "mouse_mode.h"
 #include "mouse_state.h"
+#include <game/status_bar.h>
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/glyph.h>
@@ -45,7 +46,7 @@ namespace {
         mode.drawFn();
     }
 
-    constexpr VideoMemPtr g_cursorAreaBackup = VIDEO_MEM_START_ADDR + 0x7861;
+    constexpr vga::VideoMemPtr g_cursorAreaBackup = vga::VIDEO_MEM_START_ADDR + 0x7861;
 
 } // namespace
 
@@ -56,7 +57,7 @@ void drawArrowCursor()
     MouseMode& mode = *g_state.mode;
 
     drawing::saveVideoMemRegion24x16(mode.x, mode.y, g_cursorAreaBackup);
-    drawing::setVideoModeR0W2();
+    vga::setVideoModeR0W2();
 
     static_assert(std::size(MouseMode{}.glyphs) == std::size(MouseMode{}.colors));
     g_glyphHeight = 16;
@@ -70,7 +71,7 @@ void clearArrowCursor()
     assert(g_state.mode && g_state.mode == &g_modeManagement);
     MouseMode& mode = *g_state.mode;
     drawing::restoreVideoMemRegion24x16(mode.x, mode.y, g_cursorAreaBackup);
-    drawing::setVideoModeR0W2();
+    vga::setVideoModeR0W2();
 }
 
 //-----------------------------------------------------------------------------
@@ -78,9 +79,9 @@ void clearArrowCursor()
 /* 1d7d:1cae : 32 bytes */
 MouseMode g_modeManagement = {
     { g_cursorGlyph1, g_cursorGlyph2 },
-    { Color::White, Color::Black },
+    { Color::Black, Color::White },
     -10, 650,   // min/max X
-    0, 334,     // min/max Y
+    0, g_footerYPos,     // min/max Y
     320, 200,   // x, y
     &drawArrowCursor,
     &clearArrowCursor,

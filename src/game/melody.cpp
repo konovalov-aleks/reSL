@@ -1,43 +1,110 @@
 #include "melody.h"
 
-#include <iostream>
+#include <graphics/vga.h>
+#include <system/sound.h>
 
 namespace resl {
+
+/* 1d7d:02c2 : 1 byte */
+static bool g_soundEnabled = true;
 
 /* 19b2:0105 */
 void playErrorMelody()
 {
-    // TODO implement
-    std::cout << "🎶 error melody" << std::endl;
+    if (!g_soundEnabled)
+        return;
+
+    sound(50);
+    vga::waitForNRetraces(7);
+    nosound();
 }
 
 /* 19b2:024a */
 void playFixRoadMelody()
 {
-    // TODO implement
-    std::cout << "🎶 fix road melody" << std::endl;
+    if (!g_soundEnabled)
+        return;
+
+    for (std::int16_t i = 12; i >= 0; --i) {
+        sound(i * 60 + 20);
+        vga::waitVerticalRetrace();
+    }
+    nosound();
 }
 
 /* 19b2:0047 */
 void playSwitchSwitchedMelody()
 {
-    // TODO implement
-    std::cout << "🎶 a switch has switched" << std::endl;
+    if (!g_soundEnabled)
+        return;
+
+    for (std::int16_t i = 0; i < 3; ++i) {
+        sound(i * 300 + 200);
+        vga::waitVerticalRetrace();
+    }
+    nosound();
 }
 
 /* 19b2:000f */
 void playEntitySwitchedSound(bool turnOn)
 {
-    // TODO implement
-    std::cout << "🎶 an entity has switched (mode: " << turnOn << ')' << std::endl;
+    if (!g_soundEnabled)
+        return;
+
+    std::int16_t freq = turnOn ? 3500 : 5000;
+    sound(freq);
+    for (int i = 0; i < 2; ++i)
+        vga::waitVerticalRetrace();
+    nosound();
 }
 
 /* 19b2:0128 */
 void playScheduledTrainMelody(std::uint16_t freq1, std::uint16_t freq2, std::int16_t iterations)
 {
-    // TODO implement
-    std::cout << "🎶 train scheduled (freq1: " << freq1 << ", freq2: "
-              << freq2 << ", iterations: " << iterations << ')' << std::endl;
+    if (!g_soundEnabled)
+        return;
+
+    for (std::int16_t i = 0; i < iterations; ++i) {
+        sound(freq1);
+        vga::waitVerticalRetrace();
+        sound(freq2);
+        vga::waitVerticalRetrace();
+    }
+    nosound();
+}
+
+/* 19b2:0077 */
+void playTrainFinishedMelody(std::int16_t trainLen)
+{
+    if (!g_soundEnabled)
+        return;
+
+    for (std::int16_t i = 0; i < trainLen; ++i) {
+        sound(i * 200 + 1000);
+        vga::waitVerticalRetrace();
+        vga::waitVerticalRetrace();
+    }
+    nosound();
+}
+
+/* 19b2:0167 */
+void beepSound(std::int16_t tone)
+{
+    if (!g_soundEnabled)
+        return;
+
+    sound((tone + 1) * 128);
+    vga::waitVerticalRetrace();
+    nosound();
+}
+
+/* 19b2:018d */
+void playSpawnedEntranceMelody()
+{
+    for (std::int16_t tone = 7; tone >= 0; --tone) {
+        beepSound(tone);
+        vga::waitVerticalRetrace();
+    }
 }
 
 } // namespace resl

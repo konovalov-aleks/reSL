@@ -1,6 +1,7 @@
 #include "video.h"
 
 #include "graphics/vga.h"
+#include "system/driver/sdl/driver.h"
 
 #include <SDL_error.h>
 #include <SDL_mouse.h>
@@ -9,10 +10,12 @@
 
 #include <array>
 #include <cassert>
+#include <compare>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <thread>
 
 namespace resl {
 
@@ -32,6 +35,11 @@ VGAEmulation::~VGAEmulation()
 
 void VGAEmulation::flush()
 {
+    const ClockT::time_point now = ClockT::now();
+    if (now < m_nextFrameTime)
+        return;
+    m_nextFrameTime = now + std::chrono::microseconds(1000000 / s_FPS);
+
     if (!m_dirty)
         return;
     m_dirty = false;
@@ -43,13 +51,24 @@ void VGAEmulation::flush()
     SDL_RenderPresent(m_renderer);
 
     lockTexture();
+
+    // need to poll events to make the image appear
+    Driver::instance().pollEvent();
+}
+
+void VGAEmulation::waitVerticalRetrace()
+{
+    const ClockT::time_point now = ClockT::now();
+    if (now < m_nextFrameTime)
+        std::this_thread::sleep_for(m_nextFrameTime - now);
+    flush();
 }
 
 void VGAEmulation::setDebugMode(bool debug)
 {
     if (debug) {
-        m_wndWidth = VIDEO_MEM_ROW_BYTES * 8;
-        m_wndHeight = VIDEO_MEM_N_ROWS;
+        m_wndWidth = vga::VIDEO_MEM_ROW_BYTES * 8;
+        m_wndHeight = vga::VIDEO_MEM_N_ROWS;
     } else {
         m_wndWidth = SCREEN_WIDTH;
         m_wndHeight = SCREEN_HEIGHT;
@@ -72,7 +91,7 @@ void VGAEmulation::init()
 
     m_screen = SDL_CreateTexture(
         m_renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING,
-        VIDEO_MEM_ROW_BYTES * 8, VIDEO_MEM_N_ROWS);
+        vga::VIDEO_MEM_ROW_BYTES * 8, vga::VIDEO_MEM_N_ROWS);
     if (!m_screen) [[unlikely]] {
         std::cerr << "Unable to create SDL texture! SDL_Error: " << SDL_GetError() << std::endl;
         close();
@@ -141,8 +160,8 @@ void VGAEmulation::unlockTexture()
 
 void VGAEmulation::updateVideoMemory(unsigned srcByte)
 {
-    const int x = (srcByte * 8) % (VIDEO_MEM_ROW_BYTES * 8);
-    const int y = (srcByte * 8) / (VIDEO_MEM_ROW_BYTES * 8);
+    const int x = (srcByte * 8) % (vga::VIDEO_MEM_ROW_BYTES * 8);
+    const int y = (srcByte * 8) / (vga::VIDEO_MEM_ROW_BYTES * 8);
 
     if (x >= m_wndWidth || y >= m_wndHeight)
         return;
@@ -159,9 +178,9 @@ void VGAEmulation::updateVideoMemory(unsigned srcByte)
     m_dirty = true;
 }
 
-void VGAEmulation::write(VideoMemPtr memPtr, std::uint8_t color)
+void VGAEmulation::write(vga::VideoMemPtr memPtr, std::uint8_t color)
 {
-    unsigned offset = memPtr - VIDEO_MEM_START_ADDR;
+    unsigned offset = memPtr - vga::VIDEO_MEM_START_ADDR;
 
     bool changed = false;
 
@@ -194,15 +213,15 @@ void VGAEmulation::write(VideoMemPtr memPtr, std::uint8_t color)
 
                 std::uint8_t bitsToSet = mask * (color & 1);
                 switch (m_vgaState.writeOperation) {
-                case WriteOperation::Copy:
+                case vga::WriteOperation::Copy:
                     break;
-                case WriteOperation::And:
+                case vga::WriteOperation::And:
                     bitsToSet &= v;
                     break;
-                case WriteOperation::Or:
+                case vga::WriteOperation::Or:
                     bitsToSet |= v;
                     break;
-                case WriteOperation::Xor:
+                case vga::WriteOperation::Xor:
                     bitsToSet ^= v;
                     break;
                 }
@@ -218,9 +237,9 @@ void VGAEmulation::write(VideoMemPtr memPtr, std::uint8_t color)
         updateVideoMemory(offset);
 }
 
-[[nodiscard]] std::uint8_t VGAEmulation::read(VideoMemPtr memPtr)
+[[nodiscard]] std::uint8_t VGAEmulation::read(vga::VideoMemPtr memPtr)
 {
-    unsigned offset = memPtr - VIDEO_MEM_START_ADDR;
+    unsigned offset = memPtr - vga::VIDEO_MEM_START_ADDR;
 
     std::memcpy(&m_vgaState.latches, &m_vgaState.mem[offset], sizeof(m_vgaState.latches));
 
@@ -256,7 +275,7 @@ void VGAEmulation::setReadPlane(std::uint8_t p)
     m_vgaState.readPlane = p;
 }
 
-void VGAEmulation::setWriteOperation(WriteOperation op)
+void VGAEmulation::setWriteOperation(vga::WriteOperation op)
 {
     m_vgaState.writeOperation = op;
 }
@@ -285,7 +304,7 @@ void VGAEmulation::setPaletteItem(std::uint8_t idx, std::uint32_t rgb)
             ++srcByte;
         }
         dst += m_screenPixelsPitch;
-        srcByte = s + VIDEO_MEM_ROW_BYTES;
+        srcByte = s + vga::VIDEO_MEM_ROW_BYTES;
     }
 }
 

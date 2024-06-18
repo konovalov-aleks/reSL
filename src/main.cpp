@@ -15,6 +15,7 @@
 #include "graphics/drawing.h"
 #include "graphics/glyph.h"
 #include "graphics/text.h"
+#include "graphics/vga.h"
 #include "system/time.h"
 #include "tasks/task.h"
 #include <system/driver/driver.h>
@@ -92,9 +93,9 @@ void loadGame(const char* fname)
     fillGameFieldBackground(350);
     drawFieldBackground(350);
 
-    drawing::setVideoModeR0W1();
+    vga::setVideoModeR0W1();
     drawing::copyRectangle(0, 0, 0, 350, 80, 350);
-    drawing::setVideoModeR0W2();
+    vga::setVideoModeR0W2();
 
     mouse::g_state.mode->drawFn();
 
@@ -183,7 +184,7 @@ Task sdlLoop()
 {
     while (Driver::instance().pollEvent()) {
         Driver::instance().vga().flush();
-        co_await yield();
+        co_await sleep(2);
     }
     stopScheduler();
     co_return;

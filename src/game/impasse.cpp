@@ -1,9 +1,10 @@
-#include "draw_impasse.h"
+#include "impasse.h"
 
+#include "chunk.h"
+#include "resources/glyph_empty_background.h"
 #include "resources/impasse_glyph.h"
 #include "resources/s4arr.h"
 #include "resources/semaphore_glyph_bias.h"
-#include "types/chunk.h"
 #include <graphics/color.h>
 #include <graphics/glyph.h>
 
@@ -31,6 +32,22 @@ void drawImpasse(const Chunk& c, std::int16_t yOffset)
         drawGlyphW16(g_impasseGlyphs[direction].bg, x, y, Color::Black);
         g_glyphHeight = 8;
         drawGlyphW16(g_impasseGlyphs[direction].fg, x, y, Color::White);
+    }
+}
+
+/* 137c:0378 */
+void eraseImpasse(const Chunk& c, std::int16_t yOffset)
+{
+    for (int i = 0; i < 2; ++i) {
+        const SemaphoreGlyphBias& gb = g_semaphoreGlyphBias[c.type][i];
+        const s4& reInfo = s4arr[c.type][i];
+
+        g_glyphHeight = 8;
+        drawGlyphW16(
+            g_glyphEmptyBackground,
+            c.x + (reInfo.tileOffsetX - reInfo.tileOffsetY) * 88 - (gb.dx * 2) / 3 - 8,
+            c.y + (reInfo.tileOffsetX + reInfo.tileOffsetY) * 21 - (gb.dy * 2) / 3 + yOffset - 5,
+            Color::Green);
     }
 }
 

@@ -1,7 +1,8 @@
 #pragma once
 
+#include "chunk.h"
 #include "graphics/color.h"
-#include "types/chunk.h"
+#include "types/rail_info.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -11,7 +12,7 @@ namespace resl {
 struct Entrance {
     Color bgColor;
     Color fgColor;
-    std::uint8_t unknown;
+    std::uint8_t entranceRailInfoIdx;
     std::uint8_t waitingTrainsCount;
     Chunk chunk;
 };
@@ -36,6 +37,9 @@ extern std::int16_t g_entranceCount;
 extern Entrance g_entrances[9];
 
 //-----------------------------------------------------------------------------
+
+/* 17bf:03ba */
+void spawnNewEntrance(RailInfo);
 
 /* 19de:028b */
 Entrance* findClosestEntrance(std::int16_t x, std::int16_t y);

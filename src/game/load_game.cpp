@@ -1,5 +1,6 @@
 #include "load_game.h"
 
+#include "chunk.h"
 #include "entrance.h"
 #include "game_data.h"
 #include "header.h"
@@ -7,9 +8,9 @@
 #include "io_status.h"
 #include "resources/s4arr.h"
 #include "semaphore.h"
+#include "static_object.h"
 #include "switch.h"
 #include "train.h"
-#include "types/chunk.h"
 #include "types/rail_info.h"
 #include "types/rectangle.h"
 #include <system/time.h>

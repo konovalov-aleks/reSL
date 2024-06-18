@@ -1,11 +1,14 @@
 #include "main_loop.h"
 
+#include "entrance.h"
 #include "header.h"
+#include "resources/entrance_rails.h"
 #include "status_bar.h"
 #include "train.h"
 #include "types/header_field.h"
+#include "types/rail_info.h"
 #include <graphics/color.h>
-#include <graphics/drawing.h>
+#include <graphics/vga.h>
 #include <tasks/task.h>
 
 #include <cstdint>
@@ -42,9 +45,10 @@ Task taskGameMainLoop()
         co_await sleep(50);
 
         accelerateTrains(5);
+        vga::waitVerticalRetrace();
 
         blinkingColor ^= 0xFFFFFF;
-        drawing::setPaletteItem(Color::BWBlinking, blinkingColor);
+        vga::setPaletteItem(Color::BWBlinking, blinkingColor);
 
         tryRunWaitingTrains();
 
@@ -62,6 +66,34 @@ Task taskGameMainLoop()
                 showStatusMessage(buf);
                 startHeaderFieldAnimation(HeaderFieldId::Money, -waitingTrains);
             }
+
+            switch (g_headers[static_cast<int>(HeaderFieldId::Year)].value) {
+            case 1800:
+                if (g_entranceCount == 1)
+                    spawnNewEntrance(g_entranceRails[g_entrances[1].entranceRailInfoIdx]);
+                break;
+            case 1840:
+                if (g_entranceCount == 2)
+                    spawnNewEntrance(g_entranceRails[g_entrances[2].entranceRailInfoIdx]);
+                break;
+            case 1880:
+                if (g_entranceCount == 3)
+                    spawnNewEntrance(g_entranceRails[g_entrances[3].entranceRailInfoIdx]);
+                break;
+            case 1920:
+                if (g_entranceCount == 4)
+                    spawnNewEntrance(g_entranceRails[g_entrances[4].entranceRailInfoIdx]);
+                break;
+            case 1960:
+                if (g_entranceCount == 5)
+                    spawnNewEntrance(g_entranceRails[g_entrances[5].entranceRailInfoIdx]);
+                break;
+            case 2000:
+                // TODO
+                // show happy 2000 banner
+                // stop game
+                break;
+            };
         }
     }
 }

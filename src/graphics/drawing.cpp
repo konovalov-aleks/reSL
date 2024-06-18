@@ -13,60 +13,20 @@
 
 namespace resl::drawing {
 
-/* 1b06:026d */
-static void setVideoModeR0W0()
-{
-    Driver::instance().vga().setMode(0);
-    Driver::instance().vga().setWriteMask(0xFF);
-}
-
-/* 1b06:0279 */
-void setVideoModeR0W1()
-{
-    Driver::instance().vga().setMode(1);
-    Driver::instance().vga().setWriteMask(0xFF);
-}
-
-/* 1b06:0285 */
-void setVideoModeR0W2()
-{
-    Driver::instance().vga().setMode(2);
-    Driver::instance().vga().setWriteMask(0xFF);
-}
-
-void setPaletteItem(Color c, std::uint32_t rgb)
-{
-    Driver::instance().vga().setPaletteItem(static_cast<std::uint8_t>(c), rgb);
-}
-
-/* 1b06:02a5 */
-void setDataRotation(std::uint8_t rotation)
-{
-    assert((rotation & 7) == 0); // not implemented yet
-    rotation >>= 3;
-    assert(rotation < 4);
-    Driver::instance().vga().setWriteOperation(static_cast<WriteOperation>(rotation));
-}
-
-/* 1b06:02b5 */
-static void videoChoosePlanes(std::uint8_t mask)
-{
-    Driver::instance().vga().setPlaneMask(mask);
-}
-
 /* 1b06:06f9 */
 void filledRectangle(std::int16_t x, std::int16_t y,
                      std::int16_t width, std::int16_t height,
                      std::uint8_t pattern, Color color)
 {
     assert(Driver::instance().vga().writeMode() == 2);
-    VideoMemPtr videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + sar(x, 3);
+    vga::VideoMemPtr videoPtr =
+        vga::VIDEO_MEM_START_ADDR + y * vga::VIDEO_MEM_ROW_BYTES + sar(x, 3);
     Driver::instance().vga().setWriteMask(pattern);
     for (int curY = 0; curY < height; ++curY) {
-        VideoMemPtr vp = videoPtr;
+        vga::VideoMemPtr vp = videoPtr;
         for (std::int16_t curX = 0; curX < width; ++curX)
             Driver::instance().vga().write(vp++, color);
-        videoPtr += VIDEO_MEM_ROW_BYTES;
+        videoPtr += vga::VIDEO_MEM_ROW_BYTES;
     }
 }
 
@@ -76,8 +36,10 @@ void horizontalLine(std::int16_t x1, std::int16_t x2, std::int16_t y, Color colo
     if (x2 < x1)
         std::swap(x1, x2);
 
-    VideoMemPtr videoPtr1 = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + sar(x1, 3);
-    VideoMemPtr videoPtr2 = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + sar(x2, 3);
+    vga::VideoMemPtr videoPtr1 =
+        vga::VIDEO_MEM_START_ADDR + y * vga::VIDEO_MEM_ROW_BYTES + sar(x1, 3);
+    vga::VideoMemPtr videoPtr2 =
+        vga::VIDEO_MEM_START_ADDR + y * vga::VIDEO_MEM_ROW_BYTES + sar(x2, 3);
 
     const std::uint8_t pixelOffsetInsideByte1 = x1 & 7;
     const std::uint8_t pixelOffsetInsideByte2 = x2 & 7;
@@ -124,20 +86,21 @@ void dialogFrame(std::int16_t x, std::int16_t y,
 static void implDrawImageDot7(std::int16_t x, std::int16_t y,
                               const std::uint8_t* data, bool drawSprite)
 {
-    VideoMemPtr videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + sar(x, 3);
+    vga::VideoMemPtr videoPtr =
+        vga::VIDEO_MEM_START_ADDR + y * vga::VIDEO_MEM_ROW_BYTES + sar(x, 3);
     const int nRows = 7;
     if (drawSprite) {
         // copy sprite data
         for (int r = 0; r < nRows; ++r) {
             Driver::instance().vga().write(videoPtr, *(data++));
-            videoPtr += VIDEO_MEM_ROW_BYTES;
+            videoPtr += vga::VIDEO_MEM_ROW_BYTES;
         }
     } else {
         // fill with a constant
         const std::uint8_t v = *data;
         for (int r = 0; r < nRows; ++r) {
             Driver::instance().vga().write(videoPtr, v);
-            videoPtr += VIDEO_MEM_ROW_BYTES;
+            videoPtr += vga::VIDEO_MEM_ROW_BYTES;
         }
     }
 }
@@ -148,7 +111,7 @@ void imageDot7(std::int16_t x, std::int16_t y,
                const std::uint8_t* image)
 {
     const std::uint8_t* data = &image[0x10];
-    setVideoModeR0W0();
+    vga::setVideoModeR0W0();
     for (std::int16_t curY = 0; curY < height; curY += 7) {
         for (std::int16_t curX = 0; curX < 640; curX += 8) {
             std::uint8_t drawed = 0;
@@ -156,7 +119,7 @@ void imageDot7(std::int16_t x, std::int16_t y,
                 const std::uint8_t b = *data;
                 const std::uint8_t planes = b & 0xF;
                 drawed |= planes;
-                videoChoosePlanes(planes);
+                vga::videoChoosePlanes(planes);
                 ++data;
                 if (curX < width)
                     implDrawImageDot7(x + curX, y + curY, data, (b & 0xF0) != 0);
@@ -164,14 +127,15 @@ void imageDot7(std::int16_t x, std::int16_t y,
             }
         }
     }
-    setVideoModeR0W2();
-    videoChoosePlanes(0xF);
+    vga::setVideoModeR0W2();
+    vga::videoChoosePlanes(0xF);
 }
 
 /* 1b06:07db */
 Color getPixel(std::int16_t x, std::int16_t y)
 {
-    const VideoMemPtr videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + sar(x, 3);
+    const vga::VideoMemPtr videoPtr =
+        vga::VIDEO_MEM_START_ADDR + y * vga::VIDEO_MEM_ROW_BYTES + sar(x, 3);
     const std::uint8_t mask = 0x80 >> (x & 7);
 
     Driver::instance().vga().setReadPlane(0);
@@ -195,7 +159,8 @@ Color getPixel(std::int16_t x, std::int16_t y)
 /* 1b06:0838 */
 void putPixel(std::int16_t x, std::int16_t y, Color c)
 {
-    const VideoMemPtr videoPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + sar(x, 3);
+    const vga::VideoMemPtr videoPtr =
+        vga::VIDEO_MEM_START_ADDR + y * vga::VIDEO_MEM_ROW_BYTES + sar(x, 3);
 
     Driver::instance().vga().setWriteMask(0x80 >> (x & 7));
     Driver::instance().vga().write(videoPtr, c);
@@ -230,7 +195,8 @@ void line(std::int16_t x1, std::int16_t y1, std::int16_t x2, std::int16_t y2, Co
 
     std::int16_t err = 2 * dx - dy;
 
-    VideoMemPtr videoPtr = VIDEO_MEM_START_ADDR + y1 * VIDEO_MEM_ROW_BYTES + sar(x1, 3);
+    vga::VideoMemPtr videoPtr =
+        vga::VIDEO_MEM_START_ADDR + y1 * vga::VIDEO_MEM_ROW_BYTES + sar(x1, 3);
     std::uint8_t pixelMask = 0x80 >> (x1 & 7);
 
     for (std::int16_t y = 0; y < dy; ++y) {
@@ -249,10 +215,10 @@ void line(std::int16_t x1, std::int16_t y1, std::int16_t x2, std::int16_t y2, Co
             moveAlongX();
             [[fallthrough]];
         case 1:
-            videoPtr += VIDEO_MEM_ROW_BYTES;
+            videoPtr += vga::VIDEO_MEM_ROW_BYTES;
             break;
         case 2:
-            videoPtr += VIDEO_MEM_ROW_BYTES;
+            videoPtr += vga::VIDEO_MEM_ROW_BYTES;
             [[fallthrough]];
         case 3:
             moveAlongX();
@@ -261,10 +227,10 @@ void line(std::int16_t x1, std::int16_t y1, std::int16_t x2, std::int16_t y2, Co
             moveAlongX();
             [[fallthrough]];
         case 5:
-            videoPtr -= VIDEO_MEM_ROW_BYTES;
+            videoPtr -= vga::VIDEO_MEM_ROW_BYTES;
             break;
         case 6:
-            videoPtr -= VIDEO_MEM_ROW_BYTES;
+            videoPtr -= vga::VIDEO_MEM_ROW_BYTES;
             [[fallthrough]];
         case 7:
             moveAlongX();
@@ -285,16 +251,18 @@ void copyRectangle(std::int16_t dstX, std::int16_t dstY,
 {
     Driver::instance().vga().setMode(1);
 
-    VideoMemPtr srcVideoPtr = VIDEO_MEM_START_ADDR + srcY * VIDEO_MEM_ROW_BYTES + sar(srcX, 3);
-    VideoMemPtr dstVideoPtr = VIDEO_MEM_START_ADDR + dstY * VIDEO_MEM_ROW_BYTES + sar(dstX, 3);
+    vga::VideoMemPtr srcVideoPtr =
+        vga::VIDEO_MEM_START_ADDR + srcY * vga::VIDEO_MEM_ROW_BYTES + sar(srcX, 3);
+    vga::VideoMemPtr dstVideoPtr =
+        vga::VIDEO_MEM_START_ADDR + dstY * vga::VIDEO_MEM_ROW_BYTES + sar(dstX, 3);
 
     for (std::int16_t y = 0; y < height; ++y) {
         for (std::int16_t x = 0; x < width; ++x) {
             std::uint8_t data = Driver::instance().vga().read(srcVideoPtr++);
             Driver::instance().vga().write(dstVideoPtr++, data);
         }
-        srcVideoPtr += VIDEO_MEM_ROW_BYTES - width;
-        dstVideoPtr += VIDEO_MEM_ROW_BYTES - width;
+        srcVideoPtr += vga::VIDEO_MEM_ROW_BYTES - width;
+        dstVideoPtr += vga::VIDEO_MEM_ROW_BYTES - width;
     }
 }
 
@@ -305,69 +273,73 @@ void copyFromShadowBuffer(const Rectangle& r)
     std::int16_t xOffsetBytes = sar(r.x1, 3);
     std::int16_t widthBytes = sar(r.x2, 3) - xOffsetBytes + 1;
     std::int16_t height = r.y2 - r.y1;
-    std::int16_t offset = xOffsetBytes + r.y1 * VIDEO_MEM_ROW_BYTES;
+    std::int16_t offset = xOffsetBytes + r.y1 * vga::VIDEO_MEM_ROW_BYTES;
 
-    VideoMemPtr dstPtr = VIDEO_MEM_START_ADDR + offset;
-    VideoMemPtr srcPtr = VIDEO_MEM_SHADOW_BUFFER + offset;
+    vga::VideoMemPtr dstPtr = vga::VIDEO_MEM_START_ADDR + offset;
+    vga::VideoMemPtr srcPtr = VIDEO_MEM_SHADOW_BUFFER + offset;
     for (std::uint16_t y = 0; y < height; ++y) {
         for (std::uint16_t x = 0; x < widthBytes; ++x)
             Driver::instance().vga().write(dstPtr++, Driver::instance().vga().read(srcPtr++));
-        dstPtr += VIDEO_MEM_ROW_BYTES - widthBytes;
-        srcPtr += VIDEO_MEM_ROW_BYTES - widthBytes;
+        dstPtr += vga::VIDEO_MEM_ROW_BYTES - widthBytes;
+        srcPtr += vga::VIDEO_MEM_ROW_BYTES - widthBytes;
     }
 }
 
 /* 1b06:0062 */
-VideoMemPtr copySpriteToShadowBuffer(VideoMemPtr dstPtr, std::int16_t x, std::int16_t y,
-                                     std::int16_t width, std::int16_t height)
+vga::VideoMemPtr copySpriteToShadowBuffer(vga::VideoMemPtr dstPtr, std::int16_t x, std::int16_t y,
+                                          std::int16_t width, std::int16_t height)
 {
     assert(Driver::instance().vga().writeMode() == 1);
-    VideoMemPtr srcPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + sar(x, 3);
+    vga::VideoMemPtr srcPtr =
+        vga::VIDEO_MEM_START_ADDR + y * vga::VIDEO_MEM_ROW_BYTES + sar(x, 3);
     for (std::int16_t curY = 0; curY < height; ++curY) {
         for (std::int16_t curX = 0; curX < width; ++curX)
             Driver::instance().vga().write(dstPtr++, Driver::instance().vga().read(srcPtr++));
-        srcPtr += VIDEO_MEM_ROW_BYTES - width;
+        srcPtr += vga::VIDEO_MEM_ROW_BYTES - width;
     }
     return dstPtr;
 }
 
 /* 1b06:00a0 */
-VideoMemPtr copySpriteFromShadowBuffer(VideoMemPtr srcPtr, std::int16_t x, std::int16_t y,
-                                       std::int16_t width, std::int16_t height)
+vga::VideoMemPtr copySpriteFromShadowBuffer(vga::VideoMemPtr srcPtr, std::int16_t x, std::int16_t y,
+                                            std::int16_t width, std::int16_t height)
 {
     assert(Driver::instance().vga().writeMode() == 1);
-    VideoMemPtr dstPtr = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + sar(x, 3);
+    vga::VideoMemPtr dstPtr =
+        vga::VIDEO_MEM_START_ADDR + y * vga::VIDEO_MEM_ROW_BYTES + sar(x, 3);
     for (std::int16_t curY = 0; curY < height; ++curY) {
         for (std::int16_t curX = 0; curX < width; ++curX)
             Driver::instance().vga().write(dstPtr++, Driver::instance().vga().read(srcPtr++));
-        dstPtr += VIDEO_MEM_ROW_BYTES - width;
+        dstPtr += vga::VIDEO_MEM_ROW_BYTES - width;
     }
     return srcPtr;
 }
 
 /* 1b06:0379 */
-void saveVideoMemRegion24x16(std::int16_t x, std::int16_t y, VideoMemPtr dst)
+void saveVideoMemRegion24x16(std::int16_t x, std::int16_t y, vga::VideoMemPtr dst)
 {
-    setVideoModeR0W1();
-    VideoMemPtr src = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + sar(x, 3);
+    vga::setVideoModeR0W1();
+    vga::VideoMemPtr src =
+        vga::VIDEO_MEM_START_ADDR + y * vga::VIDEO_MEM_ROW_BYTES + sar(x, 3);
     for (int y = 0; y < 16; ++y) {
         for (int i = 0; i < 3; ++i)
             Driver::instance().vga().write(dst++, Driver::instance().vga().read(src++));
-        dst += VIDEO_MEM_ROW_BYTES - 3;
-        src += VIDEO_MEM_ROW_BYTES - 3;
+        dst += vga::VIDEO_MEM_ROW_BYTES - 3;
+        src += vga::VIDEO_MEM_ROW_BYTES - 3;
     }
 }
 
 /* 1b06:03bb */
-void restoreVideoMemRegion24x16(std::int16_t x, std::int16_t y, VideoMemPtr src)
+void restoreVideoMemRegion24x16(std::int16_t x, std::int16_t y, vga::VideoMemPtr src)
 {
-    setVideoModeR0W1();
-    VideoMemPtr dst = VIDEO_MEM_START_ADDR + y * VIDEO_MEM_ROW_BYTES + sar(x, 3);
+    vga::setVideoModeR0W1();
+    vga::VideoMemPtr dst =
+        vga::VIDEO_MEM_START_ADDR + y * vga::VIDEO_MEM_ROW_BYTES + sar(x, 3);
     for (int y = 0; y < 16; ++y) {
         for (int i = 0; i < 3; ++i)
             Driver::instance().vga().write(dst++, Driver::instance().vga().read(src++));
-        dst += VIDEO_MEM_ROW_BYTES - 3;
-        src += VIDEO_MEM_ROW_BYTES - 3;
+        dst += vga::VIDEO_MEM_ROW_BYTES - 3;
+        src += vga::VIDEO_MEM_ROW_BYTES - 3;
     }
 }
 

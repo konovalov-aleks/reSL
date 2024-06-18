@@ -1,11 +1,11 @@
 #include "semaphore.h"
 
+#include "chunk.h"
 #include "game_data.h"
 #include "resources/rail_type_meta.h"
 #include "resources/s4arr.h"
 #include "resources/semaphore_glyph.h"
 #include "resources/semaphore_glyph_bias.h"
-#include "types/chunk.h"
 #include "types/rail_info.h"
 #include <graphics/color.h>
 #include <graphics/glyph.h>
@@ -20,13 +20,13 @@ namespace resl {
 Semaphore x_newSemaphores[4];
 
 /* 262d:6f60 : 48 bytes */
-Semaphore x_erasedSemaphores[4];
+Semaphore g_erasedSemaphores[4];
 
 /* 262d:6f90 : 2 bytes */
 std::int16_t x_newSemaphoreCount;
 
 /* 262d:6f92 : 2 bytes */
-std::int16_t x_erasedSemaphoreCount;
+std::int16_t g_erasedSemaphoreCount;
 
 /* 262d:58aa : 600 bytes */
 Semaphore g_semaphores[50];
@@ -91,7 +91,7 @@ static void removeSemaphore(Chunk& c, SemaphoreType type)
 void createSemaphores(const RailInfo& ri)
 {
     Chunk& chunk = g_chunks[ri.tileX][ri.tileY][ri.railType];
-    x_erasedSemaphoreCount = 0;
+    g_erasedSemaphoreCount = 0;
     x_newSemaphoreCount = 0;
     for (int i = 0; i < 2; ++i) {
         const s4& s4data = s4arr[chunk.type][i];
@@ -152,7 +152,7 @@ void createSemaphores(const RailInfo& ri)
                 Chunk& chunk2 =
                     g_chunks[tileX + rtm.tileOffsetX][tileY + rtm.tileOffsetY][rtm.railType];
                 if (chunk2.semSlotIdByDirection[static_cast<int>(rtm.semaphoreType)] != -1) {
-                    x_erasedSemaphores[x_erasedSemaphoreCount++] =
+                    g_erasedSemaphores[g_erasedSemaphoreCount++] =
                         g_semaphores[chunk2.semSlotIdByDirection[static_cast<int>(rtm.semaphoreType)]];
                     removeSemaphore(chunk2, rtm.semaphoreType);
                 }
@@ -165,8 +165,8 @@ void createSemaphores(const RailInfo& ri)
 void drawSemaphore(const Semaphore& s, std::int16_t yOffset)
 {
     const SemaphoreGlyph& glyph = *s.glyph;
-    std::int16_t x = s.pixelX + glyph.xOffset;
-    std::int16_t y = s.pixelY + glyph.yOffset + yOffset;
+    const std::int16_t x = s.pixelX + glyph.xOffset;
+    const std::int16_t y = s.pixelY + glyph.yOffset + yOffset;
 
     g_glyphHeight = 15;
     drawGlyphW8(glyph.glyphBg1, x, y, Color::White);
@@ -176,6 +176,21 @@ void drawSemaphore(const Semaphore& s, std::int16_t yOffset)
     drawGlyphW16(
         s.glyph->glyphLight, x + glyph.lightXOffset, y + glyph.lightYOffset,
         s.isRed ? Color::Red : Color::LightGreen);
+}
+
+/* 137c:01d3 */
+void eraseSemaphore(const Semaphore& s, std::int16_t yOffset)
+{
+    const SemaphoreGlyph& glyph = *s.glyph;
+    const std::int16_t x = s.pixelX + glyph.xOffset;
+    const std::int16_t y = s.pixelY + glyph.yOffset + yOffset;
+
+    g_glyphHeight = 15;
+    drawGlyphW8(glyph.glyphBg1, x, y, Color::Green);
+
+    g_glyphHeight = 4;
+    drawGlyphW16(s.glyph->glyphLight, x + glyph.lightXOffset,
+                 y + glyph.lightYOffset, Color::Green);
 }
 
 /* 19de:0414 */

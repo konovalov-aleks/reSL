@@ -17,11 +17,13 @@ set(SOURCES
     src/game/load_game.cpp
     src/game/main_loop.cpp
     src/game/melody.cpp
+    src/game/mouse/construction_mode.cpp
     src/game/mouse/management_mode.cpp
     src/game/mouse/mouse.cpp
     src/game/mouse/mouse_state.cpp
     src/game/move_trains.cpp
     src/game/records.cpp
+    src/game/resources/allowed_cursor_rail_types.cpp
     src/game/resources/carriage_bias.cpp
     src/game/resources/chunk_bounding_boxes.cpp
     src/game/resources/dispatcher_glyph.cpp

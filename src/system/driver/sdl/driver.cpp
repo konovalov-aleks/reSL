@@ -112,7 +112,8 @@ void Driver::onMouseButtonEvent(const SDL_MouseButtonEvent& e)
     if (!mouseEventFlags) [[unlikely]]
         return;
 
-    m_mouseHandler(mouseEventFlags, mouseButtonState(e.state), 0, 0);
+    Uint32 buttonState = SDL_GetMouseState(nullptr, nullptr);
+    m_mouseHandler(mouseEventFlags, mouseButtonState(buttonState), 0, 0);
 }
 
 void Driver::onMouseMove(const SDL_MouseMotionEvent& e)

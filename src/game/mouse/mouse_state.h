@@ -11,11 +11,18 @@ struct MouseState {
     MouseMode* mode;
     std::uint8_t unknown1;
     std::uint8_t unknown2;
-    Glyph* glyph;
+    const Glyph* glyph;
     std::uint16_t videoMemOffset;
 };
 
+//-----------------------------------------------------------------------------
+
 /* 262d:6f02 : 12 bytes */
-extern const MouseState g_state;
+extern MouseState g_state;
+
+//-----------------------------------------------------------------------------
+
+/* 14af:0104 */
+void setMouseMode(MouseMode&);
 
 } // namespace resl::mouse

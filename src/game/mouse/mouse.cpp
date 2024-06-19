@@ -1,15 +1,16 @@
 #include "mouse.h"
 
+#include "construction_mode.h"
 #include "management_mode.h"
 #include "mouse_mode.h"
 #include "mouse_state.h"
-#include <game/status_bar.h>
-#include <game/train.h>
 #include <game/entrance.h>
 #include <game/header.h>
 #include <game/melody.h>
 #include <game/semaphore.h>
+#include <game/status_bar.h>
 #include <game/switch.h>
+#include <game/train.h>
 #include <game/types/header_field.h>
 #include <system/mouse.h>
 #include <tasks/message_queue.h>
@@ -23,9 +24,6 @@ namespace resl {
 using namespace mouse; // FIXME
 
 namespace {
-
-    /* 1d7d:1cce : 32 bytes */
-    const MouseMode g_mouseModeRoadConstruction = { /* TODO initialize */ };
 
     /* 262d:6ef8 : 1 byte */
     std::uint8_t g_previousMouseButtonState = 0;
@@ -120,6 +118,7 @@ Task taskMouseEventHandling()
                 }
             }
             break;
+
         case MouseAction::MouseClick:
             /* 14af:0364 */
             {
@@ -128,7 +127,7 @@ Task taskMouseEventHandling()
                         showStatusMessage("Switch is locked by train");
                         playErrorMelody();
                     } else {
-                        clearArrowCursor();
+                        eraseArrowCursor();
                         const std::int16_t switchIdx = static_cast<std::int16_t>(sw - g_switches);
                         eraseSwitch(switchIdx);
                         toggleSwitch(*sw);
@@ -138,7 +137,7 @@ Task taskMouseEventHandling()
                         playSwitchSwitchedMelody();
                     }
                 } else if (Semaphore* sem = findClosestSemaphore(mode.x, mode.y)) {
-                    clearArrowCursor();
+                    eraseArrowCursor();
                     toggleSemaphore(*sem);
                     drawSemaphore(*sem, 0);
                     drawSemaphore(*sem, 350);
@@ -148,6 +147,13 @@ Task taskMouseEventHandling()
                 } else
                     playErrorMelody();
             }
+            break;
+
+        case MouseAction::ToggleMouseMode:
+            if (mouse::g_state.mode == &mouse::g_modeManagement)
+                setMouseMode(mouse::g_modeConstruction);
+            else
+                setMouseMode(mouse::g_modeManagement);
             break;
         }
 

@@ -2,6 +2,9 @@
 
 #include "entrance.h"
 #include "header.h"
+#include "mouse/construction_mode.h"
+#include "mouse/mouse_mode.h"
+#include "mouse/mouse_state.h"
 #include "resources/entrance_rails.h"
 #include "status_bar.h"
 #include "train.h"
@@ -51,6 +54,9 @@ Task taskGameMainLoop()
         vga::setPaletteItem(Color::BWBlinking, blinkingColor);
 
         tryRunWaitingTrains();
+
+        if (mouse::g_state.mode == &mouse::g_modeConstruction)
+            mouse::g_state.mode->drawFn();
 
         std::int16_t newYear = incrementGameTime(100);
         if (newYear) {

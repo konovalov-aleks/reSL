@@ -13,6 +13,6 @@ extern MouseMode g_modeManagement;
 void drawArrowCursor();
 
 /* 14af:00e6 */
-void clearArrowCursor();
+void eraseArrowCursor();
 
 } // namespace resl::mouse

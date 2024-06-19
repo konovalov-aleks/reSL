@@ -1,13 +1,26 @@
 #include "mouse_state.h"
 
 #include "management_mode.h"
+#include "mouse_mode.h"
+
+#include <cassert>
 
 namespace resl::mouse {
 
 /* 262d:6f02 : 12 bytes */
-const MouseState g_state = {
+MouseState g_state = {
     &g_modeManagement
-    /* TODO initialize */
 };
+
+//-----------------------------------------------------------------------------
+
+/* 14af:0104 */
+void setMouseMode(MouseMode& newMode)
+{
+    assert(g_state.mode);
+    g_state.mode->clearFn();
+    g_state.mode = &newMode;
+    newMode.drawFn();
+}
 
 } // namespace resl::mouse

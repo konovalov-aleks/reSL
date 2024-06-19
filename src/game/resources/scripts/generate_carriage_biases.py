@@ -15,7 +15,7 @@ with CPPWriter('carriage_bias.cpp') as w:
     with w.indent():
         for i in range(15):
             values = struct.unpack('<bbbbb', data[:5])
-            w.writeWithWrap('{ %d, %d, %d, %d, %d }, ' % values)
+            w.writeln('{ %d, %d, %d, %d, %d }, ' % values)
             data = data[5:]
     w.writeln('};')
 

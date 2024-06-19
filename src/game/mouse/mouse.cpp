@@ -7,11 +7,13 @@
 #include <game/entrance.h>
 #include <game/header.h>
 #include <game/melody.h>
+#include <game/resources/allowed_cursor_rail_types.h>
 #include <game/semaphore.h>
 #include <game/status_bar.h>
 #include <game/switch.h>
 #include <game/train.h>
 #include <game/types/header_field.h>
+#include <game/types/rail_info.h>
 #include <system/mouse.h>
 #include <tasks/message_queue.h>
 #include <tasks/task.h>
@@ -154,6 +156,26 @@ Task taskMouseEventHandling()
                 setMouseMode(mouse::g_modeConstruction);
             else
                 setMouseMode(mouse::g_modeManagement);
+            break;
+
+        case MouseAction::ToggleNextRailType:
+            assert(mouse::g_state.mode);
+            mouse::g_state.mode->clearFn();
+            for (;;) {
+                g_railCursorState.railType = (g_railCursorState.railType + 1) % 6;
+                const std::uint8_t curRailMask = 1 << g_railCursorState.railType;
+                const std::uint8_t allowedMask = g_allowedRailCursorTypes[g_railCursorState.tileX][g_railCursorState.tileY];
+                if (curRailMask & allowedMask)
+                    break;
+            }
+            mouse::g_state.mode->drawFn();
+            break;
+
+        case MouseAction::BuildRails:
+            // TODO implement
+            break;
+
+        case MouseAction::None:
             break;
         }
 

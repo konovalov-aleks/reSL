@@ -19,15 +19,6 @@ namespace resl::mouse {
 
 namespace {
 
-    /* 1d7d:1ca8 : 6 bytes */
-    RailInfo g_railCursorState = {
-        0, // roadTypeMask
-        5, // tileX
-        5, // tileY
-        0, // railType
-        0, // year
-    };
-
     /* 14af:0126 */
     void drawCursorRail()
     {
@@ -111,6 +102,15 @@ namespace {
     }
 
 } // namespace
+
+/* 1d7d:1ca8 : 6 bytes */
+RailInfo g_railCursorState = {
+    0, // roadTypeMask
+    5, // tileX
+    5, // tileY
+    0, // railType
+    0, // year
+};
 
 /* 1d7d:1cce : 32 bytes */
 MouseMode g_modeConstruction = {

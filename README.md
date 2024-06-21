@@ -11,13 +11,16 @@ https://www.old-games.ru/game/download/1232.html
 <img width="640" alt="reSL" src="https://github.com/konovalov-aleks/reSL/assets/11459433/35f3f24b-b513-44ed-a5a8-17c03803bbab">
 
 ### Progress:
-1. Disassembled most of the binary code.
-2. Reimplemented in C++ some functions:
-   * loading the state from original game save files.
-   * drawing the world (all objects on the game field).
-   * drawing the game field header.
-   * loading the original game records file and drawing records screen.
-   * train movement logic
+~95% done
+
+**You can try the live demo here: https://konovalov-aleks.github.io/**
+(but it works much worse than the native version, in development)
+
+TODO
+1. Consctruction mode (WIP)
+2. Menus (main menu, records, archive, etc)
+3. "Game over" screen
+4. "Happy new year" screen
 
 ## Idea and goals of the project:
 

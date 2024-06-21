@@ -30,6 +30,8 @@ public:
     VGAEmulation& vga() { return m_vga; }
     AudioDriver& audio() { return m_audio; }
 
+    void sleep(unsigned ms);
+
     void setMouseHandler(MouseHandler hdl) { m_mouseHandler = hdl; }
 
     bool pollEvent();

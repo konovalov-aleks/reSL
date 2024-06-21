@@ -12,12 +12,18 @@
 
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
+#include <thread>
 
 #ifndef NDEBUG
 #   include <limits>
+#endif
+
+#ifdef __EMSCRIPTEN__
+#   include <emscripten.h>
 #endif
 
 namespace resl {
@@ -34,6 +40,39 @@ Driver::SDLInit::SDLInit()
 Driver::SDLInit::~SDLInit()
 {
     SDL_Quit();
+}
+
+void Driver::sleep(unsigned ms)
+{
+#ifdef __EMSCRIPTEN__
+
+    // We have to return to the main loop to update the picture.
+    // But this can be a relatively long operation, which is why on small delays
+    // it should be done only when necessary.
+    const unsigned timeToNextFrame = vga().timeToNextFrameMS();
+    if (ms < timeToNextFrame) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+        return;
+    }
+
+    using ClockT = std::chrono::steady_clock;
+    const ClockT::time_point startTime = ClockT::now();
+    if (timeToNextFrame)
+        std::this_thread::sleep_for(std::chrono::milliseconds(timeToNextFrame));
+    vga().flush();
+
+    const auto timePassed =
+        std::chrono::duration_cast<std::chrono::milliseconds>(ClockT::now() - startTime).count();
+
+    const unsigned msToSleep = timePassed < ms ? ms - timePassed : 0;
+    emscripten_sleep(msToSleep);
+
+#else // __EMSCRIPTEN__
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+    vga().flush();
+
+#endif // __EMSCRIPTEN__
 }
 
 bool Driver::pollEvent()

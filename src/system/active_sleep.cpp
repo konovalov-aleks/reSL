@@ -2,9 +2,7 @@
 
 #include <system/driver/driver.h>
 
-#include <chrono>
 #include <cstdint>
-#include <thread>
 
 namespace resl {
 
@@ -26,14 +24,8 @@ void calibrateActiveSleep()
 /* 1594:0113 */
 void activeSleep(std::int16_t ticks)
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(ticks));
-
-    // activeSleep is often used to implement animation.
-    // The VGA hardware draws the picture independently of the program code flow
-    // => it will draw while the game is sleeping.
-    // But reSL implementation is single-threaded => we have to explicitly call
-    // vga().flush() to update the image.
-    Driver::instance().vga().flush();
+    // 1 tick ~= 1 ms
+    Driver::instance().sleep(ticks);
 }
 
 } // namespace resl

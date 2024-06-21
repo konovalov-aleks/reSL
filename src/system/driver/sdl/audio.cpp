@@ -29,7 +29,7 @@ namespace {
         SDL_AudioDeviceID m_id;
     };
 
-    constexpr float g_volume = 0.4f;
+    constexpr float g_volume = 0.2f;
     constexpr int g_sampleRate = 22050;
 
 } // namespace
@@ -41,7 +41,7 @@ AudioDriver::AudioDriver()
     desired.freq = g_sampleRate;
     desired.format = AUDIO_F32;
     desired.channels = 1;
-    desired.samples = 64;
+    desired.samples = 256;
     desired.callback = &fillBuffer;
     desired.userdata = this;
 

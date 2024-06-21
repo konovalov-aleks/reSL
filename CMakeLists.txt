@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.13)
 
 project(reSL)
 
@@ -79,30 +79,40 @@ endmacro()
 
 GroupSources(src)
 
-find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
-find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
-
 add_executable(resl ${SOURCES} ${HEADERS})
 
 set_property(TARGET resl PROPERTY CXX_STANDARD 20)
 
-if(TARGET SDL2::SDL2main)
-    target_link_libraries(resl PRIVATE SDL2::SDL2main)
+if (EMSCRIPTEN)
+    target_compile_options(resl PRIVATE "-sUSE_SDL=2")
+    target_link_options(resl PRIVATE
+        "-sASYNCIFY"
+        "-sUSE_SDL=2"
+        "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/resources/DEMO_A@DEMO_A"
+        "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/resources/PLAY.7@PLAY.7")
+else()
+    find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
+    find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
+
+    if(TARGET SDL2::SDL2main)
+        target_link_libraries(resl PRIVATE SDL2::SDL2main)
+    endif()
+    target_link_libraries(resl PRIVATE SDL2::SDL2)
+
+    add_custom_command(
+        TARGET resl
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_CURRENT_SOURCE_DIR}/resources/PLAY.7
+            $<TARGET_FILE_DIR:resl>/PLAY.7
+        COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_CURRENT_SOURCE_DIR}/resources/DEMO_A
+            $<TARGET_FILE_DIR:resl>/DEMO_A
+    )
 endif()
-target_link_libraries(resl PRIVATE SDL2::SDL2)
 
+target_compile_options(resl PRIVATE "-fno-exceptions" "-fno-rtti")
 target_include_directories(resl PRIVATE ${CMAKE_SOURCE_DIR}/src)
-
-add_custom_command(
-    TARGET resl
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_SOURCE_DIR}/resources/PLAY.7
-        $<TARGET_FILE_DIR:resl>/PLAY.7
-    COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_SOURCE_DIR}/resources/DEMO_A
-        $<TARGET_FILE_DIR:resl>/DEMO_A
-)
 
 find_program(iwyu_path NAMES include-what-you-use iwyu)
 if (NOT iwyu_path)

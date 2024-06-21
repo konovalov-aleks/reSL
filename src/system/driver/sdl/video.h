@@ -38,8 +38,9 @@ public:
 
     void setPaletteItem(std::uint8_t idx, std::uint32_t rgb);
 
-private:
+    unsigned timeToNextFrameMS() const;
 
+private:
     static constexpr int s_FPS = 60;
 
     using ClockT = std::chrono::steady_clock;

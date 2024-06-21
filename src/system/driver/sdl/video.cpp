@@ -308,4 +308,14 @@ void VGAEmulation::setPaletteItem(std::uint8_t idx, std::uint32_t rgb)
     }
 }
 
+unsigned VGAEmulation::timeToNextFrameMS() const
+{
+    const ClockT::time_point now = ClockT::now();
+    if (now >= m_nextFrameTime)
+        return 0;
+
+    const auto dTime = m_nextFrameTime - now;
+    return std::chrono::duration_cast<std::chrono::milliseconds>(dTime).count();
+}
+
 } // namespace resl

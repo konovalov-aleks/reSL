@@ -5,7 +5,12 @@
 #include <algorithm>
 #include <cassert>
 #include <chrono>
-#include <thread>
+
+#ifdef __EMSCRIPTEN__
+#   include <emscripten.h>
+#else
+#   include <thread>
+#endif
 
 namespace resl {
 
@@ -89,7 +94,11 @@ void Scheduler::run()
             sleepTime = t - now;
         }
         assert(m_tasks.size() == m_sleepingTasks.size() + m_readyTasks.size() + std::count_if(m_tasks.begin(), m_tasks.end(), [](const Task& t) { return t.promise().m_suspended; }));
+#ifdef __EMSCRIPTEN__
+        emscripten_sleep(std::chrono::duration_cast<std::chrono::milliseconds>(sleepTime).count());
+#else
         std::this_thread::sleep_for(sleepTime);
+#endif // __EMSCRIPTEN__
     }
 }
 

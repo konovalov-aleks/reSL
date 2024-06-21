@@ -14,7 +14,8 @@ https://www.old-games.ru/game/download/1232.html
 ~95% done
 
 **You can try the live demo here: https://konovalov-aleks.github.io/**
-(but it works much worse than the native version, in development)
+
+(but it doesn't work as smoothly as the native version)
 
 TODO
 1. Consctruction mode (WIP)
@@ -91,6 +92,17 @@ cmake --build . -j4
 # enjoy!
 ./resl
 ```
+
+### WebAssembly (emscripten)
+
+1. install emscripten
+https://emscripten.org/docs/getting_started/downloads.html
+
+2. in the terminal:
+
+mkdir -p build && cd build
+emcmake cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --build . -j4
 
 ## Legal notes:
 

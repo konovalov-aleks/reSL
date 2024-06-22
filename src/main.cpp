@@ -10,6 +10,7 @@
 #include "game/move_trains.h"
 #include "game/records.h"
 #include "game/resources/train_glyph.h"
+#include "game/road_construction.h"
 #include "game/train.h"
 #include "graphics/color.h"
 #include "graphics/drawing.h"
@@ -104,6 +105,7 @@ void loadGame(const char* fname)
     addTask(taskHeaderFieldAnimation());
     addTask(taskMoveAndRedrawTrains());
     addTask(taskSpawnTrains());
+    addTask(taskRoadConstruction());
 }
 
 Task implDrawTrainsDemo()

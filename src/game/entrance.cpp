@@ -2,7 +2,6 @@
 
 #include "draw_header.h"
 #include "drawing.h"
-#include "game_data.h"
 #include "impasse.h"
 #include "melody.h"
 #include "rail.h"

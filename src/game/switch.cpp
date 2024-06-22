@@ -1,6 +1,5 @@
 #include "switch.h"
 
-#include "game_data.h"
 #include "rail.h"
 #include "resources/movement_paths.h"
 #include "resources/rail_connection_bias.h"

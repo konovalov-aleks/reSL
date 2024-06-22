@@ -31,6 +31,10 @@ void drawRailBg1(
 void drawRailBg2(
     std::int16_t tileX, std::int16_t tileY, std::int16_t railType, Color, std::int16_t yOffset);
 
+/* 137c:000c */
+void drawRail(std::int16_t tileX, std::int16_t tileY,
+              std::int16_t railType, Color color, std::int16_t yOffset);
+
 /* 17bf:0cd0 */
 void drawFieldBackground(std::int16_t yOffset);
 

@@ -1,7 +1,6 @@
 #include "init.h"
 
 #include "entrance.h"
-#include "game_data.h"
 #include "rail.h"
 #include "resources/movement_paths.h"
 #include "semaphore.h"

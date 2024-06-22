@@ -4,6 +4,11 @@
 
 namespace resl {
 
+/* 1d7d:02c2 : 1 byte */
+extern bool g_soundEnabled;
+
+//-----------------------------------------------------------------------------
+
 /* 19b2:0105 */
 void playErrorMelody();
 

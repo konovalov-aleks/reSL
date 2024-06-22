@@ -24,7 +24,7 @@ namespace resl {
 StaticObject g_staticObjects[120];
 
 /* 262d:6f5a : 4 bytes */
-static std::uint8_t g_cuttingDownStaticObjectsByKind[4];
+std::uint8_t g_cuttingDownStaticObjectsByKind[4];
 
 //-----------------------------------------------------------------------------
 

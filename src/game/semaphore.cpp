@@ -1,6 +1,5 @@
 #include "semaphore.h"
 
-#include "game_data.h"
 #include "rail.h"
 #include "resources/rail_connection_bias.h"
 #include "resources/rail_type_meta.h"
@@ -36,20 +35,6 @@ Semaphore g_semaphores[50];
 std::uint16_t g_semaphoreCount;
 
 //-----------------------------------------------------------------------------
-
-/* 19de:0426 */
-static std::uint16_t roadMaskInTile(std::int16_t tileX, std::int16_t tileY)
-{
-    std::uint16_t tileMask = 0;
-    std::uint16_t curBit = 1;
-    for (const RailTypeMeta& rtm : g_railTypeMeta) {
-        const std::uint16_t m = g_railroadTypeMasks[tileX + rtm.tileOffsetX][tileY + rtm.tileOffsetY];
-        if ((1 << rtm.railType) & m)
-            tileMask |= curBit;
-        curBit <<= 1;
-    }
-    return tileMask;
-}
 
 /* 17bf:0621 */
 static void createSemaphore(Rail& r, SemaphoreType type)

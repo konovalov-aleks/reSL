@@ -42,6 +42,7 @@ set(SOURCES
     src/game/resources/train_finished_exclamation_glyph.cpp
     src/game/resources/train_glyph.cpp
     src/game/resources/train_specification.cpp
+    src/game/road_construction.cpp
     src/game/semaphore.cpp
     src/game/static_object.cpp
     src/game/status_bar.cpp

@@ -4,17 +4,20 @@
 #include "management_mode.h"
 #include "mouse_mode.h"
 #include "mouse_state.h"
+#include <game/drawing.h>
 #include <game/entrance.h>
-#include <game/game_data.h>
 #include <game/header.h>
 #include <game/melody.h>
+#include <game/rail.h>
 #include <game/resources/allowed_cursor_rail_types.h>
+#include <game/road_construction.h>
 #include <game/semaphore.h>
 #include <game/status_bar.h>
 #include <game/switch.h>
 #include <game/train.h>
 #include <game/types/header_field.h>
 #include <game/types/rail_info.h>
+#include <graphics/color.h>
 #include <system/mouse.h>
 #include <tasks/message_queue.h>
 #include <tasks/task.h>
@@ -183,7 +186,30 @@ Task taskMouseEventHandling()
                     showStatusMessage("Track\'s already built over here");
                     playErrorMelody();
                 } else {
-                    // TODO implement
+                    if (checkRailWouldConflict(g_railCursorState.tileX, g_railCursorState.tileY,
+                                               g_railCursorState.railType)) {
+                        // the rail may conflict with both existing roads and rails of
+                        // entrances that have not yet built
+                        bool isTripleSwitch =
+                            checkRailWouldConflictWithExistingRoad(
+                                g_railCursorState.tileX, g_railCursorState.tileY,
+                                g_railCursorState.railType);
+                        const char* msg = isTripleSwitch
+                            ? "No triple switch allowed"
+                            : "Can't build for contradiction to General Construction Plan";
+                        showStatusMessage(msg);
+                        playErrorMelody();
+                    } else {
+                        beepSound(0);
+
+                        g_railCursorState.year_8 = g_headers[static_cast<int>(HeaderFieldId::Year)].value - 8;
+                        g_railConstructionMsgQueue.push(g_railCursorState);
+
+                        mouse::g_state.mode->clearFn();
+                        drawRail(g_railCursorState.tileX, g_railCursorState.tileY, g_railCursorState.railType,
+                                 Color::White, 350);
+                        mouse::g_state.mode->drawFn();
+                    }
                 }
             }
             break;

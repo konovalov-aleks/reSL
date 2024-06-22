@@ -30,6 +30,11 @@ static_assert(sizeof(StaticObject) == 0x8);
 /* 262d:21da : 960 bytes */
 extern StaticObject g_staticObjects[120];
 
+// "g_cuttingDownStaticObjectsByKind[type]" contains how many objects of a
+// type "type" were destroyed to build a rail.
+/* 262d:6f5a : 4 bytes */
+extern std::uint8_t g_cuttingDownStaticObjectsByKind[4];
+
 //-----------------------------------------------------------------------------
 
 /* 1530:0229 */

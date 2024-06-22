@@ -1,7 +1,6 @@
 #include "drawing.h"
 
 #include "draw_header.h"
-#include "game_data.h"
 #include "graphics/drawing.h"
 #include "header.h"
 #include "impasse.h"

@@ -1,11 +1,11 @@
 #include "switch.h"
 
-#include "chunk.h"
 #include "game_data.h"
+#include "rail.h"
 #include "resources/movement_paths.h"
+#include "resources/rail_connection_bias.h"
 #include "resources/rail_glyph.h"
 #include "resources/rail_info.h"
-#include "resources/s4arr.h"
 #include "resources/semaphore_glyph_bias.h"
 #include "train.h"
 #include "types/rail_info.h"
@@ -35,20 +35,20 @@ Switch g_switches[80];
 /* 19de:02ee */
 static void updateSwitchPosition(Switch& s)
 {
-    const s4& s4obj = s4arr[s.exit.chunk->type][s.exit.slot];
-    const SemaphoreGlyphBias& sb = g_semaphoreGlyphBias[s.exit.chunk->type][s.exit.slot];
-    s.x = s.exit.chunk->x + (s4obj.tileOffsetX - s4obj.tileOffsetY) * 88 + sb.dx;
-    s.y = s.exit.chunk->y + (s4obj.tileOffsetX + s4obj.tileOffsetY) * 21 + sb.dy;
+    const RailConnectionBias& rc = g_railConnectionBiases[s.exit.rail->type][s.exit.slot];
+    const SemaphoreGlyphBias& sb = g_semaphoreGlyphBiases[s.exit.rail->type][s.exit.slot];
+    s.x = s.exit.rail->x + (rc.tileOffsetX - rc.tileOffsetY) * 88 + sb.dx;
+    s.y = s.exit.rail->y + (rc.tileOffsetX + rc.tileOffsetY) * 21 + sb.dy;
 }
 
 /* 19de:00b6 */
-static void configChunkStepsForSwitch(ChunkReference r)
+static void configChunkStepsForSwitch(RailConnection r)
 {
-    r.chunk->x_neighbours[r.slot].chunk = specialChunkPtr;
+    r.rail->connections[r.slot].rail = g_disabledSwitchPath;
     if (r.slot == 0)
-        r.chunk->minPathStep = 82;
+        r.rail->minPathStep = 82;
     else
-        r.chunk->maxPathStep = g_movementPaths[r.chunk->type].size - 83;
+        r.rail->maxPathStep = g_movementPaths[r.rail->type].size - 83;
 }
 
 /* 1ad3:000c */
@@ -57,50 +57,50 @@ void createSwitches(const RailInfo& r)
     assert(r.tileX < 11);
     assert(r.tileY < 11);
     assert(r.railType < 6);
-    Chunk& chunk = g_chunks[r.tileX][r.tileY][r.railType];
-    railroadTypeMasks[r.tileX][r.tileY] |= (1 << r.railType);
+    Rail& rail = g_rails[r.tileX][r.tileY][r.railType];
+    g_railroadTypeMasks[r.tileX][r.tileY] |= (1 << r.railType);
 
     for (std::uint16_t i = 0; i < 6; ++i) {
         const RailInfo2& ri = x_railInfo[r.railType][i];
         const std::int16_t tileX = r.tileX + ri.tileDX;
         const std::int16_t tileY = r.tileY + ri.tileDY;
-        if (!(railroadTypeMasks[tileX][tileY] & (1 << ri.railType)))
+        if (!(g_railroadTypeMasks[tileX][tileY] & (1 << ri.railType)))
             continue;
 
-        Chunk& chunk2 = g_chunks[tileX][tileY][ri.railType];
-        ChunkReference& c1_neighb = chunk.x_neighbours[ri._type1];
-        ChunkReference& c2_neighb = chunk2.x_neighbours[ri._type2];
-        if (!c2_neighb.chunk) {
-            if (!c1_neighb.chunk) {
+        Rail& rail2 = g_rails[tileX][tileY][ri.railType];
+        RailConnection& rc1 = rail.connections[ri.slot1];
+        RailConnection& rc2 = rail2.connections[ri.slot2];
+        if (!rc2.rail) {
+            if (!rc1.rail) {
                 // no adjacent roads
-                c1_neighb.chunk = &chunk2;
-                c1_neighb.slot = ri._type2;
-                c2_neighb.chunk = &chunk;
-                c2_neighb.slot = ri._type1;
-            } else if (c1_neighb.chunk != specialChunkPtr) {
+                rc1.rail = &rail2;
+                rc1.slot = ri.slot2;
+                rc2.rail = &rail;
+                rc2.slot = ri.slot1;
+            } else if (rc1.rail != g_disabledSwitchPath) {
                 Switch& s = g_switches[g_nSwitches++];
                 s.x_someSwitchIndex = -1;
-                s.exit.chunk = &chunk;
-                s.exit.slot = ri._type1;
-                s.disabledPath.chunk = &chunk2;
-                s.disabledPath.slot = ri._type2;
-                s.entry = c1_neighb;
+                s.exit.rail = &rail;
+                s.exit.slot = ri.slot1;
+                s.disabledPath.rail = &rail2;
+                s.disabledPath.slot = ri.slot2;
+                s.entry = rc1;
                 updateSwitchPosition(s);
                 configChunkStepsForSwitch(s.disabledPath);
             }
-        } else if (c2_neighb.chunk != specialChunkPtr) {
+        } else if (rc2.rail != g_disabledSwitchPath) {
             Switch& s = g_switches[g_nSwitches++];
             s.x_someSwitchIndex = -1;
-            s.exit.chunk = &chunk2;
-            s.exit.slot = ri._type2;
-            s.disabledPath.chunk = &chunk;
-            s.disabledPath.slot = ri._type1;
-            s.entry = c2_neighb;
+            s.exit.rail = &rail2;
+            s.exit.slot = ri.slot2;
+            s.disabledPath.rail = &rail;
+            s.disabledPath.slot = ri.slot1;
+            s.entry = rc2;
             updateSwitchPosition(s);
             configChunkStepsForSwitch(s.disabledPath);
 
             for (Switch* s2 = g_switches; s2 < &s; ++s2) {
-                if (s2->entry.chunk != &chunk2)
+                if (s2->entry.rail != &rail2)
                     continue;
 
                 s.x_someSwitchIndex = s2 - g_switches;
@@ -114,14 +114,14 @@ void createSwitches(const RailInfo& r)
 /* 19de:00ec */
 void toggleSwitch(Switch& s)
 {
-    s.exit.chunk->x_neighbours[s.exit.slot] = s.disabledPath;
-    s.disabledPath.chunk->x_neighbours[s.disabledPath.slot] = s.exit;
+    s.exit.rail->connections[s.exit.slot] = s.disabledPath;
+    s.disabledPath.rail->connections[s.disabledPath.slot] = s.exit;
 
     configChunkStepsForSwitch(s.entry);
     if (s.disabledPath.slot == 0)
-        s.disabledPath.chunk->minPathStep = 0;
+        s.disabledPath.rail->minPathStep = 0;
     else
-        s.disabledPath.chunk->maxPathStep = g_movementPaths[s.disabledPath.chunk->type].size - 1;
+        s.disabledPath.rail->maxPathStep = g_movementPaths[s.disabledPath.rail->type].size - 1;
 
     std::swap(s.entry, s.disabledPath);
 
@@ -137,7 +137,7 @@ void drawSwitch(std::int16_t idx, bool drawToScreen)
     vga::VideoMemPtr dstPtr =
         vga::VIDEO_MEM_START_ADDR + static_cast<std::uint16_t>(-(idx + 1) * 30 - 1);
     Switch& s = g_switches[idx];
-    Chunk* rail = s.entry.chunk;
+    Rail* rail = s.entry.rail;
     const RailGlyph* rg = railBackgrounds[rail->type].switches[s.entry.slot];
 
     vga::setVideoModeR0W1();
@@ -170,7 +170,7 @@ void eraseSwitch(std::int16_t idx)
     vga::VideoMemPtr srcPtr =
         vga::VIDEO_MEM_START_ADDR + static_cast<std::uint16_t>(-(idx + 1) * 30 - 1);
     Switch& s = g_switches[idx];
-    Chunk* rail = s.entry.chunk;
+    Rail* rail = s.entry.rail;
     const RailGlyph* rg = railBackgrounds[rail->type].switches[s.entry.slot];
 
     vga::setVideoModeR0W1();
@@ -195,7 +195,7 @@ void eraseSwitch(std::int16_t idx)
 void drawSwitchNoBackup(std::int16_t idx, std::int16_t yOffset)
 {
     const Switch& s = g_switches[idx];
-    const Chunk* rail = s.entry.chunk;
+    const Rail* rail = s.entry.rail;
     const RailGlyph* rg = railBackgrounds[rail->type].switches[s.entry.slot];
     drawGlyphAlignX8(&rg->glyph, rail->x + rg->dx, rail->y + rg->dy + yOffset, Color::Black);
 }
@@ -226,14 +226,14 @@ bool switchIsBusy(const Switch& s)
             continue;
 
         // switch is locked if a train occupies both parts of the switch
-        bool entryBusy = s.entry.chunk == t.head.chunk || s.entry.chunk == t.tail.chunk;
-        bool exitBusy = s.exit.chunk == t.head.chunk || s.exit.chunk == t.tail.chunk;
+        bool entryBusy = s.entry.rail == t.head.rail || s.entry.rail == t.tail.rail;
+        bool exitBusy = s.exit.rail == t.head.rail || s.exit.rail == t.tail.rail;
 
         for (std::uint8_t i = 0; i < t.carriageCnt; ++i) {
             const Carriage& c = t.carriages[i];
-            if (s.entry.chunk == c.location.chunk)
+            if (s.entry.rail == c.location.rail)
                 entryBusy = true;
-            if (s.exit.chunk == c.location.chunk)
+            if (s.exit.rail == c.location.rail)
                 exitBusy = true;
             if (entryBusy && exitBusy)
                 return true;

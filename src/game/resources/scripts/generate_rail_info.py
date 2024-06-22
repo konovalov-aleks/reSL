@@ -20,10 +20,12 @@ with CPPWriter('rail_info.cpp') as w:
                 for y in range(6):
                     # b - int8_t
                     # B - uint8_t
-                    railType, tileDX, tileDY, _type1, _type2, unknown1 = struct.unpack('<BbbBBB', data[:6])
-                    w.writeln('{ %d, %d, %d, %d, %d, %d },' % (railType, tileDX, tileDY, _type1, _type2, unknown1))
+                    railType, tileDX, tileDY, _type1, _type2, padding = struct.unpack('<BbbBBB', data[:6])
+                    w.writeln('{ %d, %d, %d, %d, %d },' % (railType, tileDX, tileDY, _type1, _type2))
+                    assert(padding == 0)
                     data = data[6:]
             w.writeln('}' if x == 5 else '},')
+        assert(len(data) == 0)
     w.writeln('};')
             
     w.writeln()

@@ -1,9 +1,9 @@
 #include "impasse.h"
 
-#include "chunk.h"
+#include "rail.h"
 #include "resources/glyph_empty_background.h"
 #include "resources/impasse_glyph.h"
-#include "resources/s4arr.h"
+#include "resources/rail_connection_bias.h"
 #include "resources/semaphore_glyph_bias.h"
 #include <graphics/color.h>
 #include <graphics/glyph.h>
@@ -13,18 +13,18 @@
 namespace resl {
 
 /* 137c:024d */
-void drawImpasse(const Chunk& c, std::int16_t yOffset)
+void drawImpasse(const Rail& r, std::int16_t yOffset)
 {
     for (int i = 0; i < 2; ++i) {
-        if (c.x_neighbours[i].chunk)
+        if (r.connections[i].rail)
             continue;
 
-        const SemaphoreGlyphBias& gb = g_semaphoreGlyphBias[c.type][i];
-        const s4& reInfo = s4arr[c.type][i];
+        const SemaphoreGlyphBias& gb = g_semaphoreGlyphBiases[r.type][i];
+        const RailConnectionBias& rc = g_railConnectionBiases[r.type][i];
         const std::int16_t x =
-            c.x + (reInfo.tileOffsetX - reInfo.tileOffsetY) * 88 + (gb.dx * 2) / 3 - 8;
+            r.x + (rc.tileOffsetX - rc.tileOffsetY) * 88 + (gb.dx * 2) / 3 - 8;
         const std::int16_t y =
-            c.y + (reInfo.tileOffsetX + reInfo.tileOffsetY) * 21 + (gb.dy * 2) / 3 + yOffset - 5;
+            r.y + (rc.tileOffsetX + rc.tileOffsetY) * 21 + (gb.dy * 2) / 3 + yOffset - 5;
 
         const int direction = (gb.dx ^ gb.dy) > 0;
 
@@ -36,17 +36,17 @@ void drawImpasse(const Chunk& c, std::int16_t yOffset)
 }
 
 /* 137c:0378 */
-void eraseImpasse(const Chunk& c, std::int16_t yOffset)
+void eraseImpasse(const Rail& r, std::int16_t yOffset)
 {
     for (int i = 0; i < 2; ++i) {
-        const SemaphoreGlyphBias& gb = g_semaphoreGlyphBias[c.type][i];
-        const s4& reInfo = s4arr[c.type][i];
+        const SemaphoreGlyphBias& gb = g_semaphoreGlyphBiases[r.type][i];
+        const RailConnectionBias& rc = g_railConnectionBiases[r.type][i];
 
         g_glyphHeight = 8;
         drawGlyphW16(
             g_glyphEmptyBackground,
-            c.x + (reInfo.tileOffsetX - reInfo.tileOffsetY) * 88 - (gb.dx * 2) / 3 - 8,
-            c.y + (reInfo.tileOffsetX + reInfo.tileOffsetY) * 21 - (gb.dy * 2) / 3 + yOffset - 5,
+            r.x + (rc.tileOffsetX - rc.tileOffsetY) * 88 - (gb.dx * 2) / 3 - 8,
+            r.y + (rc.tileOffsetX + rc.tileOffsetY) * 21 - (gb.dy * 2) / 3 + yOffset - 5,
             Color::Green);
     }
 }

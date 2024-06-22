@@ -1,6 +1,6 @@
 #pragma once
 
-#include "chunk.h"
+#include "rail.h"
 #include <graphics/color.h>
 
 #include <cstdint>
@@ -39,6 +39,6 @@ void drawStaticObjects(std::int16_t yOffset);
 void eraseStaticObject(const StaticObject&, std::int16_t yOffset);
 
 /* 17bf:04ac */
-void destroyStaticObjectsForRoadConstruction(const Chunk&);
+void destroyStaticObjectsForRailConstruction(const Rail&);
 
 } // namespace resl

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "chunk.h"
+#include "rail.h"
 #include "types/rail_info.h"
 #include <game/resources/semaphore_glyph.h>
 
@@ -17,7 +17,7 @@ enum class SemaphoreType : std::int16_t {
 };
 
 struct Semaphore {
-    Chunk* chunk;
+    Rail* rail;
     SemaphoreType type;
     bool isRed;
     bool isRightDirection;

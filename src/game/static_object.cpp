@@ -1,8 +1,8 @@
 #include "static_object.h"
 
-#include "chunk.h"
 #include "draw_header.h"
 #include "drawing.h"
+#include "rail.h"
 #include "resources/glyph_empty_background.h"
 #include "resources/movement_paths.h"
 #include "resources/static_object_glyph.h"
@@ -82,24 +82,24 @@ void eraseStaticObject(const StaticObject& obj, std::int16_t yOffset)
 }
 
 /* 17bf:0b96 */
-static bool needRemoveObjectToBuildRail(const StaticObject& obj, const Chunk& c)
+static bool needRemoveObjectToBuildRail(const StaticObject& obj, const Rail& r)
 {
-    if (std::abs(obj.x - c.x) > 176)
+    if (std::abs(obj.x - r.x) > 176)
         return false;
 
-    if (std::abs(obj.y - c.y) > 42)
+    if (std::abs(obj.y - r.y) > 42)
         return false;
 
-    const Path& path = g_movementPaths[c.type];
+    const Path& path = g_movementPaths[r.type];
     for (std::uint16_t i = 0; i < path.size; ++i) {
         std::int16_t xCoord[4];
         std::int16_t yCoord[4];
 
-        const std::int16_t xPos = c.x + path.data[i].dx;
+        const std::int16_t xPos = r.x + path.data[i].dx;
         xCoord[0] = xPos - 4;
         xCoord[1] = xPos + 4;
 
-        const std::int16_t yPos = c.y + path.data[i].dy;
+        const std::int16_t yPos = r.y + path.data[i].dy;
         yCoord[0] = yPos + -2;
         yCoord[1] = yPos + 2;
 
@@ -118,13 +118,13 @@ static bool needRemoveObjectToBuildRail(const StaticObject& obj, const Chunk& c)
 }
 
 /* 17bf:04ac */
-void destroyStaticObjectsForRoadConstruction(const Chunk& c)
+void destroyStaticObjectsForRailConstruction(const Rail& r)
 {
     g_cuttingDownStaticObjectsByKind[StaticObjectKind::Tree] = 0;
     g_cuttingDownStaticObjectsByKind[StaticObjectKind::House] = 0;
 
     for (StaticObject& obj : g_staticObjects) {
-        if (!needRemoveObjectToBuildRail(obj, c))
+        if (!needRemoveObjectToBuildRail(obj, r))
             continue;
 
         switch (obj.kind) {

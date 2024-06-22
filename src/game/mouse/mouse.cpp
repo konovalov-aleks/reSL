@@ -5,6 +5,7 @@
 #include "mouse_mode.h"
 #include "mouse_state.h"
 #include <game/entrance.h>
+#include <game/game_data.h>
 #include <game/header.h>
 #include <game/melody.h>
 #include <game/resources/allowed_cursor_rail_types.h>
@@ -152,6 +153,7 @@ Task taskMouseEventHandling()
             break;
 
         case MouseAction::ToggleMouseMode:
+            /* 14af:0477 */
             if (mouse::g_state.mode == &mouse::g_modeManagement)
                 setMouseMode(mouse::g_modeConstruction);
             else
@@ -159,6 +161,7 @@ Task taskMouseEventHandling()
             break;
 
         case MouseAction::ToggleNextRailType:
+            /* 14af:0595 */
             assert(mouse::g_state.mode);
             mouse::g_state.mode->clearFn();
             for (;;) {
@@ -172,10 +175,22 @@ Task taskMouseEventHandling()
             break;
 
         case MouseAction::BuildRails:
-            // TODO implement
+            /* 14af:04a5 */
+            {
+                const std::uint8_t newRail = 1 << g_railCursorState.railType;
+                const std::uint8_t existing = g_railroadTypeMasks[g_railCursorState.tileX][g_railCursorState.tileY];
+                if (newRail & existing) {
+                    showStatusMessage("Track\'s already built over here");
+                    playErrorMelody();
+                } else {
+                    // TODO implement
+                }
+            }
             break;
 
         case MouseAction::None:
+            // TODO implement
+            /* 14af:0695 */
             break;
         }
 

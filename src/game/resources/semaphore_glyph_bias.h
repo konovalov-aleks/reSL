@@ -10,6 +10,6 @@ struct SemaphoreGlyphBias {
 };
 
 /* 1d63:0000 - 24 bytes */
-extern const SemaphoreGlyphBias g_semaphoreGlyphBias[6][2]; /* [rail type][direction] */
+extern const SemaphoreGlyphBias g_semaphoreGlyphBiases[6][2]; /* [rail type][direction] */
 
 } // namespace resl

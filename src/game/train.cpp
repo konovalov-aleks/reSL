@@ -1,12 +1,12 @@
 #include "train.h"
 
-#include "chunk.h"
 #include "draw_header.h"
 #include "entrance.h"
 #include "header.h"
 #include "mouse/mouse_mode.h"
 #include "mouse/mouse_state.h"
 #include "move_trains.h"
+#include "rail.h"
 #include "resources/carriage_bias.h"
 #include "resources/movement_paths.h"
 #include "resources/train_glyph.h"
@@ -171,7 +171,7 @@ void drawTrainList(Carriage* c)
     vga::VideoMemPtr shadowBufPtr = drawing::VIDEO_MEM_SHADOW_BUFFER;
 
     for (; c; c = c->next) {
-        const PathStep& p = g_movementPaths[c->location.chunk->type].data[c->location.pathStep];
+        const PathStep& p = g_movementPaths[c->location.rail->type].data[c->location.pathStep];
         if ((p.angle ^ c->x_direction) == 4)
             c->direction = c->direction ^ 1;
 
@@ -180,9 +180,9 @@ void drawTrainList(Carriage* c)
 
         *curBoundingBox = c->rect;
 
-        c->rect.x1 = c->location.chunk->x + p.dx - glyph.width / 2;
+        c->rect.x1 = c->location.rail->x + p.dx - glyph.width / 2;
         c->rect.x2 = c->rect.x1 + glyph.width;
-        c->drawingPriority = c->location.chunk->y + p.dy;
+        c->drawingPriority = c->location.rail->y + p.dy;
         c->rect.y1 = c->drawingPriority - glyph.height + g_carriageYBiases[c->type][p.angle];
         c->rect.y2 = c->rect.y1 + glyph.height;
 
@@ -201,7 +201,7 @@ void drawTrainList(Carriage* c)
                                                          glyph.height);
         vga::setVideoModeR0W2();
 
-        if (c->location.chunk->type != 6) {
+        if (c->location.rail->type != g_innerEntranceRailType) {
             drawGlyph(glyph.glyph1, c->rect.x1, c->rect.y1 + 350, Color::Black);
             drawGlyph(glyph.glyph2, c->rect.x1, c->rect.y1 + 350, g_entrances[c->dstEntranceIdx].bgColor);
             drawGlyph(glyph.glyph3, c->rect.x1, c->rect.y1 + 350, g_entrances[c->dstEntranceIdx].fgColor);
@@ -282,7 +282,7 @@ static void generateTrain(Train& t, std::int16_t entranceIdx)
 
     t.maxSpeed = g_trainSpecifications[t.carriages[0].type].maxSpeed;
     t.speed = t.maxSpeed;
-    t.carriages[0].direction = g_entrances[entranceIdx].chunk.x > 320;
+    t.carriages[0].direction = g_entrances[entranceIdx].rail.x > 320;
     t.carriages[0].x_direction = 0;
     for (std::uint8_t i = 1; i < t.carriageCnt; ++i) {
         do {
@@ -298,7 +298,7 @@ static Train* spawnTrain(std::int16_t entranceIdx)
     Train* t = allocateTrainSlot();
     if (t) {
         generateTrain(*t, entranceIdx);
-        t->head.chunk = &g_entrances[entranceIdx].chunk;
+        t->head.rail = &g_entrances[entranceIdx].rail;
         t->head.forwardDirection = false;
         t->head.pathStep = 0;
         moveAlongPath(t->head, 60);
@@ -396,7 +396,7 @@ Train* spawnServer(std::int16_t entranceIdx)
         train->carriages[0].type = CarriageType::Server;
 
         train->head.forwardDirection = true;
-        train->head.chunk = &entrance.chunk;
+        train->head.rail = &entrance.rail;
         train->head.pathStep = 0;
 
         train->carriages[0].dstEntranceIdx = serverEntranceIdx;
@@ -425,7 +425,7 @@ Train* spawnServer(std::int16_t entranceIdx)
         train->lastMovementTime = getTime();
         train->needToRedraw = true;
 
-        train->carriages[0].direction = entrance.chunk.x > 320;
+        train->carriages[0].direction = entrance.rail.x > 320;
         train->carriages[0].x_direction = 0;
         train->headCarriageIdx = 0;
     }

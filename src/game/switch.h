@@ -1,6 +1,6 @@
 #pragma once
 
-#include "chunk.h"
+#include "rail.h"
 #include "types/rail_info.h"
 
 #include <cstdint>
@@ -10,9 +10,9 @@ namespace resl {
 struct Switch {
     std::int16_t x;
     std::int16_t y;
-    ChunkReference exit;
-    ChunkReference entry;
-    ChunkReference disabledPath;
+    RailConnection exit;
+    RailConnection entry;
+    RailConnection disabledPath;
     std::int16_t x_someSwitchIndex;
 };
 

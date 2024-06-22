@@ -1,7 +1,7 @@
 #pragma once
 
-#include "chunk.h"
 #include "graphics/color.h"
+#include "rail.h"
 #include "types/rail_info.h"
 
 #include <cstddef>
@@ -14,7 +14,7 @@ struct Entrance {
     Color fgColor;
     std::uint8_t entranceRailInfoIdx;
     std::uint8_t waitingTrainsCount;
-    Chunk chunk;
+    Rail rail;
 };
 
 /*

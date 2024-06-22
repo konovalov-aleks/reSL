@@ -5,7 +5,6 @@ project(reSL)
 file(GLOB_RECURSE HEADERS "*.h")
 
 set(SOURCES
-    src/game/chunk.cpp
     src/game/draw_header.cpp
     src/game/drawing.cpp
     src/game/entrance.cpp
@@ -22,6 +21,7 @@ set(SOURCES
     src/game/mouse/mouse.cpp
     src/game/mouse/mouse_state.cpp
     src/game/move_trains.cpp
+    src/game/rail.cpp
     src/game/records.cpp
     src/game/resources/allowed_cursor_rail_types.cpp
     src/game/resources/carriage_bias.cpp
@@ -32,10 +32,10 @@ set(SOURCES
     src/game/resources/glyph_empty_background.cpp
     src/game/resources/impasse_glyph.cpp
     src/game/resources/movement_paths.cpp
+    src/game/resources/rail_connection_bias.cpp
     src/game/resources/rail_glyph.cpp
     src/game/resources/rail_info.cpp
     src/game/resources/rail_type_meta.cpp
-    src/game/resources/s4arr.cpp
     src/game/resources/semaphore_glyph.cpp
     src/game/resources/semaphore_glyph_bias.cpp
     src/game/resources/static_object_glyph.cpp

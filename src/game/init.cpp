@@ -1,8 +1,8 @@
 #include "init.h"
 
-#include "chunk.h"
 #include "entrance.h"
 #include "game_data.h"
+#include "rail.h"
 #include "resources/movement_paths.h"
 #include "semaphore.h"
 #include "switch.h"
@@ -22,16 +22,16 @@ void resetGameData()
 
     for (int x = 0; x < 11; ++x) {
         for (int y = 0; y < 11; ++y) {
-            railroadTypeMasks[x][y] = 0;
+            g_railroadTypeMasks[x][y] = 0;
             for (int type = 0; type < 6; ++type) {
-                Chunk& c = g_chunks[x][y][type];
-                c.x_neighbours[0] = x_unknownChunkConst;
-                c.x_neighbours[1] = x_unknownChunkConst;
-                c.minPathStep = 0;
-                c.maxPathStep = g_movementPaths[type].size - 1;
-                c.semSlotIdByDirection[0] = -1;
-                c.semSlotIdByDirection[1] = -1;
-                c.semSlotIdByDirection[2] = -1;
+                Rail& r = g_rails[x][y][type];
+                r.connections[0] = g_emptyRailConnection;
+                r.connections[1] = g_emptyRailConnection;
+                r.minPathStep = 0;
+                r.maxPathStep = g_movementPaths[type].size - 1;
+                r.semSlotIdByDirection[0] = -1;
+                r.semSlotIdByDirection[1] = -1;
+                r.semSlotIdByDirection[2] = -1;
             }
         }
     }
@@ -44,10 +44,10 @@ void initGameData()
     for (std::int16_t x = 0; x < 11; ++x) {
         for (std::int16_t y = 0; y < 11; ++y) {
             for (std::uint8_t type = 0; type < 6; ++type) {
-                Chunk& c = g_chunks[x][y][type];
-                c.type = type;
-                c.x = (x - y) * 88 + 320;
-                c.y = (x + y) * 21 - 22;
+                Rail& r = g_rails[x][y][type];
+                r.type = type;
+                r.x = (x - y) * 88 + 320;
+                r.y = (x + y) * 21 - 22;
             }
         }
     }

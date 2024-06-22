@@ -8,7 +8,7 @@
 namespace resl {
 
 /* 1d63:0000 - 24 bytes */
-const SemaphoreGlyphBias g_semaphoreGlyphBias[6][2] = {
+const SemaphoreGlyphBias g_semaphoreGlyphBiases[6][2] = {
     { { -9, -3 }, { 9, 3 } },
     { { 9, -3 }, { -9, 3 } },
     { { -9, -3 }, { -9, 3 } },

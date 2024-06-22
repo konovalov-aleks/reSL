@@ -1,6 +1,6 @@
 #pragma once
 
-#include "chunk.h"
+#include "rail.h"
 #include "types/rectangle.h"
 #include <tasks/task.h>
 
@@ -35,7 +35,7 @@ struct Location {
     std::uint8_t pathStep;
     // TODO bool?
     std::uint8_t forwardDirection;
-    Chunk* chunk;
+    Rail* rail;
 };
 
 struct Train;

@@ -1,15 +1,16 @@
 #include "semaphore.h"
 
-#include "chunk.h"
 #include "game_data.h"
+#include "rail.h"
+#include "resources/rail_connection_bias.h"
 #include "resources/rail_type_meta.h"
-#include "resources/s4arr.h"
 #include "resources/semaphore_glyph.h"
 #include "resources/semaphore_glyph_bias.h"
 #include "types/rail_info.h"
 #include <graphics/color.h>
 #include <graphics/glyph.h>
 
+#include <cassert>
 #include <cstdint>
 #include <cstdlib>
 // IWYU pragma: no_include <cmath>
@@ -42,7 +43,7 @@ static std::uint16_t roadMaskInTile(std::int16_t tileX, std::int16_t tileY)
     std::uint16_t tileMask = 0;
     std::uint16_t curBit = 1;
     for (const RailTypeMeta& rtm : g_railTypeMeta) {
-        const std::uint16_t m = railroadTypeMasks[tileX + rtm.tileOffsetX][tileY + rtm.tileOffsetY];
+        const std::uint16_t m = g_railroadTypeMasks[tileX + rtm.tileOffsetX][tileY + rtm.tileOffsetY];
         if ((1 << rtm.railType) & m)
             tileMask |= curBit;
         curBit <<= 1;
@@ -51,11 +52,12 @@ static std::uint16_t roadMaskInTile(std::int16_t tileX, std::int16_t tileY)
 }
 
 /* 17bf:0621 */
-static void createSemaphore(Chunk& c, SemaphoreType type)
+static void createSemaphore(Rail& r, SemaphoreType type)
 {
-    const s4& s4val = s4arr[c.type][static_cast<int>(type)];
+    assert(static_cast<int>(type) >= 0 && static_cast<int>(type) <= 1);
+    const RailConnectionBias& rc = g_railConnectionBiases[r.type][static_cast<int>(type)];
     const SemaphoreGlyphBias& bias =
-        g_semaphoreGlyphBias[c.type][static_cast<int>(type)];
+        g_semaphoreGlyphBiases[r.type][static_cast<int>(type)];
 
     Semaphore& sem = g_semaphores[g_semaphoreCount];
     int dx = bias.dx;
@@ -65,41 +67,41 @@ static void createSemaphore(Chunk& c, SemaphoreType type)
     else
         dy = -dy;
 
-    sem.pixelX = c.x + (s4val.tileOffsetX - s4val.tileOffsetY) * 88 + dx;
-    sem.pixelY = c.y + (s4val.tileOffsetX + s4val.tileOffsetY) * 21 + dy;
+    sem.pixelX = r.x + (rc.tileOffsetX - rc.tileOffsetY) * 88 + dx;
+    sem.pixelY = r.y + (rc.tileOffsetX + rc.tileOffsetY) * 21 + dy;
     sem.glyph = &g_semaphoreGlyphs[bias.dx > 0][bias.dy < 0];
     sem.type = type;
-    sem.chunk = &c;
+    sem.rail = &r;
     sem.isRed = false;
     sem.isRightDirection = bias.dx > 0;
-    c.semSlotIdByDirection[static_cast<int>(type)] = g_semaphoreCount;
+    r.semSlotIdByDirection[static_cast<int>(type)] = g_semaphoreCount;
     ++g_semaphoreCount;
 }
 
 /* 17bf:0754 */
-static void removeSemaphore(Chunk& c, SemaphoreType type)
+static void removeSemaphore(Rail& r, SemaphoreType type)
 {
-    Semaphore& s = g_semaphores[c.semSlotIdByDirection[static_cast<int>(type)]];
+    Semaphore& s = g_semaphores[r.semSlotIdByDirection[static_cast<int>(type)]];
     Semaphore& lastSem = g_semaphores[--g_semaphoreCount];
     const std::int8_t semIdx = &s - g_semaphores;
-    lastSem.chunk->semSlotIdByDirection[static_cast<int>(lastSem.type)] = semIdx;
-    c.semSlotIdByDirection[static_cast<int>(type)] = -1;
+    lastSem.rail->semSlotIdByDirection[static_cast<int>(lastSem.type)] = semIdx;
+    r.semSlotIdByDirection[static_cast<int>(type)] = -1;
     s = lastSem;
 }
 
 /* 17bf:07dd */
 void createSemaphores(const RailInfo& ri)
 {
-    Chunk& chunk = g_chunks[ri.tileX][ri.tileY][ri.railType];
+    Rail& rail = g_rails[ri.tileX][ri.tileY][ri.railType];
     g_erasedSemaphoreCount = 0;
     x_newSemaphoreCount = 0;
     for (int i = 0; i < 2; ++i) {
-        const s4& s4data = s4arr[chunk.type][i];
-        std::int16_t tileX = ri.tileX + s4data.tileOffsetX;
-        std::int16_t tileY = ri.tileY + s4data.tileOffsetY;
+        const RailConnectionBias& rc = g_railConnectionBiases[rail.type][i];
+        std::int16_t tileX = ri.tileX + rc.tileOffsetX;
+        std::int16_t tileY = ri.tileY + rc.tileOffsetY;
         std::uint16_t roadMask = roadMaskInTile(tileX, tileY);
-        const std::uint16_t mask = (s4data.unknown1 / 3) & 1 ? 0x1C7  // 0000000111000111
-                                                             : 0xE38; // 0000111000111000
+        const std::uint16_t mask = (rc.unknown1 / 3) & 1 ? 0x1C7  // 0000000111000111
+                                                         : 0xE38; // 0000111000111000
 
         bool create = false;
         do {
@@ -140,21 +142,21 @@ void createSemaphores(const RailInfo& ri)
             for (const RailTypeMeta& rtm : g_railTypeMeta) {
                 std::int16_t x = tileX + rtm.tileOffsetX;
                 std::int16_t y = tileY + rtm.tileOffsetY;
-                Chunk& chunk2 = g_chunks[x][y][rtm.railType];
-                if (chunk2.type > 1 && ((1 << chunk2.type) & railroadTypeMasks[x][y])) {
-                    createSemaphore(chunk2, rtm.semaphoreType);
+                Rail& rail2 = g_rails[x][y][rtm.railType];
+                if (rail2.type > 1 && ((1 << rail2.type) & g_railroadTypeMasks[x][y])) {
+                    createSemaphore(rail2, rtm.semaphoreType);
                     x_newSemaphores[x_newSemaphoreCount++] =
-                        g_semaphores[chunk2.semSlotIdByDirection[static_cast<int>(rtm.semaphoreType)]];
+                        g_semaphores[rail2.semSlotIdByDirection[static_cast<int>(rtm.semaphoreType)]];
                 }
             }
         } else {
             for (const RailTypeMeta& rtm : g_railTypeMeta) {
-                Chunk& chunk2 =
-                    g_chunks[tileX + rtm.tileOffsetX][tileY + rtm.tileOffsetY][rtm.railType];
-                if (chunk2.semSlotIdByDirection[static_cast<int>(rtm.semaphoreType)] != -1) {
+                Rail& rail2 =
+                    g_rails[tileX + rtm.tileOffsetX][tileY + rtm.tileOffsetY][rtm.railType];
+                if (rail2.semSlotIdByDirection[static_cast<int>(rtm.semaphoreType)] != -1) {
                     g_erasedSemaphores[g_erasedSemaphoreCount++] =
-                        g_semaphores[chunk2.semSlotIdByDirection[static_cast<int>(rtm.semaphoreType)]];
-                    removeSemaphore(chunk2, rtm.semaphoreType);
+                        g_semaphores[rail2.semSlotIdByDirection[static_cast<int>(rtm.semaphoreType)]];
+                    removeSemaphore(rail2, rtm.semaphoreType);
                 }
             }
         }

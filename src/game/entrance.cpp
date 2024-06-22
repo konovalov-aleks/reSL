@@ -1,11 +1,11 @@
 #include "entrance.h"
 
-#include "chunk.h"
 #include "draw_header.h"
 #include "drawing.h"
 #include "game_data.h"
 #include "impasse.h"
 #include "melody.h"
+#include "rail.h"
 #include "semaphore.h"
 #include "static_object.h"
 #include "switch.h"
@@ -32,13 +32,13 @@ std::int16_t g_entranceCount;
 /* 17bf:03ba */
 void spawnNewEntrance(RailInfo ri)
 {
-    Chunk& c = g_chunks[ri.tileX][ri.tileY][ri.railType];
-    scheduleChunkAreaRedrawing(c);
-    destroyStaticObjectsForRoadConstruction(c);
+    Rail& r = g_rails[ri.tileX][ri.tileY][ri.railType];
+    scheduleRailRedrawing(r);
+    destroyStaticObjectsForRailConstruction(r);
 
     clampRectToGameFieldBoundaries(g_areaToRedraw);
 
-    eraseImpasse(c, 350);
+    eraseImpasse(r, 350);
     createSwitches(ri);
 
     g_railRoad[g_railRoadCount++] = ri;
@@ -62,8 +62,8 @@ Entrance* findClosestEntrance(std::int16_t x, std::int16_t y)
     std::int16_t bestDistance = 200;
     for (std::int16_t i = 0; i < g_entranceCount; ++i) {
         Entrance& entrance = g_entrances[i];
-        const std::int16_t dx = std::abs(x - entrance.chunk.x);
-        const std::int16_t dy = std::abs(y - entrance.chunk.y);
+        const std::int16_t dx = std::abs(x - entrance.rail.x);
+        const std::int16_t dy = std::abs(y - entrance.rail.y);
         const std::int16_t dist = dx + dy * 4;
         if (dist < bestDistance) {
             bestDistance = dist;
@@ -80,10 +80,10 @@ bool entranceIsFree(std::int16_t entranceIdx)
     for (const Train& train : g_trains) {
         if (train.isFreeSlot || train.carriages[0].type == CarriageType::CrashedTrain)
             continue;
-        if (train.head.chunk == &entrance.chunk ||
-            train.head.chunk == entrance.chunk.x_neighbours[0].chunk ||
-            train.tail.chunk == &entrance.chunk ||
-            train.tail.chunk == entrance.chunk.x_neighbours[0].chunk)
+        if (train.head.rail == &entrance.rail ||
+            train.head.rail == entrance.rail.connections[0].rail ||
+            train.tail.rail == &entrance.rail ||
+            train.tail.rail == entrance.rail.connections[0].rail)
             return false;
     }
     return true;

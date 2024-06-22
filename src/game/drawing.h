@@ -1,6 +1,6 @@
 #pragma once
 
-#include "chunk.h"
+#include "rail.h"
 #include "types/rectangle.h"
 #include <graphics/color.h>
 
@@ -18,7 +18,7 @@ extern Rectangle g_areaToRedraw;
 void redrawScreenArea();
 
 /* 17bf:0599 */
-void scheduleChunkAreaRedrawing(const Chunk&);
+void scheduleRailRedrawing(const Rail&);
 
 /* 17bf:05dc */
 void clampRectToGameFieldBoundaries(Rectangle&);

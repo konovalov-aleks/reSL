@@ -1,6 +1,5 @@
 #include "drawing.h"
 
-#include "chunk.h"
 #include "draw_header.h"
 #include "game_data.h"
 #include "graphics/drawing.h"
@@ -9,6 +8,7 @@
 #include "mouse/management_mode.h"
 #include "mouse/mouse_mode.h"
 #include "mouse/mouse_state.h"
+#include "rail.h"
 #include "resources/chunk_bounding_boxes.h"
 #include "resources/rail_glyph.h"
 #include "resources/train_finished_exclamation_glyph.h"
@@ -57,13 +57,13 @@ void redrawScreenArea()
 }
 
 /* 17bf:0599 */
-void scheduleChunkAreaRedrawing(const Chunk& c)
+void scheduleRailRedrawing(const Rail& r)
 {
-    g_areaToRedraw = g_chunkBoundingBoxes[c.type];
-    g_areaToRedraw.x1 += c.x;
-    g_areaToRedraw.y1 += c.y;
-    g_areaToRedraw.x2 += c.x;
-    g_areaToRedraw.y2 += c.y;
+    g_areaToRedraw = g_chunkBoundingBoxes[r.type];
+    g_areaToRedraw.x1 += r.x;
+    g_areaToRedraw.y1 += r.y;
+    g_areaToRedraw.x2 += r.x;
+    g_areaToRedraw.y2 += r.y;
 }
 
 /* 17bf:05dc */
@@ -118,7 +118,7 @@ void drawFieldBackground(std::int16_t yOffset)
     }
     for (const RailInfo* r = g_railRoad; r < g_railRoad + g_railRoadCount; ++r) {
         drawRail(r->tileX, r->tileY, r->railType, Black, yOffset);
-        drawImpasse(g_chunks[r->tileX][r->tileY][r->railType], yOffset);
+        drawImpasse(g_rails[r->tileX][r->tileY][r->railType], yOffset);
     }
 
     for (std::uint16_t i = 0; i < g_nSwitches; ++i)
@@ -150,7 +150,7 @@ void drawWorld()
     }
     for (const RailInfo* r = g_railRoad; r < g_railRoad + g_railRoadCount; ++r) {
         drawRail(r->tileX, r->tileY, r->railType, Black, 350);
-        drawImpasse(g_chunks[r->tileX][r->tileY][r->railType], 350);
+        drawImpasse(g_rails[r->tileX][r->tileY][r->railType], 350);
     }
 
     for (std::uint16_t i = 0; i < g_nSwitches; ++i)

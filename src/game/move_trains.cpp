@@ -1,6 +1,5 @@
 #include "move_trains.h"
 
-#include "chunk.h"
 #include "drawing.h"
 #include "entrance.h"
 #include "header.h"
@@ -8,6 +7,7 @@
 #include "mouse/management_mode.h"
 #include "mouse/mouse_mode.h"
 #include "mouse/mouse_state.h"
+#include "rail.h"
 #include "resources/movement_paths.h"
 #include "resources/train_glyph.h"
 #include "semaphore.h"
@@ -43,12 +43,12 @@ enum class MoveAbility {
 static MoveAbility tryMoveAlongPath(Location& loc)
 {
     if (loc.forwardDirection) {
-        if (loc.pathStep < loc.chunk->maxPathStep) {
+        if (loc.pathStep < loc.rail->maxPathStep) {
             ++loc.pathStep;
             return MoveAbility::Ok;
         }
     } else {
-        if (loc.pathStep > loc.chunk->minPathStep) {
+        if (loc.pathStep > loc.rail->minPathStep) {
             --loc.pathStep;
             return MoveAbility::Ok;
         }
@@ -56,20 +56,20 @@ static MoveAbility tryMoveAlongPath(Location& loc)
 
     // in the original code:
     // "p.chunk->x_neighbours[p.forwardDirection].chunk & (~specialChunkPtr)"
-    if (!loc.chunk->x_neighbours[loc.forwardDirection].chunk ||                 // impasse
-        loc.chunk->x_neighbours[loc.forwardDirection].chunk == specialChunkPtr) // blinking train
+    if (!loc.rail->connections[loc.forwardDirection].rail ||                      // impasse
+        loc.rail->connections[loc.forwardDirection].rail == g_disabledSwitchPath) // blinking train
         return MoveAbility::BlockedByRoad;
 
-    std::int8_t semSlotId = loc.chunk->semSlotIdByDirection[loc.forwardDirection];
+    std::int8_t semSlotId = loc.rail->semSlotIdByDirection[loc.forwardDirection];
     if (semSlotId != -1 && g_semaphores[semSlotId].isRed)
         return MoveAbility::BlockedBySemaphore;
 
-    const ChunkReference& next = loc.chunk->x_neighbours[loc.forwardDirection];
+    const RailConnection& next = loc.rail->connections[loc.forwardDirection];
     if (next.slot)
-        loc.pathStep = g_movementPaths[next.chunk->type].size - 1;
+        loc.pathStep = g_movementPaths[next.rail->type].size - 1;
     else
         loc.pathStep = 0;
-    loc.chunk = next.chunk;
+    loc.rail = next.rail;
     loc.forwardDirection = next.slot ^ 1;
 
     return MoveAbility::Ok;
@@ -80,23 +80,23 @@ void moveAlongPath(Location& loc, std::int16_t distance)
 {
     for (std::int16_t i = 0; i < distance; ++i) {
         if (loc.forwardDirection) {
-            if (loc.pathStep < loc.chunk->maxPathStep) {
+            if (loc.pathStep < loc.rail->maxPathStep) {
                 ++loc.pathStep;
                 continue;
             }
         } else {
-            if (loc.pathStep > loc.chunk->minPathStep) {
+            if (loc.pathStep > loc.rail->minPathStep) {
                 --loc.pathStep;
                 continue;
             }
         }
 
-        const ChunkReference& next = loc.chunk->x_neighbours[loc.forwardDirection];
+        const RailConnection& next = loc.rail->connections[loc.forwardDirection];
         if (next.slot)
-            loc.pathStep = g_movementPaths[next.chunk->type].size - 1;
+            loc.pathStep = g_movementPaths[next.rail->type].size - 1;
         else
             loc.pathStep = 0;
-        loc.chunk = next.chunk;
+        loc.rail = next.rail;
         loc.forwardDirection = next.slot ^ 1;
     }
 }
@@ -124,9 +124,9 @@ static std::int16_t countPassengerCarriages(const Train& train)
 /* 18a5:050c */
 static Position carriagePosition(const Location& loc)
 {
-    const PathStep& p = g_movementPaths[loc.chunk->type].data[loc.pathStep];
-    return { static_cast<std::int16_t>(loc.chunk->x + p.dx),
-             static_cast<std::int16_t>(loc.chunk->y + p.dy) };
+    const PathStep& p = g_movementPaths[loc.rail->type].data[loc.pathStep];
+    return { static_cast<std::int16_t>(loc.rail->x + p.dx),
+             static_cast<std::int16_t>(loc.rail->y + p.dy) };
 }
 
 /* 132d:0239 */
@@ -267,15 +267,15 @@ bool moveTrain(Train& train, std::int16_t dTime)
         }
     } else {
         const Entrance& dstEntrance = g_entrances[train.carriages[0].dstEntranceIdx];
-        if (train.head.chunk == dstEntrance.chunk.x_neighbours[0].chunk)
+        if (train.head.rail == dstEntrance.rail.connections[0].rail)
             train.maxSpeed = 30;
-        if (train.head.chunk->type != 6) /* 6 means an entrance chunk; TODO make a constant */
+        if (train.head.rail->type != g_innerEntranceRailType)
             return false;
         const Rectangle& rect = train.carriages[train.carriageCnt - 1 - train.headCarriageIdx].rect;
         if (rect.x1 < 638 && rect.x2 > 1)
             return false;
 
-        if (train.head.chunk == &dstEntrance.chunk ||
+        if (train.head.rail == &dstEntrance.rail ||
             train.carriages[0].type == CarriageType::Server ||
             train.carriages[0].dstEntranceIdx == blinkingTrainEntranceIdx) {
             // the train has reached the entrance
@@ -365,14 +365,14 @@ static bool handleCollisions(Carriage& c1, Carriage& c2)
     const Location& loc1 = c1.location;
     const Location& loc2 = c2.location;
 
-    const PathStep& p1 = g_movementPaths[loc1.chunk->type].data[loc1.pathStep];
-    const PathStep& p2 = g_movementPaths[loc2.chunk->type].data[loc2.pathStep];
+    const PathStep& p1 = g_movementPaths[loc1.rail->type].data[loc1.pathStep];
+    const PathStep& p2 = g_movementPaths[loc2.rail->type].data[loc2.pathStep];
 
-    const std::int16_t x1 = loc1.chunk->x + p1.dx;
-    const std::int16_t y1 = loc1.chunk->y + p1.dy;
+    const std::int16_t x1 = loc1.rail->x + p1.dx;
+    const std::int16_t y1 = loc1.rail->y + p1.dy;
 
-    const std::int16_t x2 = loc2.chunk->x + p2.dx;
-    const std::int16_t y2 = loc2.chunk->y + p2.dy;
+    const std::int16_t x2 = loc2.rail->x + p2.dx;
+    const std::int16_t y2 = loc2.rail->y + p2.dy;
 
     const std::int16_t dx = x1 - x2;
     const std::int16_t dy = (y1 - y2) * 4;

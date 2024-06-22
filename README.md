@@ -99,10 +99,11 @@ cmake --build . -j4
 https://emscripten.org/docs/getting_started/downloads.html
 
 2. in the terminal:
-
+```
 mkdir -p build && cd build
 emcmake cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build . -j4
+```
 
 ## Legal notes:
 

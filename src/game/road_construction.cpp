@@ -13,13 +13,16 @@
 #include "static_object.h"
 #include "status_bar.h"
 #include "switch.h"
+#include "types/header_field.h"
 #include "types/rail_info.h"
+#include "types/rectangle.h"
 #include <graphics/color.h>
 #include <system/random.h>
 #include <system/sound.h>
 #include <tasks/message_queue.h>
 #include <tasks/task.h>
 
+#include <cstdint>
 #include <cstdio>
 
 namespace resl {

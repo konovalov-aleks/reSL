@@ -42,6 +42,25 @@ Driver::SDLInit::~SDLInit()
     SDL_Quit();
 }
 
+inline std::uint16_t mouseButtonState()
+{
+    Uint32 state = SDL_GetMouseState(nullptr, nullptr);
+    std::uint16_t res = 0;
+
+    if (state & SDL_BUTTON(SDL_BUTTON_LEFT))
+        res |= MouseButton::MB_LEFT;
+    if (state & SDL_BUTTON(SDL_BUTTON_RIGHT))
+        res |= MouseButton::MB_RIGHT;
+    if (state & SDL_BUTTON(SDL_BUTTON_MIDDLE))
+        res |= MouseButton::MB_MIDDLE;
+    return res;
+}
+
+Driver::Driver()
+    : m_mouseButtonState(mouseButtonState())
+{
+}
+
 void Driver::sleep(unsigned ms)
 {
 #ifdef __EMSCRIPTEN__
@@ -123,21 +142,17 @@ inline std::uint16_t mouseReleasedFlags(const SDL_MouseButtonEvent& e)
     return 0;
 }
 
-inline std::uint16_t mouseButtonState(Uint32 state)
+inline MouseButton mouseButton(const SDL_MouseButtonEvent& e)
 {
-    std::uint16_t res = 0;
-
-    /* From the TurboC MOUSE/MOUSE.H header:
-        271         BX = button state (bit 0 set if left button down, bit 1 set if right
-        272                            button down and bit 2 set if center button down)
-     */
-    if (state & SDL_BUTTON(SDL_BUTTON_LEFT))
-        res |= 1;
-    if (state & SDL_BUTTON(SDL_BUTTON_RIGHT))
-        res |= 2;
-    if (state & SDL_BUTTON(SDL_BUTTON_MIDDLE))
-        res |= 4;
-    return res;
+    switch (e.button) {
+    case SDL_BUTTON_LEFT:
+        return MouseButton::MB_LEFT;
+    case SDL_BUTTON_RIGHT:
+        return MouseButton::MB_RIGHT;
+    case SDL_BUTTON_MIDDLE:
+        return MouseButton::MB_MIDDLE;
+    }
+    return MouseButton::MB_NONE;
 }
 
 void Driver::onMouseButtonEvent(const SDL_MouseButtonEvent& e)
@@ -151,8 +166,16 @@ void Driver::onMouseButtonEvent(const SDL_MouseButtonEvent& e)
     if (!mouseEventFlags) [[unlikely]]
         return;
 
-    Uint32 buttonState = SDL_GetMouseState(nullptr, nullptr);
-    m_mouseHandler(mouseEventFlags, mouseButtonState(buttonState), 0, 0);
+    const MouseButton btn = mouseButton(e);
+    if (btn == MouseButton::MB_NONE) [[unlikely]]
+        return;
+
+    if (e.type == SDL_MOUSEBUTTONDOWN)
+        m_mouseButtonState |= btn;
+    else
+        m_mouseButtonState &= (~btn);
+
+    m_mouseHandler(mouseEventFlags, m_mouseButtonState, 0, 0);
 }
 
 void Driver::onMouseMove(const SDL_MouseMotionEvent& e)
@@ -175,7 +198,7 @@ void Driver::onMouseMove(const SDL_MouseMotionEvent& e)
     m_lastCursorX = x;
     m_lastCursorY = y;
 
-    m_mouseHandler(0, mouseButtonState(e.state), dx, dy);
+    m_mouseHandler(0, m_mouseButtonState, dx, dy);
 }
 
 } // namespace resl

@@ -315,7 +315,8 @@ unsigned VGAEmulation::timeToNextFrameMS() const
         return 0;
 
     const auto dTime = m_nextFrameTime - now;
-    return std::chrono::duration_cast<std::chrono::milliseconds>(dTime).count();
+    return static_cast<unsigned>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(dTime).count());
 }
 
 } // namespace resl

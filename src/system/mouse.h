@@ -26,6 +26,17 @@ enum MouseEvent : std::uint16_t {
     ME_CENTERRELEASED = 64
 };
 
+/* From the TurboC MOUSE/MOUSE.H header:
+    271         BX = button state (bit 0 set if left button down, bit 1 set if right
+    272                            button down and bit 2 set if center button down)
+ */
+enum MouseButton {
+    MB_NONE = 0,
+    MB_LEFT = 1,
+    MB_RIGHT = 2,
+    MB_MIDDLE = 4
+};
+
 using MouseHandler = void (*)(std::uint16_t mouseEventFlags, std::uint16_t mouseButtonState,
                               std::int16_t lastRawHMickeyCount, std::int16_t lastRawVMickeyCount);
 

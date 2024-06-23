@@ -15,6 +15,8 @@
 #include <SDL_events.h>
 #include <SDL_stdinc.h>
 
+#include <cstdint>
+
 namespace resl {
 
 class Driver {
@@ -37,7 +39,7 @@ public:
     bool pollEvent();
 
 private:
-    Driver() = default;
+    Driver();
     Driver(const Driver&) = delete;
     Driver& operator=(const Driver&) = delete;
 
@@ -58,6 +60,7 @@ private:
     MouseHandler m_mouseHandler = nullptr;
     Sint32 m_lastCursorX = SCREEN_WIDTH / 2;
     Sint32 m_lastCursorY = SCREEN_HEIGHT / 2;
+    std::uint16_t m_mouseButtonState;
 
     bool m_quit = false;
 };

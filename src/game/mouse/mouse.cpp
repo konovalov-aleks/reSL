@@ -62,9 +62,11 @@ void handleMouseInput(std::uint16_t mouseEventFlags,
         g_previousMouseButtonState = static_cast<std::uint8_t>(mouseButtonState);
     else {
         // TODO make an enum for mouseButtonState
-        if ((mouseEventFlags & (ME_LEFTPRESSED | ME_RIGHTPRESSED)) && mouseButtonState == 3) {
+        if ((mouseEventFlags & (ME_LEFTPRESSED | ME_RIGHTPRESSED)) &&
+            mouseButtonState == (MouseButton::MB_LEFT | MouseButton::MB_RIGHT)) {
+
             msg.action = MouseAction::ToggleMouseMode;
-            g_previousMouseButtonState = 1;
+            g_previousMouseButtonState = MouseButton::MB_LEFT;
         } else {
             if (mouseEventFlags & ME_LEFTRELEASED) {
                 // left button clicked

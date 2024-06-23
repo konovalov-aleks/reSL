@@ -1,7 +1,11 @@
 #include "header.h"
 
 #include "draw_header.h"
+#include "game_over.h"
+#include "status_bar.h"
 #include "types/header_field.h"
+#include <graphics/color.h>
+#include <graphics/drawing.h>
 
 #include <tasks/message_queue.h>
 #include <tasks/task.h>
@@ -50,10 +54,30 @@ void spendMoney(std::int16_t delta)
     startHeaderFieldAnimation(HeaderFieldId::Money, -delta);
 }
 
-/* 16a6:067b */
-static void onHeaderFieldLimitValueReached(HeaderField&)
+/* 132d:0420 */
+static void makeYearFieldBlinking()
 {
-    // TODO implement
+    const HeaderField& yearFld = g_headers[static_cast<int>(HeaderFieldId::Year)];
+    for (std::int16_t digit = 0; digit < 4; ++digit) {
+        const std::int16_t xOffset = yearFld.x + digit * 16;
+        for (std::int16_t x = 0; x < 16; ++x) {
+            for (std::int16_t y = 0; y < 16; ++y) {
+                if (drawing::getPixel(x + xOffset, y + yearFld.y) == Color::Black)
+                    drawing::putPixel(x + xOffset, y + yearFld.y, Color::BWBlinking);
+            }
+        }
+    }
+}
+
+/* 16a6:067b */
+static void onHeaderFieldLimitValueReached(const HeaderField& fld)
+{
+    HeaderFieldId fieldId = static_cast<HeaderFieldId>(&fld - &g_headers[0]);
+    if (fieldId == HeaderFieldId::Money) {
+        showStatusMessage("OUT OF MONEY");
+        gameOver();
+    } else if (fieldId == HeaderFieldId::Year)
+        makeYearFieldBlinking();
 }
 
 /* 12c5:0008 */

@@ -33,4 +33,7 @@ void beepSound(std::int16_t tone);
 /* 19b2:018d */
 void playSpawnedEntranceMelody();
 
+/* 19b2:01e1 */
+void playGameOverMelody();
+
 } // namespace resl

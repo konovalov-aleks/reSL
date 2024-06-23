@@ -9,6 +9,7 @@ set(SOURCES
     src/game/drawing.cpp
     src/game/entrance.cpp
     src/game/game_data.cpp
+    src/game/game_over.cpp
     src/game/header.cpp
     src/game/impasse.cpp
     src/game/init.cpp
@@ -89,8 +90,9 @@ if (EMSCRIPTEN)
     target_link_options(resl PRIVATE
         "-sASYNCIFY"
         "-sUSE_SDL=2"
-        "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/resources/DEMO_A@DEMO_A"
-        "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/resources/PLAY.7@PLAY.7")
+        "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/resources/PLAY.7@PLAY.7"
+        "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/resources/GAMEOVER.7@GAMEOVER.7"
+        "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/resources/DEMO_A@DEMO_A")
 else()
     find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
     find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
@@ -106,6 +108,9 @@ else()
         COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_CURRENT_SOURCE_DIR}/resources/PLAY.7
             $<TARGET_FILE_DIR:resl>/PLAY.7
+        COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_CURRENT_SOURCE_DIR}/resources/GAMEOVER.7
+            $<TARGET_FILE_DIR:resl>/GAMEOVER.7
         COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_CURRENT_SOURCE_DIR}/resources/DEMO_A
             $<TARGET_FILE_DIR:resl>/DEMO_A

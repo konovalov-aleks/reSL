@@ -15,7 +15,12 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-#include <thread>
+
+#ifdef __EMSCRIPTEN__
+#   include <emscripten.h>
+#else
+#   include <thread>
+#endif // __EMSCRIPTEN__
 
 namespace resl {
 
@@ -59,8 +64,14 @@ void VGAEmulation::flush()
 void VGAEmulation::waitVerticalRetrace()
 {
     const ClockT::time_point now = ClockT::now();
-    if (now < m_nextFrameTime)
+    if (now < m_nextFrameTime) {
+#ifdef __EMSCRIPTEN__
+        emscripten_sleep(
+            std::chrono::duration_cast<std::chrono::milliseconds>(m_nextFrameTime - now).count());
+#else
         std::this_thread::sleep_for(m_nextFrameTime - now);
+#endif
+    }
     flush();
 }
 

@@ -109,4 +109,18 @@ void playSpawnedEntranceMelody()
     }
 }
 
+/* 19b2:01e1 */
+void playGameOverMelody()
+{
+    if (!g_soundEnabled)
+        return;
+
+    for (std::int16_t i = 20; i; --i) {
+        sound(i * 100);
+        for (std::int16_t j = 0; j < 5; ++j)
+            vga::waitVerticalRetrace();
+    }
+    nosound();
+}
+
 } // namespace resl

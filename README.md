@@ -1,7 +1,7 @@
 <img width="516" alt="banner" src="https://github.com/konovalov-aleks/reSL/assets/11459433/eea5c05c-8175-4417-9fed-990ca22190e5">
 
 # reSL
-The reverse engineered DOS game [ShortLine v1.1. (DOKA 1992)](https://www.youtube.com/watch?v=nfpi1QWPuz8)
+The reverse engineered DOS game [ShortLine v1.1. (DOKA 1992)](https://www.myabandonware.com/game/shortline-railroad-1i6)
 
 The original game can be downloaded from the link below (version 1.1): 
 https://www.old-games.ru/game/download/1232.html

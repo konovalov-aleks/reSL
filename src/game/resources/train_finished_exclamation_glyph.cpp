@@ -31,9 +31,7 @@ static const GlyphData<3, 25> g_glyphDataTrainFinishedRight = {
     0x00, 0x00, 0x30,
 };
 
-const Glyph& g_glyphTrainFinishedLeftEntrance =
-    reinterpret_cast<const Glyph&>(g_glyphDataTrainFinishedLeft);
-const Glyph& g_glyphTrainFinishedRightEntrance =
-    reinterpret_cast<const Glyph&>(g_glyphDataTrainFinishedRight);
+const Glyph& g_glyphTrainFinishedLeftEntrance = g_glyphDataTrainFinishedLeft;
+const Glyph& g_glyphTrainFinishedRightEntrance = g_glyphDataTrainFinishedRight;
 
 } // namespace resl

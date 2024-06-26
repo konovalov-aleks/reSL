@@ -10,6 +10,7 @@
 #include "video.h" // IWYU pragma: export
 
 #include <graphics/vga.h>
+#include <system/keyboard.h>
 #include <system/mouse.h>
 
 #include <SDL_events.h>
@@ -35,6 +36,7 @@ public:
     void sleep(unsigned ms);
 
     void setMouseHandler(MouseHandler hdl) { m_mouseHandler = hdl; }
+    void setKeyboardHandler(KeyboardHandler hdl) { m_keyboardHandler = hdl; }
 
     bool pollEvent();
 
@@ -46,6 +48,8 @@ private:
     void onMouseButtonEvent(const SDL_MouseButtonEvent&);
     void onMouseMove(const SDL_MouseMotionEvent&);
 
+    void onKeyboardEvent(const SDL_KeyboardEvent&);
+
     class SDLInit {
     public:
         SDLInit();
@@ -56,6 +60,8 @@ private:
 
     VGAEmulation m_vga;
     AudioDriver m_audio;
+
+    KeyboardHandler m_keyboardHandler = nullptr;
 
     MouseHandler m_mouseHandler = nullptr;
     Sint32 m_lastCursorX = SCREEN_WIDTH / 2;

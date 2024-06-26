@@ -3197,71 +3197,51 @@ const TrainGlyph g_trainGlyphs[15][5][2] = {
         { /* [0][0] */
             {
                 43, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_2e80),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_2ee8),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_2f44)
+                Glyph_1d7d_2e80, Glyph_1d7d_2ee8, Glyph_1d7d_2f44,
             },
             {
                 43, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_2d5a),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_2dc2),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_2e1e)
+                Glyph_1d7d_2d5a, Glyph_1d7d_2dc2, Glyph_1d7d_2e1e,
             }
         },
         { /* [0][1] */
             {
                 38, 23,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_323c),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_32b1),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3326)
+                Glyph_1d7d_323c, Glyph_1d7d_32b1, Glyph_1d7d_3326,
             },
             {
                 39, 22,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_2fa6),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3016),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3086)
+                Glyph_1d7d_2fa6, Glyph_1d7d_3016, Glyph_1d7d_3086,
             }
         },
         { /* [0][2] */
             {
                 22, 23,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_36cc),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3713),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3757)
+                Glyph_1d7d_36cc, Glyph_1d7d_3713, Glyph_1d7d_3757,
             },
             {
                 25, 23,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_34f0),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_354e),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_35a8)
+                Glyph_1d7d_34f0, Glyph_1d7d_354e, Glyph_1d7d_35a8,
             }
         },
         { /* [0][3] */
             {
                 22, 23,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3798),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_37df),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3823)
+                Glyph_1d7d_3798, Glyph_1d7d_37df, Glyph_1d7d_3823,
             },
             {
                 25, 23,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_35e9),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3647),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_368b)
+                Glyph_1d7d_35e9, Glyph_1d7d_3647, Glyph_1d7d_368b,
             }
         },
         { /* [0][4] */
             {
                 38, 23,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3396),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_340b),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3480)
+                Glyph_1d7d_3396, Glyph_1d7d_340b, Glyph_1d7d_3480,
             },
             {
                 39, 22,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_30f1),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3161),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_31d1)
+                Glyph_1d7d_30f1, Glyph_1d7d_3161, Glyph_1d7d_31d1,
             }
         }
     },
@@ -3269,71 +3249,51 @@ const TrainGlyph g_trainGlyphs[15][5][2] = {
         { /* [1][0] */
             {
                 39, 19,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3964),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_39c5),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3a03)
+                Glyph_1d7d_3964, Glyph_1d7d_39c5, Glyph_1d7d_3a03,
             },
             {
                 39, 19,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3864),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_38c5),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3903)
+                Glyph_1d7d_3864, Glyph_1d7d_38c5, Glyph_1d7d_3903,
             }
         },
         { /* [1][1] */
             {
                 36, 22,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3ca0),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3d10),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3d71)
+                Glyph_1d7d_3ca0, Glyph_1d7d_3d10, Glyph_1d7d_3d71,
             },
             {
                 34, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3a64),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3acf),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3b21)
+                Glyph_1d7d_3a64, Glyph_1d7d_3acf, Glyph_1d7d_3b21,
             }
         },
         { /* [1][2] */
             {
                 21, 24,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4078),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_40c2),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4106)
+                Glyph_1d7d_4078, Glyph_1d7d_40c2, Glyph_1d7d_4106,
             },
             {
                 23, 20,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3f22),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3f60),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3f92)
+                Glyph_1d7d_3f22, Glyph_1d7d_3f60, Glyph_1d7d_3f92,
             }
         },
         { /* [1][3] */
             {
                 21, 24,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_414d),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4197),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_41db)
+                Glyph_1d7d_414d, Glyph_1d7d_4197, Glyph_1d7d_41db,
             },
             {
                 23, 20,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3fcd),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_400b),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_403d)
+                Glyph_1d7d_3fcd, Glyph_1d7d_400b, Glyph_1d7d_403d,
             }
         },
         { /* [1][4] */
             {
                 36, 22,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3de1),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3e51),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3eb2)
+                Glyph_1d7d_3de1, Glyph_1d7d_3e51, Glyph_1d7d_3eb2,
             },
             {
                 34, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3b82),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3bed),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_3c3f)
+                Glyph_1d7d_3b82, Glyph_1d7d_3bed, Glyph_1d7d_3c3f,
             }
         }
     },
@@ -3341,71 +3301,51 @@ const TrainGlyph g_trainGlyphs[15][5][2] = {
         { /* [2][0] */
             {
                 43, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4342),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_43aa),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_43fa)
+                Glyph_1d7d_4342, Glyph_1d7d_43aa, Glyph_1d7d_43fa,
             },
             {
                 43, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4222),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_428a),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_42da)
+                Glyph_1d7d_4222, Glyph_1d7d_428a, Glyph_1d7d_42da,
             }
         },
         { /* [2][1] */
             {
                 38, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4702),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_476d),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_47c9)
+                Glyph_1d7d_4702, Glyph_1d7d_476d, Glyph_1d7d_47c9,
             },
             {
                 38, 23,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4462),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_44d7),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4547)
+                Glyph_1d7d_4462, Glyph_1d7d_44d7, Glyph_1d7d_4547,
             }
         },
         { /* [2][2] */
             {
                 21, 23,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4af8),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4b3f),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4b80)
+                Glyph_1d7d_4af8, Glyph_1d7d_4b3f, Glyph_1d7d_4b80,
             },
             {
                 23, 23,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4966),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_49ad),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_49f1)
+                Glyph_1d7d_4966, Glyph_1d7d_49ad, Glyph_1d7d_49f1,
             }
         },
         { /* [2][3] */
             {
                 21, 23,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4bc4),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4c0b),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4c4c)
+                Glyph_1d7d_4bc4, Glyph_1d7d_4c0b, Glyph_1d7d_4c4c,
             },
             {
                 23, 23,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4a2f),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4a76),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4aba)
+                Glyph_1d7d_4a2f, Glyph_1d7d_4a76, Glyph_1d7d_4aba,
             }
         },
         { /* [2][4] */
             {
                 38, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4834),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_489f),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_48fb)
+                Glyph_1d7d_4834, Glyph_1d7d_489f, Glyph_1d7d_48fb,
             },
             {
                 38, 23,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_45b2),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4627),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4697)
+                Glyph_1d7d_45b2, Glyph_1d7d_4627, Glyph_1d7d_4697,
             }
         }
     },
@@ -3413,71 +3353,51 @@ const TrainGlyph g_trainGlyphs[15][5][2] = {
         { /* [3][0] */
             {
                 43, 20,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4dbd),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4e37),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4e89)
+                Glyph_1d7d_4dbd, Glyph_1d7d_4e37, Glyph_1d7d_4e89,
             },
             {
                 43, 20,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4c90),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4d0a),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4d5c)
+                Glyph_1d7d_4c90, Glyph_1d7d_4d0a, Glyph_1d7d_4d5c,
             }
         },
         { /* [3][1] */
             {
                 36, 20,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4eea),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4f50),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4fac)
+                Glyph_1d7d_4eea, Glyph_1d7d_4f50, Glyph_1d7d_4fac,
             },
             {
                 36, 20,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4eea),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4f50),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_4fac)
+                Glyph_1d7d_4eea, Glyph_1d7d_4f50, Glyph_1d7d_4fac,
             }
         },
         { /* [3][2] */
             {
                 22, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_513a),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_517b),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_51ad)
+                Glyph_1d7d_513a, Glyph_1d7d_517b, Glyph_1d7d_51ad,
             },
             {
                 22, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_513a),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_517b),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_51ad)
+                Glyph_1d7d_513a, Glyph_1d7d_517b, Glyph_1d7d_51ad,
             }
         },
         { /* [3][3] */
             {
                 22, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_51e8),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5229),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_525b)
+                Glyph_1d7d_51e8, Glyph_1d7d_5229, Glyph_1d7d_525b,
             },
             {
                 22, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_51e8),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5229),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_525b)
+                Glyph_1d7d_51e8, Glyph_1d7d_5229, Glyph_1d7d_525b,
             }
         },
         { /* [3][4] */
             {
                 36, 20,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5012),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5078),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_50d4)
+                Glyph_1d7d_5012, Glyph_1d7d_5078, Glyph_1d7d_50d4,
             },
             {
                 36, 20,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5012),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5078),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_50d4)
+                Glyph_1d7d_5012, Glyph_1d7d_5078, Glyph_1d7d_50d4,
             }
         }
     },
@@ -3485,71 +3405,51 @@ const TrainGlyph g_trainGlyphs[15][5][2] = {
         { /* [4][0] */
             {
                 47, 11,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_533e),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5382),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_53a8)
+                Glyph_1d7d_533e, Glyph_1d7d_5382, Glyph_1d7d_53a8,
             },
             {
                 47, 11,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5296),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_52da),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5300)
+                Glyph_1d7d_5296, Glyph_1d7d_52da, Glyph_1d7d_5300,
             }
         },
         { /* [4][1] */
             {
                 39, 18,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_53e6),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5442),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_548f)
+                Glyph_1d7d_53e6, Glyph_1d7d_5442, Glyph_1d7d_548f,
             },
             {
                 39, 18,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_53e6),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5442),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_548f)
+                Glyph_1d7d_53e6, Glyph_1d7d_5442, Glyph_1d7d_548f,
             }
         },
         { /* [4][2] */
             {
                 21, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_55e6),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5627),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_565c)
+                Glyph_1d7d_55e6, Glyph_1d7d_5627, Glyph_1d7d_565c,
             },
             {
                 21, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_55e6),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5627),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_565c)
+                Glyph_1d7d_55e6, Glyph_1d7d_5627, Glyph_1d7d_565c,
             }
         },
         { /* [4][3] */
             {
                 21, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_569a),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_56db),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5710)
+                Glyph_1d7d_569a, Glyph_1d7d_56db, Glyph_1d7d_5710,
             },
             {
                 21, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_569a),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_56db),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5710)
+                Glyph_1d7d_569a, Glyph_1d7d_56db, Glyph_1d7d_5710,
             }
         },
         { /* [4][4] */
             {
                 39, 18,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_54e6),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5542),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_558f)
+                Glyph_1d7d_54e6, Glyph_1d7d_5542, Glyph_1d7d_558f,
             },
             {
                 39, 18,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_54e6),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5542),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_558f)
+                Glyph_1d7d_54e6, Glyph_1d7d_5542, Glyph_1d7d_558f,
             }
         }
     },
@@ -3557,71 +3457,51 @@ const TrainGlyph g_trainGlyphs[15][5][2] = {
         { /* [5][0] */
             {
                 47, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5862),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_58ca),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5914)
+                Glyph_1d7d_5862, Glyph_1d7d_58ca, Glyph_1d7d_5914,
             },
             {
                 47, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_574e),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_57b6),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5800)
+                Glyph_1d7d_574e, Glyph_1d7d_57b6, Glyph_1d7d_5800,
             }
         },
         { /* [5][1] */
             {
                 39, 22,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5976),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_59e6),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5a47)
+                Glyph_1d7d_5976, Glyph_1d7d_59e6, Glyph_1d7d_5a47,
             },
             {
                 39, 22,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5976),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_59e6),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5a47)
+                Glyph_1d7d_5976, Glyph_1d7d_59e6, Glyph_1d7d_5a47,
             }
         },
         { /* [5][2] */
             {
                 21, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5bee),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5c2f),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5c64)
+                Glyph_1d7d_5bee, Glyph_1d7d_5c2f, Glyph_1d7d_5c64,
             },
             {
                 21, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5bee),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5c2f),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5c64)
+                Glyph_1d7d_5bee, Glyph_1d7d_5c2f, Glyph_1d7d_5c64,
             }
         },
         { /* [5][3] */
             {
                 21, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5ca2),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5ce3),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5d18)
+                Glyph_1d7d_5ca2, Glyph_1d7d_5ce3, Glyph_1d7d_5d18,
             },
             {
                 21, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5ca2),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5ce3),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5d18)
+                Glyph_1d7d_5ca2, Glyph_1d7d_5ce3, Glyph_1d7d_5d18,
             }
         },
         { /* [5][4] */
             {
                 39, 22,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5ab2),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5b22),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5b83)
+                Glyph_1d7d_5ab2, Glyph_1d7d_5b22, Glyph_1d7d_5b83,
             },
             {
                 39, 22,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5ab2),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5b22),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5b83)
+                Glyph_1d7d_5ab2, Glyph_1d7d_5b22, Glyph_1d7d_5b83,
             }
         }
     },
@@ -3629,71 +3509,51 @@ const TrainGlyph g_trainGlyphs[15][5][2] = {
         { /* [6][0] */
             {
                 47, 11,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5df2),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5e36),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5e68)
+                Glyph_1d7d_5df2, Glyph_1d7d_5e36, Glyph_1d7d_5e68,
             },
             {
                 47, 11,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5d56),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5d9a),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5dcc)
+                Glyph_1d7d_5d56, Glyph_1d7d_5d9a, Glyph_1d7d_5dcc,
             }
         },
         { /* [6][1] */
             {
                 41, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_60c5),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_612d),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_618f)
+                Glyph_1d7d_60c5, Glyph_1d7d_612d, Glyph_1d7d_618f,
             },
             {
                 40, 19,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5e8e),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5f02),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5f6a)
+                Glyph_1d7d_5e8e, Glyph_1d7d_5f02, Glyph_1d7d_5f6a,
             }
         },
         { /* [6][2] */
             {
                 24, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_646b),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_64c1),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6507)
+                Glyph_1d7d_646b, Glyph_1d7d_64c1, Glyph_1d7d_6507,
             },
             {
                 19, 22,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_62fd),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6341),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6382)
+                Glyph_1d7d_62fd, Glyph_1d7d_6341, Glyph_1d7d_6382,
             }
         },
         { /* [6][3] */
             {
                 24, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_653f),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6595),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_65ca)
+                Glyph_1d7d_653f, Glyph_1d7d_6595, Glyph_1d7d_65ca,
             },
             {
                 19, 22,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_63b4),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_63f8),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6439)
+                Glyph_1d7d_63b4, Glyph_1d7d_63f8, Glyph_1d7d_6439,
             }
         },
         { /* [6][4] */
             {
                 41, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_61e1),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6249),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_629b)
+                Glyph_1d7d_61e1, Glyph_1d7d_6249, Glyph_1d7d_629b,
             },
             {
                 40, 19,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_5fc0),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6034),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_608b)
+                Glyph_1d7d_5fc0, Glyph_1d7d_6034, Glyph_1d7d_608b,
             }
         }
     },
@@ -3701,71 +3561,51 @@ const TrainGlyph g_trainGlyphs[15][5][2] = {
         { /* [7][0] */
             {
                 41, 14,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_66ee),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6744),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6778)
+                Glyph_1d7d_66ee, Glyph_1d7d_6744, Glyph_1d7d_6778,
             },
             {
                 41, 14,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6614),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_666a),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_669e)
+                Glyph_1d7d_6614, Glyph_1d7d_666a, Glyph_1d7d_669e,
             }
         },
         { /* [7][1] */
             {
                 36, 18,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_67c8),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6824),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6876)
+                Glyph_1d7d_67c8, Glyph_1d7d_6824, Glyph_1d7d_6876,
             },
             {
                 36, 18,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_67c8),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6824),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6876)
+                Glyph_1d7d_67c8, Glyph_1d7d_6824, Glyph_1d7d_6876,
             }
         },
         { /* [7][2] */
             {
                 22, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_69dc),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6a1d),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6a58)
+                Glyph_1d7d_69dc, Glyph_1d7d_6a1d, Glyph_1d7d_6a58,
             },
             {
                 22, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_69dc),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6a1d),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6a58)
+                Glyph_1d7d_69dc, Glyph_1d7d_6a1d, Glyph_1d7d_6a58,
             }
         },
         { /* [7][3] */
             {
                 22, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6a96),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6ad7),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6b12)
+                Glyph_1d7d_6a96, Glyph_1d7d_6ad7, Glyph_1d7d_6b12,
             },
             {
                 22, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6a96),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6ad7),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6b12)
+                Glyph_1d7d_6a96, Glyph_1d7d_6ad7, Glyph_1d7d_6b12,
             }
         },
         { /* [7][4] */
             {
                 36, 18,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_68d2),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_692e),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6980)
+                Glyph_1d7d_68d2, Glyph_1d7d_692e, Glyph_1d7d_6980,
             },
             {
                 36, 18,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_68d2),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_692e),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6980)
+                Glyph_1d7d_68d2, Glyph_1d7d_692e, Glyph_1d7d_6980,
             }
         }
     },
@@ -3773,71 +3613,51 @@ const TrainGlyph g_trainGlyphs[15][5][2] = {
         { /* [8][0] */
             {
                 43, 11,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6bfe),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6c42),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6c6e)
+                Glyph_1d7d_6bfe, Glyph_1d7d_6c42, Glyph_1d7d_6c6e,
             },
             {
                 43, 11,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6b50),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6b94),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6bc0)
+                Glyph_1d7d_6b50, Glyph_1d7d_6b94, Glyph_1d7d_6bc0,
             }
         },
         { /* [8][1] */
             {
                 37, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6cac),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6d03),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6d55)
+                Glyph_1d7d_6cac, Glyph_1d7d_6d03, Glyph_1d7d_6d55,
             },
             {
                 37, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6cac),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6d03),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6d55)
+                Glyph_1d7d_6cac, Glyph_1d7d_6d03, Glyph_1d7d_6d55,
             }
         },
         { /* [8][2] */
             {
                 21, 20,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6ea2),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6ee0),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6f18)
+                Glyph_1d7d_6ea2, Glyph_1d7d_6ee0, Glyph_1d7d_6f18,
             },
             {
                 21, 20,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6ea2),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6ee0),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6f18)
+                Glyph_1d7d_6ea2, Glyph_1d7d_6ee0, Glyph_1d7d_6f18,
             }
         },
         { /* [8][3] */
             {
                 21, 20,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6f50),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6f8e),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6fc6)
+                Glyph_1d7d_6f50, Glyph_1d7d_6f8e, Glyph_1d7d_6fc6,
             },
             {
                 21, 20,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6f50),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6f8e),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6fc6)
+                Glyph_1d7d_6f50, Glyph_1d7d_6f8e, Glyph_1d7d_6fc6,
             }
         },
         { /* [8][4] */
             {
                 37, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6da7),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6dfe),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6e50)
+                Glyph_1d7d_6da7, Glyph_1d7d_6dfe, Glyph_1d7d_6e50,
             },
             {
                 37, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6da7),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6dfe),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6e50)
+                Glyph_1d7d_6da7, Glyph_1d7d_6dfe, Glyph_1d7d_6e50,
             }
         }
     },
@@ -3845,71 +3665,51 @@ const TrainGlyph g_trainGlyphs[15][5][2] = {
         { /* [9][0] */
             {
                 41, 11,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_709a),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_70de),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7110)
+                Glyph_1d7d_709a, Glyph_1d7d_70de, Glyph_1d7d_7110,
             },
             {
                 41, 11,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_6ffe),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7042),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7074)
+                Glyph_1d7d_6ffe, Glyph_1d7d_7042, Glyph_1d7d_7074,
             }
         },
         { /* [9][1] */
             {
                 36, 18,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7136),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7192),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_71df)
+                Glyph_1d7d_7136, Glyph_1d7d_7192, Glyph_1d7d_71df,
             },
             {
                 36, 18,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7136),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7192),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_71df)
+                Glyph_1d7d_7136, Glyph_1d7d_7192, Glyph_1d7d_71df,
             }
         },
         { /* [9][2] */
             {
                 21, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7313),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7354),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7389)
+                Glyph_1d7d_7313, Glyph_1d7d_7354, Glyph_1d7d_7389,
             },
             {
                 21, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7313),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7354),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7389)
+                Glyph_1d7d_7313, Glyph_1d7d_7354, Glyph_1d7d_7389,
             }
         },
         { /* [9][3] */
             {
                 21, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_73c1),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7402),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7437)
+                Glyph_1d7d_73c1, Glyph_1d7d_7402, Glyph_1d7d_7437,
             },
             {
                 21, 21,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_73c1),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7402),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7437)
+                Glyph_1d7d_73c1, Glyph_1d7d_7402, Glyph_1d7d_7437,
             }
         },
         { /* [9][4] */
             {
                 36, 18,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_722c),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7288),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_72c6)
+                Glyph_1d7d_722c, Glyph_1d7d_7288, Glyph_1d7d_72c6,
             },
             {
                 36, 18,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_722c),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7288),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_72c6)
+                Glyph_1d7d_722c, Glyph_1d7d_7288, Glyph_1d7d_72c6,
             }
         }
     },
@@ -3917,71 +3717,51 @@ const TrainGlyph g_trainGlyphs[15][5][2] = {
         { /* [10][0] */
             {
                 41, 12,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7535),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_757f),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_75b7)
+                Glyph_1d7d_7535, Glyph_1d7d_757f, Glyph_1d7d_75b7,
             },
             {
                 41, 12,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_746f),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_74b9),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_74f1)
+                Glyph_1d7d_746f, Glyph_1d7d_74b9, Glyph_1d7d_74f1,
             }
         },
         { /* [10][1] */
             {
                 37, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_75fb),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7652),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_76a4)
+                Glyph_1d7d_75fb, Glyph_1d7d_7652, Glyph_1d7d_76a4,
             },
             {
                 37, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_75fb),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7652),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_76a4)
+                Glyph_1d7d_75fb, Glyph_1d7d_7652, Glyph_1d7d_76a4,
             }
         },
         { /* [10][2] */
             {
                 21, 18,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_77f1),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7829),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_785b)
+                Glyph_1d7d_77f1, Glyph_1d7d_7829, Glyph_1d7d_785b,
             },
             {
                 21, 18,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_77f1),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7829),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_785b)
+                Glyph_1d7d_77f1, Glyph_1d7d_7829, Glyph_1d7d_785b,
             }
         },
         { /* [10][3] */
             {
                 21, 18,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_788d),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_78c5),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_78f7)
+                Glyph_1d7d_788d, Glyph_1d7d_78c5, Glyph_1d7d_78f7,
             },
             {
                 21, 18,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_788d),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_78c5),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_78f7)
+                Glyph_1d7d_788d, Glyph_1d7d_78c5, Glyph_1d7d_78f7,
             }
         },
         { /* [10][4] */
             {
                 37, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_76f6),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_774d),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_779f)
+                Glyph_1d7d_76f6, Glyph_1d7d_774d, Glyph_1d7d_779f,
             },
             {
                 37, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_76f6),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_774d),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_779f)
+                Glyph_1d7d_76f6, Glyph_1d7d_774d, Glyph_1d7d_779f,
             }
         }
     },
@@ -3989,71 +3769,51 @@ const TrainGlyph g_trainGlyphs[15][5][2] = {
         { /* [11][0] */
             {
                 43, 11,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_79d7),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7a1b),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7a47)
+                Glyph_1d7d_79d7, Glyph_1d7d_7a1b, Glyph_1d7d_7a47,
             },
             {
                 43, 11,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7929),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_796d),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7999)
+                Glyph_1d7d_7929, Glyph_1d7d_796d, Glyph_1d7d_7999,
             }
         },
         { /* [11][1] */
             {
                 37, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7a85),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7adc),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7b2e)
+                Glyph_1d7d_7a85, Glyph_1d7d_7adc, Glyph_1d7d_7b2e,
             },
             {
                 37, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7a85),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7adc),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7b2e)
+                Glyph_1d7d_7a85, Glyph_1d7d_7adc, Glyph_1d7d_7b2e,
             }
         },
         { /* [11][2] */
             {
                 21, 20,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7c7b),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7cb9),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7cf1)
+                Glyph_1d7d_7c7b, Glyph_1d7d_7cb9, Glyph_1d7d_7cf1,
             },
             {
                 21, 20,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7c7b),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7cb9),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7cf1)
+                Glyph_1d7d_7c7b, Glyph_1d7d_7cb9, Glyph_1d7d_7cf1,
             }
         },
         { /* [11][3] */
             {
                 21, 20,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7d29),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7d67),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7d9f)
+                Glyph_1d7d_7d29, Glyph_1d7d_7d67, Glyph_1d7d_7d9f,
             },
             {
                 21, 20,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7d29),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7d67),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7d9f)
+                Glyph_1d7d_7d29, Glyph_1d7d_7d67, Glyph_1d7d_7d9f,
             }
         },
         { /* [11][4] */
             {
                 37, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7b80),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7bd7),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7c29)
+                Glyph_1d7d_7b80, Glyph_1d7d_7bd7, Glyph_1d7d_7c29,
             },
             {
                 37, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7b80),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7bd7),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7c29)
+                Glyph_1d7d_7b80, Glyph_1d7d_7bd7, Glyph_1d7d_7c29,
             }
         }
     },
@@ -4061,71 +3821,51 @@ const TrainGlyph g_trainGlyphs[15][5][2] = {
         { /* [12][0] */
             {
                 43, 8,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7e5b),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7e8d),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7eb3)
+                Glyph_1d7d_7e5b, Glyph_1d7d_7e8d, Glyph_1d7d_7eb3,
             },
             {
                 43, 8,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7dd7),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7e09),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7e2f)
+                Glyph_1d7d_7dd7, Glyph_1d7d_7e09, Glyph_1d7d_7e2f,
             }
         },
         { /* [12][1] */
             {
                 38, 13,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7edf),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7f22),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7f65)
+                Glyph_1d7d_7edf, Glyph_1d7d_7f22, Glyph_1d7d_7f65,
             },
             {
                 38, 13,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7edf),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7f22),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7f65)
+                Glyph_1d7d_7edf, Glyph_1d7d_7f22, Glyph_1d7d_7f65,
             }
         },
         { /* [12][2] */
             {
                 22, 15,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8067),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8096),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_80c2)
+                Glyph_1d7d_8067, Glyph_1d7d_8096, Glyph_1d7d_80c2,
             },
             {
                 22, 15,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8067),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8096),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_80c2)
+                Glyph_1d7d_8067, Glyph_1d7d_8096, Glyph_1d7d_80c2,
             }
         },
         { /* [12][3] */
             {
                 22, 15,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_80eb),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_811a),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8146)
+                Glyph_1d7d_80eb, Glyph_1d7d_811a, Glyph_1d7d_8146,
             },
             {
                 22, 15,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_80eb),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_811a),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8146)
+                Glyph_1d7d_80eb, Glyph_1d7d_811a, Glyph_1d7d_8146,
             }
         },
         { /* [12][4] */
             {
                 38, 13,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7fa3),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7fe6),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8029)
+                Glyph_1d7d_7fa3, Glyph_1d7d_7fe6, Glyph_1d7d_8029,
             },
             {
                 38, 13,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7fa3),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_7fe6),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8029)
+                Glyph_1d7d_7fa3, Glyph_1d7d_7fe6, Glyph_1d7d_8029,
             }
         }
     },
@@ -4133,71 +3873,51 @@ const TrainGlyph g_trainGlyphs[15][5][2] = {
         { /* [13][0] */
             {
                 42, 13,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8247),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8297),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_82d5)
+                Glyph_1d7d_8247, Glyph_1d7d_8297, Glyph_1d7d_82d5,
             },
             {
                 42, 13,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_816f),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_81bf),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_81fd)
+                Glyph_1d7d_816f, Glyph_1d7d_81bf, Glyph_1d7d_81fd,
             }
         },
         { /* [13][1] */
             {
                 38, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_831f),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8376),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_83c8)
+                Glyph_1d7d_831f, Glyph_1d7d_8376, Glyph_1d7d_83c8,
             },
             {
                 38, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_831f),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8376),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_83c8)
+                Glyph_1d7d_831f, Glyph_1d7d_8376, Glyph_1d7d_83c8,
             }
         },
         { /* [13][2] */
             {
                 21, 18,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8515),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_854d),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_857f)
+                Glyph_1d7d_8515, Glyph_1d7d_854d, Glyph_1d7d_857f,
             },
             {
                 21, 18,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8515),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_854d),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_857f)
+                Glyph_1d7d_8515, Glyph_1d7d_854d, Glyph_1d7d_857f,
             }
         },
         { /* [13][3] */
             {
                 21, 18,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_85b1),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_85e9),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_861b)
+                Glyph_1d7d_85b1, Glyph_1d7d_85e9, Glyph_1d7d_861b,
             },
             {
                 21, 18,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_85b1),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_85e9),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_861b)
+                Glyph_1d7d_85b1, Glyph_1d7d_85e9, Glyph_1d7d_861b,
             }
         },
         { /* [13][4] */
             {
                 38, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_841a),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8471),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_84c3)
+                Glyph_1d7d_841a, Glyph_1d7d_8471, Glyph_1d7d_84c3,
             },
             {
                 38, 17,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_841a),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8471),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_84c3)
+                Glyph_1d7d_841a, Glyph_1d7d_8471, Glyph_1d7d_84c3,
             }
         }
     },
@@ -4205,71 +3925,51 @@ const TrainGlyph g_trainGlyphs[15][5][2] = {
         { /* [14][0] */
             {
                 16, 9,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8768),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8778),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_878a)
+                Glyph_1d7d_8768, Glyph_1d7d_8778, Glyph_1d7d_878a,
             },
             {
                 16, 9,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8768),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8778),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_878a)
+                Glyph_1d7d_8768, Glyph_1d7d_8778, Glyph_1d7d_878a,
             }
         },
         { /* [14][1] */
             {
                 16, 9,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8768),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8778),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_878a)
+                Glyph_1d7d_8768, Glyph_1d7d_8778, Glyph_1d7d_878a,
             },
             {
                 16, 9,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8768),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8778),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_878a)
+                Glyph_1d7d_8768, Glyph_1d7d_8778, Glyph_1d7d_878a,
             }
         },
         { /* [14][2] */
             {
                 16, 9,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8768),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8778),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_878a)
+                Glyph_1d7d_8768, Glyph_1d7d_8778, Glyph_1d7d_878a,
             },
             {
                 16, 9,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8768),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8778),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_878a)
+                Glyph_1d7d_8768, Glyph_1d7d_8778, Glyph_1d7d_878a,
             }
         },
         { /* [14][3] */
             {
                 16, 9,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8768),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8778),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_878a)
+                Glyph_1d7d_8768, Glyph_1d7d_8778, Glyph_1d7d_878a,
             },
             {
                 16, 9,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8768),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8778),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_878a)
+                Glyph_1d7d_8768, Glyph_1d7d_8778, Glyph_1d7d_878a,
             }
         },
         { /* [14][4] */
             {
                 16, 9,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8768),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8778),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_878a)
+                Glyph_1d7d_8768, Glyph_1d7d_8778, Glyph_1d7d_878a,
             },
             {
                 16, 9,
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8768),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_8778),
-                reinterpret_cast<const Glyph*>(&Glyph_1d7d_878a)
+                Glyph_1d7d_8768, Glyph_1d7d_8778, Glyph_1d7d_878a,
             }
         }
     }

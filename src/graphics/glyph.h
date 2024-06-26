@@ -19,7 +19,7 @@ struct Glyph {
 void drawGlyphAlignX8(const Glyph*, std::int16_t x, std::int16_t y, Color);
 
 /* 1b06:067e */
-void drawGlyph(const Glyph*, std::int16_t x, std::int16_t y, Color);
+void drawGlyph(const Glyph&, std::int16_t x, std::int16_t y, Color);
 
 /* 1b06:05cb */
 void drawGlyphW8(const std::uint8_t* glyph, std::int16_t x, std::int16_t y, Color);
@@ -36,6 +36,11 @@ struct GlyphData {
         , data { static_cast<std::uint8_t>(values)... }
     {
         static_assert(sizeof...(Values) == W * H);
+    }
+
+    operator const Glyph&() const
+    {
+        return *reinterpret_cast<const Glyph*>(this);
     }
 
     std::uint8_t width;

@@ -15,7 +15,7 @@ namespace resl::drawing {
 
 /* 1b06:06f9 */
 void filledRectangle(std::int16_t x, std::int16_t y,
-                     std::int16_t width, std::int16_t height,
+                     std::int16_t widthBytes, std::int16_t height,
                      std::uint8_t pattern, Color color)
 {
     assert(Driver::instance().vga().writeMode() == 2);
@@ -24,7 +24,7 @@ void filledRectangle(std::int16_t x, std::int16_t y,
     Driver::instance().vga().setWriteMask(pattern);
     for (int curY = 0; curY < height; ++curY) {
         vga::VideoMemPtr vp = videoPtr;
-        for (std::int16_t curX = 0; curX < width; ++curX)
+        for (std::int16_t curX = 0; curX < widthBytes; ++curX)
             Driver::instance().vga().write(vp++, color);
         videoPtr += vga::VIDEO_MEM_ROW_BYTES;
     }
@@ -64,18 +64,18 @@ void horizontalLine(std::int16_t x1, std::int16_t x2, std::int16_t y, Color colo
 
 /* 15e8:025a */
 void dialogFrame(std::int16_t x, std::int16_t y,
-                 std::int16_t width, std::int16_t height, Color bgColor)
+                 std::int16_t widthBytes, std::int16_t height, Color bgColor)
 {
-    const std::int16_t x2 = x + (width + -1) * 8;
+    const std::int16_t x2 = x + (widthBytes + -1) * 8;
     const std::int16_t roundedX1 = x & 0xfff8; // 1111111111111000b
-    const std::int16_t roundedX2 = roundedX1 + width * 8;
-    filledRectangle(x, y, width, height, 0xff, bgColor);
+    const std::int16_t roundedX2 = roundedX1 + widthBytes * 8;
+    filledRectangle(x, y, widthBytes, height, 0xff, bgColor);
     filledRectangle(x, y, 1, height, 0x60, Color::White);
     filledRectangle(x, y, 1, height, 0x90, Color::Black);
     filledRectangle(x2, y, 1, height, 6, Color::White);
     filledRectangle(x2, y, 1, height, 9, Color::Black);
-    filledRectangle(x, y, width, 1, 0xff, Color::Black);
-    filledRectangle(x, y + height, width, 1, 0xff, Color::Black);
+    filledRectangle(x, y, widthBytes, 1, 0xff, Color::Black);
+    filledRectangle(x, y + height, widthBytes, 1, 0xff, Color::Black);
     horizontalLine(roundedX1 + 1, roundedX2 + -2, y + 1, Color::White);
     horizontalLine(roundedX1 + 1, roundedX2 + -2, y + height + -1, Color::White);
     horizontalLine(roundedX1 + 3, roundedX2 + -4, y + 2, Color::Black);
@@ -341,6 +341,13 @@ void restoreVideoMemRegion24x16(std::int16_t x, std::int16_t y, vga::VideoMemPtr
         dst += vga::VIDEO_MEM_ROW_BYTES - 3;
         src += vga::VIDEO_MEM_ROW_BYTES - 3;
     }
+}
+
+/* 132d:03c2 */
+void flushScreenBuffer(std::int16_t y)
+{
+    copyRectangle(0, y, 0, y ^ 350, 80, 350);
+    vga::setVideoModeR0W2();
 }
 
 } // namespace resl::drawing

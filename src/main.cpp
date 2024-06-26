@@ -1,9 +1,13 @@
 #include "game/init.h"
 
+#include "game/dialog.h"
+#include "game/draw_header.h"
 #include "game/drawing.h"
 #include "game/header.h"
+#include "game/keyboard.h"
 #include "game/load_game.h"
 #include "game/main_loop.h"
+#include "game/main_menu.h"
 #include "game/mouse/mouse.h"
 #include "game/mouse/mouse_mode.h"
 #include "game/mouse/mouse_state.h"
@@ -21,6 +25,7 @@
 #include "tasks/task.h"
 #include <system/driver/driver.h>
 
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -89,6 +94,7 @@ void loadGame(const char* fname)
     loadSavedGame(fname);
 
     Driver::instance().setMouseHandler(&handleMouseInput);
+    Driver::instance().setKeyboardHandler(&keyboardInteruptionHandler);
 
     drawWorld();
     fillGameFieldBackground(350);
@@ -176,10 +182,28 @@ void drawTrainsDemo(int, const char*[])
     addTask(implDrawTrainsDemo());
 }
 
+void drawMenuDemo(int, const char*[])
+{
+    Driver::instance().setKeyboardHandler(&keyboardInteruptionHandler);
+
+    drawMainMenuBackground(350);
+
+    const std::int16_t level = 1; // TODO readLevel()
+    drawHeaderData(0, 100, 1800, level, 350);
+    drawDialog(DialogType::MainMenu, 350);
+    // TODO
+    // animateScreenShifting();
+    drawing::flushScreenBuffer(0);
+    // TODO
+    // setVideoFrameOrigin(0, 0);
+    mainMenu();
+}
+
 const std::map<std::string, std::function<void(int, const char*[])>> commands = {
     { "records",     recordsScreenDemo },
     { "draw_text",   drawTextDemo      },
-    { "draw_trains", drawTrainsDemo    }
+    { "draw_trains", drawTrainsDemo    },
+    { "draw_menu",   drawMenuDemo      }
 };
 
 Task sdlLoop()

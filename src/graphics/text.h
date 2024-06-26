@@ -15,4 +15,7 @@ void drawText(std::int16_t x, std::int16_t y, const char*, Color);
 /* 1b06:077c */
 void drawTextSmall(std::int16_t x, std::int16_t y, const char*, Color);
 
+/* 15e8:0984 */
+std::int16_t measureText(const char*);
+
 } // namespace resl

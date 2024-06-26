@@ -79,9 +79,7 @@ with CPPWriter('train_glyph.cpp') as w:
                             w.writeln('{')
                             with w.indent():
                                 w.writeln('%d, %d,' % (a, b))
-                                w.writeln('reinterpret_cast<const Glyph*>(&%s),' % ref1)
-                                w.writeln('reinterpret_cast<const Glyph*>(&%s),' % ref2)
-                                w.writeln('reinterpret_cast<const Glyph*>(&%s)' % ref3)
+                                w.writeln('%s, %s, %s,' % (ref1, ref2, ref3))
                             w.writeln('}' if direction == 1 else '},')
                     w.writeln('}' if y == 4 else '},')
             w.writeln('}' if x == 14 else '},')

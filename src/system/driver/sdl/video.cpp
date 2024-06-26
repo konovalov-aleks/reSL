@@ -45,17 +45,17 @@ void VGAEmulation::flush()
         return;
     m_nextFrameTime = now + std::chrono::microseconds(1000000 / s_FPS);
 
-    if (!m_dirty)
-        return;
-    m_dirty = false;
+    if (m_dirty) {
+        m_dirty = false;
 
-    unlockTexture();
+        unlockTexture();
 
-    SDL_Rect srcRect = { 0, 0, m_wndWidth, m_wndHeight };
-    SDL_RenderCopy(m_renderer, m_screen, &srcRect, nullptr);
-    SDL_RenderPresent(m_renderer);
+        SDL_Rect srcRect = { 0, 0, m_wndWidth, m_wndHeight };
+        SDL_RenderCopy(m_renderer, m_screen, &srcRect, nullptr);
+        SDL_RenderPresent(m_renderer);
 
-    lockTexture();
+        lockTexture();
+    }
 
     // need to poll events to make the image appear
     Driver::instance().pollEvent();

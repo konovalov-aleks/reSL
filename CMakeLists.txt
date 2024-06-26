@@ -5,6 +5,7 @@ project(reSL)
 file(GLOB_RECURSE HEADERS "*.h")
 
 set(SOURCES
+    src/game/dialog.cpp
     src/game/draw_header.cpp
     src/game/drawing.cpp
     src/game/entrance.cpp
@@ -14,8 +15,10 @@ set(SOURCES
     src/game/impasse.cpp
     src/game/init.cpp
     src/game/io_status.cpp
+    src/game/keyboard.cpp
     src/game/load_game.cpp
     src/game/main_loop.cpp
+    src/game/main_menu.cpp
     src/game/melody.cpp
     src/game/mouse/construction_mode.cpp
     src/game/mouse/management_mode.cpp
@@ -40,6 +43,7 @@ set(SOURCES
     src/game/resources/semaphore_glyph.cpp
     src/game/resources/semaphore_glyph_bias.cpp
     src/game/resources/static_object_glyph.cpp
+    src/game/resources/text_glyphs.cpp
     src/game/resources/train_finished_exclamation_glyph.cpp
     src/game/resources/train_glyph.cpp
     src/game/resources/train_specification.cpp

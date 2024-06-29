@@ -50,8 +50,35 @@ void VGAEmulation::flush()
 
         unlockTexture();
 
-        SDL_Rect srcRect = { 0, 0, m_wndWidth, m_wndHeight };
-        SDL_RenderCopy(m_renderer, m_screen, &srcRect, nullptr);
+        const bool isDebugGraphicsMode = m_wndWidth != SCREEN_WIDTH;
+        if (m_vgaState.overflowLineCompare < SCREEN_HEIGHT && !isDebugGraphicsMode) {
+
+            int w, h;
+            if (SDL_GetRendererOutputSize(m_renderer, &w, &h) != 0) [[unlikely]] {
+                std::cerr << "SDL_GetRendererOutputSize failed. SDL error: "
+                          << SDL_GetError() << std::endl;
+                std::abort();
+            }
+            SDL_Rect srcRect = {
+                0, m_vgaState.yOrigin,
+                m_wndWidth, m_vgaState.overflowLineCompare
+            };
+            SDL_Rect dstRect = {
+                0, 0,
+                w, h * m_vgaState.overflowLineCompare / m_wndHeight
+            };
+            SDL_RenderCopy(m_renderer, m_screen, &srcRect, &dstRect);
+
+            dstRect = {
+                0, h * m_vgaState.overflowLineCompare / m_wndHeight,
+                w, h * (m_wndHeight - m_vgaState.overflowLineCompare) / m_wndHeight
+            };
+            srcRect = { 0, 0, m_wndWidth, m_wndHeight - m_vgaState.overflowLineCompare };
+            SDL_RenderCopy(m_renderer, m_screen, &srcRect, &dstRect);
+        } else {
+            SDL_Rect srcRect = { 0, m_vgaState.yOrigin, m_wndWidth, m_wndHeight };
+            SDL_RenderCopy(m_renderer, m_screen, &srcRect, nullptr);
+        }
         SDL_RenderPresent(m_renderer);
 
         lockTexture();
@@ -174,7 +201,7 @@ void VGAEmulation::updateVideoMemory(unsigned srcByte)
     const int x = (srcByte * 8) % (vga::VIDEO_MEM_ROW_BYTES * 8);
     const int y = (srcByte * 8) / (vga::VIDEO_MEM_ROW_BYTES * 8);
 
-    if (x >= m_wndWidth || y >= m_wndHeight)
+    if (x >= m_wndWidth)
         return;
 
     std::uint32_t* dst = &m_screenPixels[x + y * m_screenPixelsPitch];
@@ -276,6 +303,25 @@ void VGAEmulation::setMode(std::uint8_t mode)
     m_vgaState.readMode = (mode >> 2) & 1;
 }
 
+void VGAEmulation::setLineCompareRegister(std::uint16_t y)
+{
+    // line compare register has 9 bits
+    y = y & 0x1FF;
+    if (m_vgaState.overflowLineCompare != y) {
+        m_vgaState.overflowLineCompare = y;
+        m_dirty = true;
+    }
+}
+
+void VGAEmulation::setFrameOrigin(std::int16_t x, std::int16_t y)
+{
+    assert(x == 0); // not supported
+    if (m_vgaState.yOrigin != y) {
+        m_vgaState.yOrigin = y;
+        m_dirty = true;
+    }
+}
+
 void VGAEmulation::setPlaneMask(std::uint8_t mask)
 {
     m_vgaState.regPlaneMask = mask;
@@ -298,7 +344,7 @@ void VGAEmulation::setPaletteItem(std::uint8_t idx, std::uint32_t rgb)
 
     std::size_t srcByte = 0;
     std::uint32_t* dst = m_screenPixels;
-    for (int y = 0; y < m_wndHeight; ++y) {
+    for (int y = 0; y < vga::VIDEO_MEM_N_ROWS; ++y) {
         std::size_t s = srcByte;
         for (int x = 0; x <= m_wndWidth; x += 8) {
             for (int bit = 0; bit < 8; ++bit) {

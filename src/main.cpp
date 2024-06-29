@@ -16,6 +16,7 @@
 #include "game/resources/train_glyph.h"
 #include "game/road_construction.h"
 #include "game/train.h"
+#include "graphics/animation.h"
 #include "graphics/color.h"
 #include "graphics/drawing.h"
 #include "graphics/glyph.h"
@@ -58,7 +59,7 @@ void drawTextDemo(int, const char*[])
             buf[x] = c;
             ++c;
         }
-        drawText(10, 40 + y * 20, buf, Red);
+        drawText(10, 40 + y * 20, buf, Color::Red);
 
         if (c > 146)
             break;
@@ -101,7 +102,7 @@ void loadGame(const char* fname)
     drawFieldBackground(350);
 
     vga::setVideoModeR0W1();
-    drawing::copyRectangle(0, 0, 0, 350, 80, 350);
+    graphics::copyRectangle(0, 0, 0, 350, 80, 350);
     vga::setVideoModeR0W2();
 
     mouse::g_state.mode->drawFn();
@@ -117,11 +118,11 @@ void loadGame(const char* fname)
 Task implDrawTrainsDemo()
 {
     static Color colors[5][2] = {
-        { Blue,       DarkBlue  },
-        { Red,        DarkRed   },
-        { White,      Gray      },
-        { Gray,       DarkGray  },
-        { LightGreen, DarkGreen }
+        { Color::Blue,       Color::DarkBlue  },
+        { Color::Red,        Color::DarkRed   },
+        { Color::White,      Color::Gray      },
+        { Color::Gray,       Color::DarkGray  },
+        { Color::LightGreen, Color::DarkGreen }
     };
 
     // angle - direction
@@ -143,14 +144,14 @@ Task implDrawTrainsDemo()
     int dFrame = 1;
     for (;;) {
         const auto [currentAngle, currentDirection] = frames[curFrame];
-        drawing::filledRectangle(0, 0, 640, 480, 0xFF, DarkGreen);
+        graphics::filledRectangle(0, 0, 640, 480, 0xFF, DarkGreen);
 
         int x = 80;
         int y = 30;
         for (int i = 0; i < 15; ++i) {
             const TrainGlyph* g = &g_trainGlyphs[i][currentAngle][currentDirection];
             Color* c = colors[i % std::size(colors)];
-            drawGlyph(g->glyph1, x - g->width / 2, y - g->height / 2, Black);
+            drawGlyph(g->glyph1, x - g->width / 2, y - g->height / 2, Color::Black);
             drawGlyph(g->glyph2, x - g->width / 2, y - g->height / 2, c[0]);
             drawGlyph(g->glyph3, x - g->width / 2, y - g->height / 2, c[1]);
             char buf[100];
@@ -186,16 +187,21 @@ void drawMenuDemo(int, const char*[])
 {
     Driver::instance().setKeyboardHandler(&keyboardInteruptionHandler);
 
+    graphics::setVideoFrameOrigin(0, 0);
+    graphics::shiftScreen(511);
+
+
+    disableTimer();
+    createNewWorld();
     drawMainMenuBackground(350);
 
     const std::int16_t level = 1; // TODO readLevel()
     drawHeaderData(0, 100, 1800, level, 350);
     drawDialog(DialogType::MainMenu, 350);
-    // TODO
-    // animateScreenShifting();
-    drawing::flushScreenBuffer(0);
-    // TODO
-    // setVideoFrameOrigin(0, 0);
+
+    graphics::animateScreenShifting();
+    graphics::flushScreenBuffer(0);
+    graphics::setVideoFrameOrigin(0, 0);
     mainMenu();
 }
 
@@ -208,12 +214,11 @@ const std::map<std::string, std::function<void(int, const char*[])>> commands = 
 
 Task sdlLoop()
 {
-    while (Driver::instance().pollEvent()) {
+    for (;;) {
+        Driver::instance().pollEvent();
         Driver::instance().vga().flush();
         co_await sleep(2);
     }
-    stopScheduler();
-    co_return;
 }
 
 int usage(int argc, const char* argv[], int unknownArg = -1)
@@ -290,7 +295,7 @@ int main(int argc, const char* argv[])
 
     addTask(sdlLoop());
 
-    startTimer();
+    initTimer();
     runScheduler();
 
     return EXIT_SUCCESS;

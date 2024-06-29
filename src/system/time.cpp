@@ -1,11 +1,17 @@
 #include "time.h"
 
+#include <SDL_error.h>
 #include <SDL_stdinc.h>
 #include <SDL_timer.h>
 
 #include <atomic>
+#include <cassert>
+#include <cstdlib>
+#include <iostream>
 
 namespace resl {
+
+// TODO reimplement without using SDL_Timer
 
 // Of course, the original game is single-threaded, they use interruptions to
 // update this value => probably, this value is just marked as volatile there
@@ -28,7 +34,10 @@ static Uint32 sdlTimerCallback(Uint32 interval, void* /* param */)
     return interval;
 }
 
-void startTimer()
+static SDL_TimerID g_timer = 0;
+
+/* 1594:000e */
+void initTimer()
 {
     /* The original game initialized the timer here:
             1594:000e
@@ -57,7 +66,24 @@ void startTimer()
         So, this code is very specific for X86 DOS
         => we will use SDL timer instead
      */
-    SDL_AddTimer(MsPerTick, sdlTimerCallback, nullptr);
+    assert(g_timer == 0);
+    g_timer = SDL_AddTimer(MsPerTick, sdlTimerCallback, nullptr);
+    if (g_timer == 0) [[unlikely]] {
+        std::cerr << "Unable to start SDL timer. SDL error: " << SDL_GetError() << std::endl;
+        std::abort();
+    }
 }
+
+/* 16a6:05eb */
+void disableTimer()
+{
+    // In the original game, the INT8 vector is replaced with an empty handler.
+    if (g_timer) {
+        SDL_bool ok = SDL_RemoveTimer(g_timer);
+        assert(ok); (void)ok;
+        g_timer = 0;
+    }
+}
+
 
 } // namespace resl

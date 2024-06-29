@@ -145,14 +145,14 @@ static void animateCollisionAndPlaySound(Position pos)
         x2[i] = pos.x + symmetricRand(i / 2 + 1);
         y2[i] = pos.y + symmetricRand(i / 2 + 1);
 
-        drawing::line(x1[i], y1[i], x2[i], y2[i], Color::White);
+        graphics::line(x1[i], y1[i], x2[i], y2[i], Color::White);
 
         std::int16_t freq = genRandomNumber(i * 16 + 1);
         sound(freq + 30);
         activeSleep(1);
     }
     for (int i = 0; i < 125; ++i) {
-        drawing::line(x1[i], y1[i], x2[i], y2[i], Color::White);
+        graphics::line(x1[i], y1[i], x2[i], y2[i], Color::White);
 
         std::int16_t freq = genRandomNumber(i * 16 + 1);
         sound(freq + 30);
@@ -430,7 +430,7 @@ static void eraseCarriagesInShadowBuffer(const Carriage& c, vga::VideoMemPtr ptr
     std::int16_t height = c.rect.y2 - c.rect.y1;
     if (c.next)
         eraseCarriagesInShadowBuffer(*c.next, ptr + widthBytes * height);
-    drawing::copySpriteFromShadowBuffer(ptr, c.rect.x1, c.rect.y1 + 350, widthBytes, height);
+    graphics::copySpriteFromShadowBuffer(ptr, c.rect.x1, c.rect.y1 + 350, widthBytes, height);
 }
 
 /* 18fa:068a */
@@ -523,7 +523,7 @@ Task taskMoveAndRedrawTrains()
 
             vga::setVideoModeR0W1();
             do {
-                drawing::copyFromShadowBuffer(*curCarriageRect++);
+                graphics::copyFromShadowBuffer(*curCarriageRect++);
                 carriage = carriage->next;
             } while (carriage);
             vga::setVideoModeR0W2();
@@ -532,7 +532,7 @@ Task taskMoveAndRedrawTrains()
                 mouse::g_state.mode->drawFn();
 
             vga::setVideoModeR0W1();
-            eraseCarriagesInShadowBuffer(*g_trainDrawingChains[curChain], drawing::VIDEO_MEM_SHADOW_BUFFER);
+            eraseCarriagesInShadowBuffer(*g_trainDrawingChains[curChain], graphics::VIDEO_MEM_SHADOW_BUFFER);
             vga::setVideoModeR0W2();
         }
     }

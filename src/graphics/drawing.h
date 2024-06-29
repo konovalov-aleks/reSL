@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-namespace resl::drawing {
+namespace resl::graphics {
 
 /* 1b06:06f9 */
 void filledRectangle(std::int16_t x, std::int16_t y,
@@ -67,4 +67,4 @@ void restoreVideoMemRegion24x16(std::int16_t x, std::int16_t y, vga::VideoMemPtr
 /* 132d:03c2 */
 void flushScreenBuffer(std::int16_t y);
 
-} // namespace resl::drawing
+} // namespace resl::graphics

@@ -182,7 +182,7 @@ void eraseSwitch(std::int16_t idx)
                 const std::int16_t offset = yPos * vga::VIDEO_MEM_ROW_BYTES + sar(xPos, 3);
                 std::uint8_t data = vga.read(srcPtr++);
                 vga.write(vga::VIDEO_MEM_START_ADDR + offset, data);
-                vga.write(drawing::VIDEO_MEM_SHADOW_BUFFER + offset, data);
+                vga.write(graphics::VIDEO_MEM_SHADOW_BUFFER + offset, data);
             }
             ++glyphData;
         }

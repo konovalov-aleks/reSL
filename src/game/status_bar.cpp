@@ -20,8 +20,8 @@ void drawCopyright(std::int16_t yOffset)
 /* 132d:013c */
 void drawStatusBarWithCopyright(std::int16_t yOffset)
 {
-    drawing::filledRectangle(0, g_footerYPos + yOffset, 80, 16, 0xFF, Color::Gray);
-    drawing::filledRectangle(0, g_footerYPos + yOffset, 80, 1, 0xFF, Color::Black);
+    graphics::filledRectangle(0, g_footerYPos + yOffset, 80, 16, 0xFF, Color::Gray);
+    graphics::filledRectangle(0, g_footerYPos + yOffset, 80, 1, 0xFF, Color::Black);
     drawCopyright(yOffset);
 }
 

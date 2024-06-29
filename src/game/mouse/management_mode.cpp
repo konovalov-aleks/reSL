@@ -55,7 +55,7 @@ void drawArrowCursor()
     assert(g_state.mode && g_state.mode == &g_modeManagement);
     MouseMode& mode = *g_state.mode;
 
-    drawing::saveVideoMemRegion24x16(mode.x, mode.y, g_cursorAreaBackup);
+    graphics::saveVideoMemRegion24x16(mode.x, mode.y, g_cursorAreaBackup);
     vga::setVideoModeR0W2();
 
     static_assert(std::size(MouseMode {}.glyphs) == std::size(MouseMode {}.colors));
@@ -69,7 +69,7 @@ void eraseArrowCursor()
 {
     assert(g_state.mode && g_state.mode == &g_modeManagement);
     MouseMode& mode = *g_state.mode;
-    drawing::restoreVideoMemRegion24x16(mode.x, mode.y, g_cursorAreaBackup);
+    graphics::restoreVideoMemRegion24x16(mode.x, mode.y, g_cursorAreaBackup);
     vga::setVideoModeR0W2();
 }
 

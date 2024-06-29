@@ -38,7 +38,7 @@ public:
     void setMouseHandler(MouseHandler hdl) { m_mouseHandler = hdl; }
     void setKeyboardHandler(KeyboardHandler hdl) { m_keyboardHandler = hdl; }
 
-    bool pollEvent();
+    void pollEvent();
 
 private:
     Driver();

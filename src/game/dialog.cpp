@@ -140,7 +140,7 @@ Rectangle& drawDialog(DialogType type, std::int16_t yOffset)
     const std::int16_t y = y0 + 47;
 
     const Color bgColor = itemsCount ? Color::Gray : Color::Red;
-    drawing::dialogFrame(x, y, widthBytes, height, bgColor);
+    graphics::dialogFrame(x, y, widthBytes, height, bgColor);
     drawText(x + 25, y0 + 65, dlg.title, Color::Black);
     for (std::int16_t i = 0; i < itemsCount; ++i) {
         dlg.x = x + 25;

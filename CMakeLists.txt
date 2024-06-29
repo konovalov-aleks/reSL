@@ -53,6 +53,7 @@ set(SOURCES
     src/game/status_bar.cpp
     src/game/switch.cpp
     src/game/train.cpp
+    src/graphics/animation.cpp
     src/graphics/drawing.cpp
     src/graphics/glyph.cpp
     src/graphics/text.cpp
@@ -63,6 +64,7 @@ set(SOURCES
     src/system/driver/sdl/audio.cpp
     src/system/driver/sdl/driver.cpp
     src/system/driver/sdl/video.cpp
+    src/system/exit.cpp
     src/system/random.cpp
     src/system/read_file.cpp
     src/system/sound.cpp

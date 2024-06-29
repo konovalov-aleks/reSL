@@ -48,7 +48,7 @@ void redrawScreenArea()
         mouse::g_state.mode->clearFn();
 
     vga::setVideoModeR0W1();
-    drawing::copyFromShadowBuffer(g_areaToRedraw);
+    graphics::copyFromShadowBuffer(g_areaToRedraw);
     vga::setVideoModeR0W2();
 
     if (mouse::g_state.mode == &mouse::g_modeManagement)
@@ -112,11 +112,11 @@ void drawRail(std::int16_t tileX, std::int16_t tileY,
 void drawFieldBackground(std::int16_t yOffset)
 {
     for (const RailInfo* r = g_railRoad; r < g_railRoad + g_railRoadCount; ++r) {
-        drawRailBg1(r->tileX, r->tileY, r->railType, DarkGray, yOffset);
-        drawRailBg2(r->tileX, r->tileY, r->railType, Gray, yOffset);
+        drawRailBg1(r->tileX, r->tileY, r->railType, Color::DarkGray, yOffset);
+        drawRailBg2(r->tileX, r->tileY, r->railType, Color::Gray, yOffset);
     }
     for (const RailInfo* r = g_railRoad; r < g_railRoad + g_railRoadCount; ++r) {
-        drawRail(r->tileX, r->tileY, r->railType, Black, yOffset);
+        drawRail(r->tileX, r->tileY, r->railType, Color::Black, yOffset);
         drawImpasse(g_rails[r->tileX][r->tileY][r->railType], yOffset);
     }
 
@@ -135,7 +135,7 @@ void drawFieldBackground(std::int16_t yOffset)
 /* 132d:004b */
 void fillGameFieldBackground(std::int16_t yOffset)
 {
-    drawing::filledRectangle(0, 49 + yOffset, 80, 285, 0xFF, Color::Green);
+    graphics::filledRectangle(0, 49 + yOffset, 80, 285, 0xFF, Color::Green);
 }
 
 /* 15e8:09c8 */
@@ -144,11 +144,11 @@ void drawWorld()
     fillGameFieldBackground(350);
 
     for (const RailInfo* r = g_railRoad; r < g_railRoad + g_railRoadCount; ++r) {
-        drawRailBg1(r->tileX, r->tileY, r->railType, DarkGray, 350);
-        drawRailBg2(r->tileX, r->tileY, r->railType, Gray, 350);
+        drawRailBg1(r->tileX, r->tileY, r->railType, Color::DarkGray, 350);
+        drawRailBg2(r->tileX, r->tileY, r->railType, Color::Gray, 350);
     }
     for (const RailInfo* r = g_railRoad; r < g_railRoad + g_railRoadCount; ++r) {
-        drawRail(r->tileX, r->tileY, r->railType, Black, 350);
+        drawRail(r->tileX, r->tileY, r->railType, Color::Black, 350);
         drawImpasse(g_rails[r->tileX][r->tileY][r->railType], 350);
     }
 
@@ -212,7 +212,7 @@ void drawGameField(std::int16_t yOffset)
     // and name in the code are in different case is not a problem there.
     // For portability, I use a name identical to the file name on disk.
     readIfNotLoaded("PLAY.7", g_pageBuffer);
-    drawing::imageDot7(0, yOffset, 640, 350, g_pageBuffer);
+    graphics::imageDot7(0, yOffset, 640, 350, g_pageBuffer);
     drawStaticObjects(yOffset);
     drawCopyright(yOffset);
 }

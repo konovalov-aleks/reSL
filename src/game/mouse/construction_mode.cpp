@@ -41,7 +41,7 @@ namespace {
         const Glyph& glyph = *g_state.glyph;
 
         vga::VideoMemPtr dstPtr = vga::VIDEO_MEM_START_ADDR + g_state.videoMemOffset;
-        vga::VideoMemPtr srcPtr = drawing::VIDEO_MEM_SHADOW_BUFFER + g_state.videoMemOffset;
+        vga::VideoMemPtr srcPtr = graphics::VIDEO_MEM_SHADOW_BUFFER + g_state.videoMemOffset;
 
         vga::setVideoModeR0W1();
         const std::uint8_t* glyphData = glyph.data;

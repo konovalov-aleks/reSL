@@ -12,6 +12,10 @@ using TimeT = std::uint16_t;
 /* 1c61:000e */
 TimeT getTime();
 
-void startTimer();
+/* 1594:000e */
+void initTimer();
+
+/* 16a6:05eb */
+void disableTimer();
 
 } // namespace resl

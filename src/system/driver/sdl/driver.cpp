@@ -96,13 +96,13 @@ void Driver::sleep(unsigned ms)
 #endif // __EMSCRIPTEN__
 }
 
-bool Driver::pollEvent()
+void Driver::pollEvent()
 {
     SDL_Event e;
-    while (!m_quit && SDL_PollEvent(&e)) {
+    while (SDL_PollEvent(&e)) {
         switch (e.type) {
         case SDL_QUIT:
-            m_quit = true;
+            std::exit(EXIT_SUCCESS);
             break;
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
@@ -117,7 +117,6 @@ bool Driver::pollEvent()
             break;
         }
     }
-    return !m_quit;
 }
 
 inline std::uint16_t mousePressedFlags(const SDL_MouseButtonEvent& e)

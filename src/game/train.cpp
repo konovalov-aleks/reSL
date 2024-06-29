@@ -168,7 +168,7 @@ void scheduleAllTrainsRedrawing()
 void drawTrainList(Carriage* c)
 {
     Rectangle* curBoundingBox = g_carriagesBoundingBoxes;
-    vga::VideoMemPtr shadowBufPtr = drawing::VIDEO_MEM_SHADOW_BUFFER;
+    vga::VideoMemPtr shadowBufPtr = graphics::VIDEO_MEM_SHADOW_BUFFER;
 
     for (; c; c = c->next) {
         const PathStep& p = g_movementPaths[c->location.rail->type].data[c->location.pathStep];
@@ -196,7 +196,7 @@ void drawTrainList(Carriage* c)
             curBoundingBox->y2 = c->rect.y2;
 
         vga::setVideoModeR0W1();
-        shadowBufPtr = drawing::copySpriteToShadowBuffer(shadowBufPtr, c->rect.x1, c->rect.y1 + 350,
+        shadowBufPtr = graphics::copySpriteToShadowBuffer(shadowBufPtr, c->rect.x1, c->rect.y1 + 350,
                                                          sar<std::int16_t>(c->rect.x2 - 1, 3) - sar(c->rect.x1, 3) + 1,
                                                          glyph.height);
         vga::setVideoModeR0W2();
@@ -226,7 +226,7 @@ void eraseTrain(const Train& train)
 
     vga::setVideoModeR0W1();
     for (uint8_t i = 0; i < train.carriageCnt; ++i)
-        drawing::copyFromShadowBuffer(train.carriages[i].rect);
+        graphics::copyFromShadowBuffer(train.carriages[i].rect);
     vga::setVideoModeR0W2();
 
     mouse::g_state.mode->drawFn();

@@ -4,10 +4,7 @@
 #include <graphics/drawing.h>
 #include <graphics/vga.h>
 #include <system/buffer.h>
-#include <system/driver/driver.h>
 #include <system/read_file.h>
-
-#include <cstdlib>
 
 namespace resl {
 
@@ -19,7 +16,7 @@ void gameOver()
     // This is not a problem for them, because DOS has a case-insensitive file system.
     // We use the identical names for better portability.
     readFromFile("GAMEOVER.7", g_pageBuffer);
-    drawing::imageDot7(184, 58, 284, 263, g_pageBuffer);
+    graphics::imageDot7(184, 58, 284, 263, g_pageBuffer);
     playGameOverMelody();
 
     // TODO
@@ -33,8 +30,6 @@ void gameOver()
     // FIXME temporary hack - remove this
     for (;;) {
         vga::waitVerticalRetrace();
-        if (!Driver::instance().pollEvent())
-            std::exit(EXIT_SUCCESS);
     }
 }
 

@@ -11,7 +11,7 @@
 #include <cstdlib>
 #include <utility>
 
-namespace resl::drawing {
+namespace resl::graphics {
 
 /* 1b06:06f9 */
 void filledRectangle(std::int16_t x, std::int16_t y,
@@ -350,4 +350,4 @@ void flushScreenBuffer(std::int16_t y)
     vga::setVideoModeR0W2();
 }
 
-} // namespace resl::drawing
+} // namespace resl::graphics

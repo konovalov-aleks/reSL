@@ -36,6 +36,14 @@ public:
     void setReadPlane(std::uint8_t);
     void setWriteOperation(vga::WriteOperation);
 
+    // 3d4h index  7  (R/W):  CRTC: Overflow Register
+    // 4  Bit 8 of Line Compare Register (3d4h index 18h)
+    void setLineCompareRegister(std::uint16_t);
+
+    // 3d4h index  Ch (R/W):  CRTC: Start Address High Register
+    // bit 0-7  Upper 8 bits of the start address of the display buffer
+    void setFrameOrigin(std::int16_t x, std::int16_t y);
+
     void setPaletteItem(std::uint8_t idx, std::uint32_t rgb);
 
     unsigned timeToNextFrameMS() const;
@@ -69,6 +77,14 @@ private:
 
         // 3C4h index 2 (Color Plane Write Enable Register)
         std::uint8_t regPlaneMask = 0xF;
+
+        // 3d4h index  7  (R/W):  CRTC: Overflow Register
+        // 4  Bit 8 of Line Compare Register (3d4h index 18h)
+        std::uint16_t overflowLineCompare = 0;
+
+        // 3d4h index  Ch (R/W):  CRTC: Start Address High Register
+        // bit 0-7  Upper 8 bits of the start address of the display buffer
+        std::int16_t yOrigin = 0;
 
         std::array<std::uint32_t, 16> palette;
 

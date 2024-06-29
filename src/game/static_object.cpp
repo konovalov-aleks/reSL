@@ -44,9 +44,9 @@ static void drawGrass(std::int16_t yOffset)
         int y = genRandomNumber(287) + g_headerHeight;
         for (int j = 0; j < 45; ++j) {
             if (isInsideGameField(x, y)) {
-                Color c = drawing::getPixel(x, y + yOffset);
+                Color c = graphics::getPixel(x, y + yOffset);
                 if (c == Color::Green)
-                    drawing::putPixel(x, y + yOffset, Color::Black);
+                    graphics::putPixel(x, y + yOffset, Color::Black);
             }
             x += symmetricRand(20);
             y += symmetricRand(20) / 4;

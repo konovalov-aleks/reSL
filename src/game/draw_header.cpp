@@ -24,8 +24,8 @@ static const char* const s_alphabet[12] = { "9", "0", "1", "2", "3", "4",
 /* 12c5:0342 */
 void drawHeaderFieldFontTexture()
 {
-    drawing::filledRectangle(680, 397, 2, 192, 0xFF, Color::White);
-    drawing::filledRectangle(680, 397, 1, 192, 0x80, Color::DarkGray);
+    graphics::filledRectangle(680, 397, 2, 192, 0xFF, Color::White);
+    graphics::filledRectangle(680, 397, 1, 192, 0x80, Color::DarkGray);
     for (int i = 0; i < 12; ++i)
         drawText(682, i * 16 + 399, s_alphabet[i], Color::Black);
 }
@@ -39,14 +39,14 @@ void drawHeaderBackground(std::int16_t yOffset)
     // and name in the code are in different case is not a problem there.
     // For portability, I use a name identical to the file name on disk.
     readIfNotLoaded("PLAY.7", g_pageBuffer);
-    drawing::imageDot7(0, yOffset, 640, g_headerHeight, g_pageBuffer);
+    graphics::imageDot7(0, yOffset, 640, g_headerHeight, g_pageBuffer);
 }
 
 /* 12c5:01d7 */
 void drawHeaderField(const HeaderField& hdrField)
 {
     for (std::int8_t i = 0; i <= hdrField.curAnimatingDigit; ++i) {
-        drawing::copyRectangle(
+        graphics::copyRectangle(
             hdrField.x + (hdrField.nDigits - i - 1) * 16,
             hdrField.y, 680,
             (hdrField.digitValues[i] + 1) * 16 + hdrField.yScroll + 397,

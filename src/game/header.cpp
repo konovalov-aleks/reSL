@@ -37,7 +37,12 @@ namespace {
 } // namespace
 
 /* 1d7d:00f0 : 72 bytes */
-Headers g_headers;
+Headers g_headers = {
+    { .x = 16, .y = 25, .valueLimit = -1, .nDigits = 5 }, // trains
+    { .x = 136, .y = 25, .valueLimit = -1, .nDigits = 4 }, // money
+    { .x = 272, .y = 25, .valueLimit = 2000, .nDigits = 4 }, // year
+    { .x = 376, .y = 25, .valueLimit = 100, .nDigits = 2 } // level
+};
 
 /* 12c5:031b */
 void startHeaderFieldAnimation(HeaderFieldId fieldId, std::int16_t delta)
@@ -62,8 +67,8 @@ static void makeYearFieldBlinking()
         const std::int16_t xOffset = yearFld.x + digit * 16;
         for (std::int16_t x = 0; x < 16; ++x) {
             for (std::int16_t y = 0; y < 16; ++y) {
-                if (drawing::getPixel(x + xOffset, y + yearFld.y) == Color::Black)
-                    drawing::putPixel(x + xOffset, y + yearFld.y, Color::BWBlinking);
+                if (graphics::getPixel(x + xOffset, y + yearFld.y) == Color::Black)
+                    graphics::putPixel(x + xOffset, y + yearFld.y, Color::BWBlinking);
             }
         }
     }

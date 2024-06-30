@@ -153,4 +153,37 @@ void destroyStaticObjectsForRailConstruction(const Rail& r)
     }
 }
 
+/* 1530:056f */
+void buildHouses(std::int16_t year)
+{
+    // The original game uses a global variable here, but I don't see any
+    // external reference to the variable.
+    Rectangle boundingBox;
+    setEmptyRectangle(boundingBox);
+
+    bool created = false;
+    for (StaticObject& obj : g_staticObjects) {
+        if (obj.kind == StaticObjectKind::BuildingHouse && obj.creationYear == year - 1800) {
+            obj.kind = StaticObjectKind::House;
+            if (obj.x < boundingBox.x1)
+                boundingBox.x1 = obj.x;
+            if (obj.x + 16 > boundingBox.x2)
+                boundingBox.x2 = obj.x + 16;
+            if (obj.y < boundingBox.y1)
+                boundingBox.y1 = obj.y;
+            if (obj.y + 16 > boundingBox.y2)
+                boundingBox.y2 = obj.y + 16;
+            created = true;
+        }
+    }
+
+    if (created) {
+        drawStaticObjects(350);
+        vga::setVideoModeR0W1();
+        clampRectToGameFieldBoundaries(boundingBox);
+        graphics::copyFromShadowBuffer(boundingBox);
+        vga::setVideoModeR0W2();
+    }
+}
+
 } // namespace resl

@@ -4,7 +4,10 @@
 #include "draw_header.h"
 #include "drawing.h"
 #include "keyboard.h"
+#include "load_game.h"
 #include "melody.h"
+#include "mouse/construction_mode.h"
+#include "mouse/mouse_state.h"
 #include "records.h"
 #include "static_object.h"
 #include "status_bar.h"
@@ -30,7 +33,8 @@ void mainMenu()
             /* 15e8:04ea */
             // [M]anual
             // TODO implement
-            std::cout << "[M]anual" << std::endl;
+            std::cout << "Sorry, manual is not implemented yet" << std::endl;
+            playErrorMelody();
             break;
 
         case -1:
@@ -48,16 +52,19 @@ void mainMenu()
             // [D]emo
             // TODO implement
             std::cout << "Sorry, demo is not implemented yet" << std::endl;
+            playErrorMelody();
             break;
 
         case 2: {
             /* 15e8:05e8 */
             // [G]o!
             drawGameField(350);
-            // TODO
-            std::int16_t level = 1; // readLevel();
+            std::int16_t level = readLevel();
             drawHeaderData(0, 100, 1800, level, 350);
-            // TODO implement
+            graphics::setVideoFrameOrigin(0, 350);
+            graphics::flushScreenBuffer(0);
+            graphics::setVideoFrameOrigin(0, 0);
+            mouse::g_state.mode = &mouse::g_modeConstruction;
             return;
         }
 
@@ -66,6 +73,7 @@ void mainMenu()
             // [A]rchive
             // TODO implement
             std::cout << "Sorry, archive is not implemented yet" << std::endl;
+            playErrorMelody();
             break;
 
         case 4: {

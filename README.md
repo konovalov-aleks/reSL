@@ -18,10 +18,14 @@ https://www.old-games.ru/game/download/1232.html
 (but it doesn't work as smoothly as the native version)
 
 TODO
-1. ~~Consctruction mode (WIP)~~
-2. Menus (main menu, records, archive, etc)
-3. "Game over" screen
-4. "Happy new year" screen
+1. ~~Consctruction mode ~~
+2. ~~Main menu~~
+3. Records [WIP]
+4. Archive
+5. Demo
+6. "Game over" screen [WIP]
+7. "Happy new year" screen
+8. Loading screen
 
 ## Idea and goals of the project:
 

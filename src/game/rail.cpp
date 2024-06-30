@@ -7,6 +7,7 @@
 #include "types/rail_info.h"
 
 #include <cstdint>
+#include <iterator>
 
 namespace resl {
 
@@ -108,6 +109,21 @@ bool checkRailWouldConflictWithExistingRoad(std::int16_t tileX, std::int16_t til
 
     g_railroadTypeMasks[tileX][tileY] = origMask;
     return result;
+}
+
+/* 146b:03c7 */
+bool isVisible(const Rail& r)
+{
+    const RailConnectionBias& rc = g_railConnectionBiases[r.type][0];
+    std::int16_t chunkIdx = static_cast<std::int16_t>(&r - &g_rails[0][0][0]);
+    constexpr std::int16_t nElementsPerCol =
+        static_cast<std::int16_t>(std::size(g_rails[0][0]));
+    constexpr std::int16_t nElementsPerRow =
+        static_cast<std::int16_t>(std::size(g_rails[0]) * nElementsPerCol);
+    std::int16_t x = chunkIdx / nElementsPerRow + rc.tileOffsetX;
+    std::int16_t y = (chunkIdx % nElementsPerRow) / nElementsPerCol + rc.tileOffsetY;
+    std::int16_t xPixPos = (x - y) * 88 + 320;
+    return xPixPos > 0 && xPixPos < 640;
 }
 
 } // namespace resl

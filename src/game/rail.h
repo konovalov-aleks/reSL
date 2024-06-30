@@ -58,4 +58,7 @@ bool checkRailWouldConflict(std::int16_t tileX, std::int16_t tileY,
 bool checkRailWouldConflictWithExistingRoad(std::int16_t tileX, std::int16_t tileY,
                                             std::int16_t railType);
 
+/* 146b:03c7 */
+bool isVisible(const Rail&);
+
 } // namespace resl

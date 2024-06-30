@@ -20,7 +20,10 @@ struct StaticObject {
     StaticObjectKind kind;
     std::uint8_t type;
     Color color;
-    std::uint8_t _yearsElapsed;
+    // The year in which this object should appear.
+    // The value is represented as the number of years sinse 1800:
+    //      year = 1800 + obj.creationYear;
+    std::uint8_t creationYear;
 };
 
 static_assert(sizeof(StaticObject) == 0x8);
@@ -45,5 +48,8 @@ void eraseStaticObject(const StaticObject&, std::int16_t yOffset);
 
 /* 17bf:04ac */
 void destroyStaticObjectsForRailConstruction(const Rail&);
+
+/* 1530:056f */
+void buildHouses(std::int16_t year);
 
 } // namespace resl

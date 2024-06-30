@@ -80,10 +80,17 @@ void disableTimer()
     // In the original game, the INT8 vector is replaced with an empty handler.
     if (g_timer) {
         SDL_bool ok = SDL_RemoveTimer(g_timer);
-        assert(ok); (void)ok;
+        assert(ok);
+        (void)ok;
         g_timer = 0;
     }
 }
 
+/* 16a6:0600 */
+void enableTimer()
+{
+    if (!g_timer)
+        initTimer();
+}
 
 } // namespace resl

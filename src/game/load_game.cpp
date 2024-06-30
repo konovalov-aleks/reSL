@@ -6,7 +6,6 @@
 #include "init.h"
 #include "io_status.h"
 #include "rail.h"
-#include "resources/rail_connection_bias.h"
 #include "semaphore.h"
 #include "static_object.h"
 #include "switch.h"
@@ -23,7 +22,6 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <iterator>
 
 #ifndef O_BINARY
 #   define O_BINARY 0
@@ -180,21 +178,6 @@ IOStatus x_smthRelatedToKeyboard(IOStatus errCode)
     return errCode;
 }
 
-/* 146b:03c7 */
-static bool isVisible(const Rail& r)
-{
-    const RailConnectionBias& rc = g_railConnectionBiases[r.type][0];
-    std::int16_t chunkIdx = static_cast<std::int16_t>(&r - &g_rails[0][0][0]);
-    constexpr std::int16_t nElementsPerCol =
-        static_cast<std::int16_t>(std::size(g_rails[0][0]));
-    constexpr std::int16_t nElementsPerRow =
-        static_cast<std::int16_t>(std::size(g_rails[0]) * nElementsPerCol);
-    std::int16_t x = chunkIdx / nElementsPerRow + rc.tileOffsetX;
-    std::int16_t y = (chunkIdx % nElementsPerRow) / nElementsPerCol + rc.tileOffsetY;
-    std::int16_t xPixPos = (x - y) * 88 + 320;
-    return xPixPos > 0 && xPixPos < 640;
-}
-
 /* 1400:009c */
 IOStatus loadSavedGame(const char* fileName)
 {
@@ -236,6 +219,13 @@ IOStatus loadSavedGame(const char* fileName)
     }
     x_smthRelatedToKeyboard(ioStatus);
     return ioStatus;
+}
+
+/* 174e:052b */
+std::int16_t readLevel()
+{
+    // TODO implement
+    return 1;
 }
 
 } // namespace resl

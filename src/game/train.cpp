@@ -197,8 +197,8 @@ void drawTrainList(Carriage* c)
 
         vga::setVideoModeR0W1();
         shadowBufPtr = graphics::copySpriteToShadowBuffer(shadowBufPtr, c->rect.x1, c->rect.y1 + 350,
-                                                         sar<std::int16_t>(c->rect.x2 - 1, 3) - sar(c->rect.x1, 3) + 1,
-                                                         glyph.height);
+                                                          sar<std::int16_t>(c->rect.x2 - 1, 3) - sar(c->rect.x1, 3) + 1,
+                                                          glyph.height);
         vga::setVideoModeR0W2();
 
         if (c->location.rail->type != g_innerEntranceRailType) {

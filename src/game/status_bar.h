@@ -17,4 +17,7 @@ void drawStatusBarWithCopyright(std::int16_t yOffset);
 /* 12ba:0003 */
 void showStatusMessage(const char* msg);
 
+/* 12ba:005c */
+void updateStatusBar();
+
 } // namespace resl

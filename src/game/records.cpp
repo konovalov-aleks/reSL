@@ -59,10 +59,10 @@ void showRecordsScreen()
         g_textSpacing = 2;
         drawText(153, 352, "* THE BEST DISPATCHERS *", Color::Black);
         drawTextSmall(114, 370,
-            " #  Name           Trains   Money   Year   Level", Color::Black);
+                      " #  Name           Trains   Money   Year   Level", Color::Black);
         drawText(169, 530, "* THE BEST MANAGERS *", Color::Black);
         drawTextSmall(114, 548,
-            " #  Name        Level : Year   Money   Trains", Color::Black);
+                      " #  Name        Level : Year   Money   Trains", Color::Black);
         std::qsort(records, nRecords, sizeof(Record), &recordCompareByTrains);
         for (std::uint16_t i = 0; i <= 9 && records[i].trains; ++i) {
             char buf[80];

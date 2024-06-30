@@ -1,32 +1,22 @@
 #include "game/init.h"
 
-#include "game/dialog.h"
-#include "game/draw_header.h"
-#include "game/drawing.h"
 #include "game/header.h"
 #include "game/keyboard.h"
-#include "game/load_game.h"
 #include "game/main_loop.h"
-#include "game/main_menu.h"
 #include "game/mouse/mouse.h"
-#include "game/mouse/mouse_mode.h"
-#include "game/mouse/mouse_state.h"
 #include "game/move_trains.h"
 #include "game/records.h"
 #include "game/resources/train_glyph.h"
 #include "game/road_construction.h"
 #include "game/train.h"
-#include "graphics/animation.h"
 #include "graphics/color.h"
 #include "graphics/drawing.h"
 #include "graphics/glyph.h"
 #include "graphics/text.h"
-#include "graphics/vga.h"
 #include "system/time.h"
 #include "tasks/task.h"
 #include <system/driver/driver.h>
 
-#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -66,18 +56,8 @@ void drawTextDemo(int, const char*[])
     }
 }
 
-void loadGame(const char* fname)
+void startGame()
 {
-    if (!fname) {
-        std::cout << "The game save file name is not set explicitly - loading DEMO_A file" << std::endl;
-        std::cout << "You can pass the file name through the '--file' command line argument" << std::endl;
-        fname = "DEMO_A";
-    }
-
-    if (!std::filesystem::is_regular_file(fname)) [[unlikely]] {
-        std::cerr << "specified file \"" << fname << "\" doesn't exist" << std::endl;
-        return;
-    }
     if (!std::filesystem::is_regular_file("PLAY.7")) {
         std::cerr
             << "!!!WARNING!!! The PLAY.7 file was not found!\n"
@@ -88,24 +68,8 @@ void loadGame(const char* fname)
 
     initGameData();
 
-    char switchStatesBuf[100];
-    char buf2[100];
-
-    resetGameData();
-    loadSavedGame(fname);
-
     Driver::instance().setMouseHandler(&handleMouseInput);
     Driver::instance().setKeyboardHandler(&keyboardInteruptionHandler);
-
-    drawWorld();
-    fillGameFieldBackground(350);
-    drawFieldBackground(350);
-
-    vga::setVideoModeR0W1();
-    graphics::copyRectangle(0, 0, 0, 350, 80, 350);
-    vga::setVideoModeR0W2();
-
-    mouse::g_state.mode->drawFn();
 
     addTask(taskGameMainLoop());
     addTask(taskMouseEventHandling());
@@ -183,33 +147,10 @@ void drawTrainsDemo(int, const char*[])
     addTask(implDrawTrainsDemo());
 }
 
-void drawMenuDemo(int, const char*[])
-{
-    Driver::instance().setKeyboardHandler(&keyboardInteruptionHandler);
-
-    graphics::setVideoFrameOrigin(0, 0);
-    graphics::shiftScreen(511);
-
-
-    disableTimer();
-    createNewWorld();
-    drawMainMenuBackground(350);
-
-    const std::int16_t level = 1; // TODO readLevel()
-    drawHeaderData(0, 100, 1800, level, 350);
-    drawDialog(DialogType::MainMenu, 350);
-
-    graphics::animateScreenShifting();
-    graphics::flushScreenBuffer(0);
-    graphics::setVideoFrameOrigin(0, 0);
-    mainMenu();
-}
-
 const std::map<std::string, std::function<void(int, const char*[])>> commands = {
     { "records",     recordsScreenDemo },
     { "draw_text",   drawTextDemo      },
-    { "draw_trains", drawTrainsDemo    },
-    { "draw_menu",   drawMenuDemo      }
+    { "draw_trains", drawTrainsDemo    }
 };
 
 Task sdlLoop()
@@ -229,7 +170,6 @@ int usage(int argc, const char* argv[], int unknownArg = -1)
     std::cerr << "Usage: " << argv[0] << " <options>\n"
                                          "\n"
                                          "Available options:\n"
-                                         "  --file <fileName> choose the game save file to load\n"
                                          "  --demo <demoName> run the demo with a specified name. Available demos: ";
     bool first = true;
     for (const auto& [name, _] : commands) {
@@ -252,7 +192,6 @@ int main(int argc, const char* argv[])
 {
     bool debugGraphics = false;
     const char* demo = nullptr;
-    const char* file = nullptr;
 
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 
@@ -265,12 +204,6 @@ int main(int argc, const char* argv[])
                 return EXIT_FAILURE;
             }
             demo = argv[++i];
-        } else if (!std::strcmp(argv[i], "--file")) {
-            if (i == argc - 1) {
-                std::cerr << "The '--file' argument expects a value" << std::endl;
-                return EXIT_FAILURE;
-            }
-            file = argv[++i];
         } else if (!std::strcmp(argv[i], "--help"))
             return usage(argc, argv);
         else
@@ -280,9 +213,9 @@ int main(int argc, const char* argv[])
     if (debugGraphics)
         Driver::instance().vga().setDebugMode(true);
 
+    initTimer();
+
     if (demo) {
-        if (file)
-            std::cerr << "The '--file' attribute was ignored" << std::endl;
         auto iter = commands.find(demo);
         if (iter == commands.end()) {
             std::cerr << "Invalid demo name is specified \"" << demo << "\"\n"
@@ -291,11 +224,9 @@ int main(int argc, const char* argv[])
         }
         iter->second(argc, argv);
     } else
-        loadGame(file);
+        startGame();
 
     addTask(sdlLoop());
-
-    initTimer();
     runScheduler();
 
     return EXIT_SUCCESS;

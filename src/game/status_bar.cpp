@@ -32,4 +32,10 @@ void showStatusMessage(const char* msg)
     std::cout << msg << std::endl;
 }
 
+/* 12ba:005c */
+void updateStatusBar()
+{
+    // TODO implement
+}
+
 } // namespace resl

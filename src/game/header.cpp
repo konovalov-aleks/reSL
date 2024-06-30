@@ -38,10 +38,10 @@ namespace {
 
 /* 1d7d:00f0 : 72 bytes */
 Headers g_headers = {
-    { .x = 16, .y = 25, .valueLimit = -1, .nDigits = 5 }, // trains
-    { .x = 136, .y = 25, .valueLimit = -1, .nDigits = 4 }, // money
+    { .x = 16,  .y = 25, .valueLimit = -1,   .nDigits = 5 }, // trains
+    { .x = 136, .y = 25, .valueLimit = -1,   .nDigits = 4 }, // money
     { .x = 272, .y = 25, .valueLimit = 2000, .nDigits = 4 }, // year
-    { .x = 376, .y = 25, .valueLimit = 100, .nDigits = 2 } // level
+    { .x = 376, .y = 25, .valueLimit = 100,  .nDigits = 2 }  // level
 };
 
 /* 12c5:031b */

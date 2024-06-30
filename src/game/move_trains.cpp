@@ -171,7 +171,7 @@ static void createCrashMarker(Carriage& c)
     train.headCarriageIdx = 0;
     train.carriageCnt = 1;
     train.carriages[0] = c;
-    train.carriages[0].dstEntranceIdx = 7; // TODO create a constant
+    train.carriages[0].dstEntranceIdx = crashedTrainEntranceIdx;
     train.carriages[0].type = CarriageType::CrashedTrain;
     train.tail = train.carriages[0].location;
     train.head = train.carriages[0].location;

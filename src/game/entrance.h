@@ -27,6 +27,9 @@ static inline constexpr std::size_t NormalEntranceCount = 6;
 // the special pseudo-entrance for servers
 inline constexpr std::uint8_t serverEntranceIdx = 6;
 
+// the special pseudo-entrance for rail damage sign
+inline constexpr std::uint8_t crashedTrainEntranceIdx = 7;
+
 // the special pseudo-entrance for blinking trains
 inline constexpr std::uint8_t blinkingTrainEntranceIdx = 8;
 

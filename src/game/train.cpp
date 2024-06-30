@@ -233,7 +233,7 @@ void eraseTrain(const Train& train)
 }
 
 /* 19de:0797 */
-static Train* allocateTrainSlot()
+Train* allocateTrainSlot()
 {
     for (Train& t : g_trains) {
         if (t.isFreeSlot) {

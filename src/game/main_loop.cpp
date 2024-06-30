@@ -11,6 +11,7 @@
 #include "mouse/construction_mode.h"
 #include "mouse/mouse_mode.h"
 #include "mouse/mouse_state.h"
+#include "rail.h"
 #include "resources/entrance_rails.h"
 #include "static_object.h"
 #include "status_bar.h"
@@ -26,6 +27,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 
 namespace resl {
 
@@ -59,6 +61,8 @@ Task taskGameMainLoop()
     // The original game uses uint8 here - VGA color code.
     // They alternate between 0 and 0x3F.
     std::uint32_t blinkingColor = 0xFFFFFF;
+
+    bool isOddIter = false;
 
     // TODO
     // stopTask((_task *)&taskHandleMouseForDemoAI);
@@ -127,14 +131,14 @@ Task taskGameMainLoop()
                 blinkingColor ^= 0xFFFFFF;
                 vga::setPaletteItem(Color::BWBlinking, blinkingColor);
 
-                // TODO
-                //                    bVar3 = (bool)(bVar3 ^ 1);
-                //                    if (!bVar3) {
-                //                      unaff_DI = 0x1b06;
-                //                      uVar6 = libc_rand();
-                //                      if (uVar6 < ((uint)headers.level.value >> 1) * g_railRoadCount) {
-                //                        randomRailDamage();
-                //                      }
+                isOddIter = !isOddIter;
+                if (!isOddIter) {
+                    const std::int16_t probability =
+                        (g_headers[static_cast<int>(HeaderFieldId::Level)].value / 2) * g_railRoadCount;
+                    if ((rand() & 0xFFFF) < probability)
+                        randomRailDamage();
+                    continue;
+                }
 
                 tryRunWaitingTrains();
 

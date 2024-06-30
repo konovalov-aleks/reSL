@@ -118,6 +118,9 @@ void drawTrains();
 /* 132d:0002 */
 void eraseTrain(const Train&);
 
+/* 19de:0797 */
+Train* allocateTrainSlot();
+
 /* 16a6:08bb */
 void tryRunWaitingTrains();
 

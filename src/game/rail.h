@@ -61,4 +61,7 @@ bool checkRailWouldConflictWithExistingRoad(std::int16_t tileX, std::int16_t til
 /* 146b:03c7 */
 bool isVisible(const Rail&);
 
+/* 16a6:0771 */
+void randomRailDamage();
+
 } // namespace resl

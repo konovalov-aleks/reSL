@@ -1,11 +1,19 @@
 #include "rail.h"
 
 #include "entrance.h"
+#include "header.h"
+#include "melody.h"
 #include "resources/entrance_rails.h"
+#include "resources/movement_paths.h"
 #include "resources/rail_connection_bias.h"
 #include "resources/rail_type_meta.h"
+#include "train.h"
+#include "types/header_field.h"
 #include "types/rail_info.h"
+#include "types/rectangle.h"
+#include <system/random.h>
 
+#include <array>
 #include <cstdint>
 #include <iterator>
 
@@ -85,6 +93,7 @@ bool checkRailWouldConflict(std::int16_t tileX, std::int16_t tileY,
     return result;
 }
 
+/* 19de:06a0 */
 bool checkRailWouldConflictWithExistingRoad(std::int16_t tileX, std::int16_t tileY,
                                             std::int16_t railType)
 {
@@ -124,6 +133,51 @@ bool isVisible(const Rail& r)
     std::int16_t y = (chunkIdx % nElementsPerRow) / nElementsPerCol + rc.tileOffsetY;
     std::int16_t xPixPos = (x - y) * 88 + 320;
     return xPixPos > 0 && xPixPos < 640;
+}
+
+/* 19de:07d7 */
+static bool railHasNoTrain(const Rail& rail)
+{
+    for (const Train& train : g_trains) {
+        if (train.isFreeSlot || train.carriages[0].type == CarriageType::CrashedTrain)
+            continue;
+        if (train.head.rail == &rail || train.tail.rail == &rail)
+            return false;
+        for (std::uint8_t i = 0; i < train.carriageCnt; ++i) {
+            if (train.carriages[i].location.rail == &rail)
+                return false;
+        }
+    }
+    return true;
+}
+
+/* 16a6:0771 */
+void randomRailDamage()
+{
+    std::int16_t roadIdx = genRandomNumber(g_railRoadCount);
+    const RailInfo& ri = g_railRoad[roadIdx];
+    Rail& rail = g_rails[ri.tileX][ri.tileY][ri.railType];
+
+    if (!railHasNoTrain(rail))
+        return;
+
+    Train* t = allocateTrainSlot();
+    if (!t)
+        return;
+
+    const Path& path = g_movementPaths[ri.railType];
+    t->carriageCnt = 1;
+    Carriage& c = t->carriages[0];
+    c.dstEntranceIdx = crashedTrainEntranceIdx;
+    c.type = CarriageType::CrashedTrain;
+    c.location.rail = &rail;
+    c.location.pathStep = (path.size / 2) + symmetricRand(path.size / 8);
+    t->tail = c.location;
+    t->head = c.location;
+    setEmptyRectangle(c.rect);
+    t->needToRedraw = true;
+    t->year = g_headers[static_cast<int>(HeaderFieldId::Year)].value;
+    playRailDamagedMelody();
 }
 
 } // namespace resl

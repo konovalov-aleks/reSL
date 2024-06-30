@@ -24,6 +24,7 @@ struct Record {
     char name[20];
 };
 
+/* 174e:000c */
 static int recordCompareByTrains(const void* a, const void* b)
 {
     return reinterpret_cast<const Record*>(b)->trains < reinterpret_cast<const Record*>(a)->trains

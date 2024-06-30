@@ -123,4 +123,17 @@ void playGameOverMelody()
     nosound();
 }
 
+/* 19b2:021a */
+void playRailDamagedMelody()
+{
+    if (!g_soundEnabled)
+        return;
+
+    for (std::int16_t i = 0; i < 12; ++i) {
+        sound(i * 60 + 20);
+        vga::waitVerticalRetrace();
+    }
+    nosound();
+}
+
 } // namespace resl

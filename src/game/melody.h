@@ -36,4 +36,7 @@ void playSpawnedEntranceMelody();
 /* 19b2:01e1 */
 void playGameOverMelody();
 
+/* 19b2:021a */
+void playRailDamagedMelody();
+
 } // namespace resl

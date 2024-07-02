@@ -84,8 +84,7 @@ Task taskGameMainLoop()
         createNewWorld();
         drawMainMenuBackground(350);
 
-        const std::int16_t level = readLevel();
-        drawHeaderData(0, 100, 1800, level, 350);
+        drawHeaderData(0, 100, 1800, readLevel(), 350);
         drawDialog(DialogType::MainMenu, 350);
 
         graphics::animateScreenShifting();

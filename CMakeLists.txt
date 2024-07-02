@@ -65,8 +65,8 @@ set(SOURCES
     src/system/driver/sdl/driver.cpp
     src/system/driver/sdl/video.cpp
     src/system/exit.cpp
+    src/system/filesystem.cpp
     src/system/random.cpp
-    src/system/read_file.cpp
     src/system/sound.cpp
     src/system/time.cpp
     src/tasks/scheduler.cpp
@@ -92,13 +92,20 @@ add_executable(resl ${SOURCES} ${HEADERS})
 set_property(TARGET resl PROPERTY CXX_STANDARD 20)
 
 if (EMSCRIPTEN)
-    target_compile_options(resl PRIVATE "-sUSE_SDL=2")
+    target_compile_options(resl PRIVATE "-sUSE_SDL=2" "-msimd128")
     target_link_options(resl PRIVATE
         "-sASYNCIFY"
-        "-sUSE_SDL=2"
-        "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/resources/PLAY.7@PLAY.7"
-        "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/resources/GAMEOVER.7@GAMEOVER.7"
-        "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/resources/DEMO_A@DEMO_A")
+        "-sUSE_SDL=2")
+
+    file (GLOB resources LIST_DIRECTORIES false ${CMAKE_CURRENT_SOURCE_DIR}/resources/*)
+    file (GLOB extra LIST_DIRECTORIES false ${CMAKE_CURRENT_SOURCE_DIR}/resources/extra/*)
+    list (APPEND resources ${extra})
+
+    foreach(path ${resources})
+        get_filename_component(fname ${path} NAME)
+        MESSAGE("Embed the file: ${path}")
+        target_link_options(resl PRIVATE "--embed-file=${path}@${fname}")
+    endforeach()
 else()
     find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
     find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)

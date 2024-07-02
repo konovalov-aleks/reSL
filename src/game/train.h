@@ -124,6 +124,9 @@ Train* allocateTrainSlot();
 /* 16a6:08bb */
 void tryRunWaitingTrains();
 
+/* 1a65:0073 */
+void spawnNewTrain();
+
 /* 1a65:0030 */
 Task taskSpawnTrains();
 

@@ -1,5 +1,8 @@
 #include "load_game.h"
 
+// IWYU pragma: no_include <sys/_types/_seek_set.h>
+// IWYU pragma: no_include <sys/fcntl.h>
+
 #include "entrance.h"
 #include "game_data.h"
 #include "header.h"
@@ -12,10 +15,11 @@
 #include "train.h"
 #include "types/rail_info.h"
 #include "types/rectangle.h"
+#include <system/filesystem.h>
 #include <system/time.h>
 
-#include <sys/fcntl.h>
-#include <sys/types.h> // IWYU pragma: no_include <sys/_types/_seek_set.h>
+#include <fcntl.h> // IWYU pragma: keep
+#include <sys/types.h>
 #include <unistd.h>
 
 #include <array>
@@ -226,6 +230,27 @@ std::int16_t readLevel()
 {
     // TODO implement
     return 1;
+}
+
+/* 1400:0638 */
+int findNextSaveFile()
+{
+    /* 1d7d:01a8 : 1 byte */
+    static bool g_searchStarted = false;
+
+    int err;
+    if (!g_searchStarted) {
+        err = findFirst("????????.??_", 0);
+        if (!err)
+            g_searchStarted = true;
+    } else {
+        err = findNext();
+        if (err) {
+            g_searchStarted = false;
+            err = findNextSaveFile();
+        }
+    }
+    return err;
 }
 
 } // namespace resl

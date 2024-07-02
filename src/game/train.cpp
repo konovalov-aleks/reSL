@@ -347,7 +347,7 @@ void tryRunWaitingTrains()
 }
 
 /* 1a65:0073 */
-static void spawnNewTrain()
+void spawnNewTrain()
 {
     const std::int16_t entranceIdx = genRandomNumber(g_entranceCount);
     if (g_entranceCount < 2)

@@ -39,3 +39,6 @@ build*/
 
 # python cache
 __pycache__
+
+# game extra resources
+resources/extra/*

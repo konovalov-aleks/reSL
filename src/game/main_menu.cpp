@@ -158,9 +158,6 @@ inline bool showArchiveMenu()
                         graphics::flushScreenBuffer(0);
                         graphics::setVideoFrameOrigin(0, 0);
                         return false;
-
-                    default:
-                        playErrorMelody();
                     }
                 }
             }

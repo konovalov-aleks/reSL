@@ -191,4 +191,13 @@ std::int16_t handleDialog(DialogType type)
     return i;
 }
 
+/* 15e8:0947 */
+void alert(const char* message)
+{
+    g_dialogs[static_cast<int>(DialogType::Alert)].title = message;
+    vga::waitForLine(200);
+    drawDialog(DialogType::Alert, 0);
+    handleDialog(DialogType::Alert);
+}
+
 } // namespace resl

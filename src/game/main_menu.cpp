@@ -49,121 +49,138 @@ static void eraseArchiveMenu(std::int16_t yOffset)
     vga::setVideoModeR0W2();
 }
 
+enum class ArchiveMenuAction {
+    ReturnToMainMenu,
+    StartGame
+};
+
 /* 15e8:063e */
-inline bool showArchiveMenu()
+inline ArchiveMenuAction showArchiveMenu()
 {
     for (bool showNextFile = true; showNextFile;) {
         showNextFile = false;
 
         if (int err = findNextSaveFile(); err) [[unlikely]] {
-            // TODO implement 15e8:0647
-            return false;
+            alert("Can't open game files in current dir");
+            eraseArchiveMenu(0);
+            return ArchiveMenuAction::ReturnToMainMenu;
         }
 
         FileInfo file = lastSearchResult();
         g_lastKeyPressed = 0;
 
         IOStatus status = loadSavedGame(file.fileName);
-        if (status == IOStatus::NoError) {
-            char buf[80];
-            // Date and time format:
-            // https://www.stanislavs.org/helppc/file_attributes.html
-            std::snprintf(buf, sizeof(buf),
-                          "Player: %-18s Date: %02d-%3s-%02d  Time: %02d:%02d  File: %-s",
-                          g_playerName,
-                          file.fileDate & 0x1F,                           // day
-                          g_monthNames[((file.fileDate >> 5) & 0xF) - 1], // month
-                          (file.fileDate >> 9) + 80,                      // year since 1980
-                          (file.fileTime >> 11) & 0x1F,                   // hours
-                          (file.fileTime >> 5) & 0x3F,                    // minutes
-                          file.fileName);
+        if (status != IOStatus::NoError) {
+            alert("Load Error");
+            continue;
+        }
+        char buf[80];
+        // Date and time format:
+        // https://www.stanislavs.org/helppc/file_attributes.html
+        std::snprintf(buf, sizeof(buf),
+                      "Player: %-18s Date: %02d-%3s-%02d  Time: %02d:%02d  File: %-s",
+                      g_playerName,
+                      file.fileDate & 0x1F,                           // day
+                      g_monthNames[((file.fileDate >> 5) & 0xF) - 1], // month
+                      (file.fileDate >> 9) + 80,                      // year since 1980
+                      (file.fileTime >> 11) & 0x1F,                   // hours
+                      (file.fileTime >> 5) & 0x3F,                    // minutes
+                      file.fileName);
+        drawWorld();
+
+        while (!showNextFile) {
+            drawDialog(DialogType::Archive, 350);
+            graphics::setVideoFrameOrigin(0, 350);
+            graphics::flushScreenBuffer(0);
+            showStatusMessage(buf);
+            graphics::setVideoFrameOrigin(0, 0);
             drawWorld();
 
-            while (!showNextFile) {
-                drawDialog(DialogType::Archive, 350);
-                graphics::setVideoFrameOrigin(0, 350);
-                graphics::flushScreenBuffer(0);
-                showStatusMessage(buf);
-                graphics::setVideoFrameOrigin(0, 0);
-                drawWorld();
+            bool needRedrawDialog = false;
+            while (!showNextFile && !needRedrawDialog) {
+                switch (handleDialog(DialogType::Archive)) {
+                case -1:
+                    // Timeout
+                    break;
 
-                bool needRedrawDialog = false;
-                while (!showNextFile && !needRedrawDialog) {
-                    switch (handleDialog(DialogType::Archive)) {
-                    case 0:
-                        /* 15e8:0785 */
-                        // [V]iew
-                        {
-                            graphics::setVideoFrameOrigin(0, 350);
-                            const Dialog& dialog = g_dialogs[static_cast<int>(DialogType::Archive)];
-                            std::int16_t itemY = dialog.itemY[0];
-                            if (itemY > 350)
-                                itemY -= 350;
-                            highlightFirstDlgItemSymbol(dialog.x, itemY);
-                            // wait untill the button is released
-                            while (!(g_lastKeyCode & g_keyReleasedFlag)) {
-                                // The original game uses busy-loop here (without sleep)
-                                // I'm not so cruel :D
-                                vga::waitVerticalRetrace();
-                            }
-                            graphics::setVideoFrameOrigin(0, 0);
-                            g_lastKeyPressed = 0;
-                        }
-                        break;
-
-                    case 1:
-                        /* 15e8:063e */
-                        // [N]ext
-
-                        // It looks like the original game uses just "goto" to the
-                        // beginning of the function. But this is too ugly.
-                        showNextFile = true;
-                        break;
-
-                    case 2:
-                        /* 15e8:07d6 */
-                        // [G]o
+                case 0:
+                    /* 15e8:0785 */
+                    // [V]iew
+                    {
                         graphics::setVideoFrameOrigin(0, 350);
-                        eraseArchiveMenu(0);
+                        const Dialog& dialog = g_dialogs[static_cast<int>(DialogType::Archive)];
+                        std::int16_t itemY = dialog.itemY[0];
+                        if (itemY > 350)
+                            itemY -= 350;
+                        highlightFirstDlgItemSymbol(dialog.x, itemY);
+                        // wait untill the button is released
+                        while (!(g_lastKeyCode & g_keyReleasedFlag)) {
+                            // The original game uses busy-loop here (without sleep)
+                            // I'm not so cruel :D
+                            vga::waitVerticalRetrace();
+                        }
                         graphics::setVideoFrameOrigin(0, 0);
-                        fillGameFieldBackground(350);
-                        drawFieldBackground(350);
-                        mouse::g_state.mode = &mouse::g_modeManagement;
-                        spawnNewTrain();
-                        return true;
-
-                    case 3:
-                        /* 15e8:0823 */
-                        // [D]elete
-                        drawDialog(DialogType::Confirmation, 0);
                         g_lastKeyPressed = 0;
-                        if (handleDialog(DialogType::Confirmation) == 0) {
-                            // Yes
-                            std::remove(file.fileName);
-                            showNextFile = true;
-                        } else {
-                            // No
-                            needRedrawDialog = true;
-                        }
-                        break;
-
-                    case 4:
-                        /* 15e8:085c */
-                        // [B]ye
-                        createNewWorld();
-                        drawGameField(350);
-                        drawHeaderData(0, 100, 1800, readLevel(), 350);
-                        drawDialog(DialogType::MainMenu, 350);
-                        graphics::setVideoFrameOrigin(0, 350);
-                        graphics::flushScreenBuffer(0);
-                        graphics::setVideoFrameOrigin(0, 0);
-                        return false;
                     }
+                    break;
+
+                case 1:
+                    /* 15e8:063e */
+                    // [N]ext
+
+                    // It looks like the original game uses just "goto" to the
+                    // beginning of the function. But this is too ugly.
+                    showNextFile = true;
+                    break;
+
+                case 2:
+                    /* 15e8:07d6 */
+                    // [G]o
+                    graphics::setVideoFrameOrigin(0, 350);
+                    eraseArchiveMenu(0);
+                    graphics::setVideoFrameOrigin(0, 0);
+                    fillGameFieldBackground(350);
+                    drawFieldBackground(350);
+                    mouse::g_state.mode = &mouse::g_modeManagement;
+                    spawnNewTrain();
+                    return ArchiveMenuAction::StartGame;
+
+                case 3:
+                    /* 15e8:0823 */
+                    // [D]elete
+                    drawDialog(DialogType::Confirmation, 0);
+                    g_lastKeyPressed = 0;
+                    if (handleDialog(DialogType::Confirmation) == 0) {
+                        // Yes
+                        std::remove(file.fileName);
+                        showNextFile = true;
+                    } else {
+                        // No
+                        needRedrawDialog = true;
+                    }
+                    break;
+
+                case 4:
+                    /* 15e8:085c */
+                    // [B]ye
+                    createNewWorld();
+                    drawGameField(350);
+                    drawHeaderData(0, 100, 1800, readLevel(), 350);
+                    drawDialog(DialogType::MainMenu, 350);
+                    graphics::setVideoFrameOrigin(0, 350);
+                    graphics::flushScreenBuffer(0);
+                    graphics::setVideoFrameOrigin(0, 0);
+                    return ArchiveMenuAction::ReturnToMainMenu;
+
+                default:
+                    /* 15e8:08bf */
+                    // wrong choice
+                    playErrorMelody();
                 }
             }
         }
     }
-    return false;
+    return ArchiveMenuAction::ReturnToMainMenu;
 }
 
 /* 15e8:04c3 */
@@ -212,7 +229,7 @@ void mainMenu()
         case 3:
             /* 15e8:063e */
             // [A]rchive
-            if (bool closeMainMenu = showArchiveMenu(); closeMainMenu)
+            if (showArchiveMenu() == ArchiveMenuAction::StartGame)
                 return;
             break;
 
@@ -245,7 +262,6 @@ void mainMenu()
             playErrorMelody();
             break;
         };
-        // TODO implement
     }
 }
 

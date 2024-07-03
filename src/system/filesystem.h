@@ -11,8 +11,8 @@ namespace resl {
 // This structure has the same meaning, but contain only usefull fields.
 struct FileInfo {
     // https://www.stanislavs.org/helppc/file_attributes.html
-    std::uint16_t fileTime;
-    std::uint16_t fileDate;
+    std::uint16_t fileTime = 0;
+    std::uint16_t fileDate = 0;
     const char* fileName;
 };
 

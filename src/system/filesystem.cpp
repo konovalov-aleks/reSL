@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
+#include <system_error>
 
 #ifndef O_BINARY
 #   define O_BINARY 0
@@ -74,31 +75,33 @@ namespace {
             result.fileName = m_glob.gl_pathv[m_curPath];
 
             const std::filesystem::path p(m_glob.gl_pathv[m_curPath]);
-            std::filesystem::file_time_type fileTime = std::filesystem::last_write_time(p);
+            std::error_code ec;
+            std::filesystem::file_time_type fileTime =
+                std::filesystem::last_write_time(p, ec);
+            if (ec == std::error_code()) [[likely]] {
+                system_clock::time_point sysTime = time_point_cast<system_clock::duration>(
+                    fileTime - std::filesystem::file_time_type::clock::now() + system_clock::now());
 
-            system_clock::time_point sysTime = time_point_cast<system_clock::duration>(
-                fileTime - std::filesystem::file_time_type::clock::now() + system_clock::now());
+                // Date and time format:
+                // https://www.stanislavs.org/helppc/file_attributes.html
+                auto tpDays = std::chrono::floor<days>(sysTime);
+                year_month_day date(tpDays);
+                assert(date.ok());
+                const unsigned day = static_cast<unsigned>(date.day());
+                const unsigned month = static_cast<unsigned>(date.month());
+                const int year = std::max(static_cast<int>(date.year()), 1980);
+                assert(day >= 1 && day <= 31);
+                assert(month >= 1 && month <= 12);
+                result.fileDate = day | (month << 5) | ((year - 1980) << 9);
 
-            // Date and time format:
-            // https://www.stanislavs.org/helppc/file_attributes.html
-            auto tpDays = std::chrono::floor<days>(sysTime);
-            year_month_day date(tpDays);
-            assert(date.ok());
-            const unsigned day = static_cast<unsigned>(date.day());
-            const unsigned month = static_cast<unsigned>(date.month());
-            const int year = std::max(static_cast<int>(date.year()), 1980);
-            assert(day >= 1 && day <= 31);
-            assert(month >= 1 && month <= 12);
-            result.fileDate = day | (month << 5) | ((year - 1980) << 9);
-
-            hh_mm_ss time(std::chrono::floor<seconds>(sysTime - tpDays));
-            assert(time.seconds().count() < 60);
-            assert(time.minutes().count() < 60);
-            assert(time.hours().count() < 24);
-            result.fileTime = (time.seconds().count() * 2) |
-                (time.minutes().count() << 5) |
-                (time.hours().count() << 11);
-
+                hh_mm_ss time(std::chrono::floor<seconds>(sysTime - tpDays));
+                assert(time.seconds().count() < 60);
+                assert(time.minutes().count() < 60);
+                assert(time.hours().count() < 24);
+                result.fileTime = (time.seconds().count() * 2) |
+                    (time.minutes().count() << 5) |
+                    (time.hours().count() << 11);
+            }
             return result;
         }
 

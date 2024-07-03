@@ -65,6 +65,9 @@ void videoChoosePlanes(std::uint8_t);
 /* 1b06:03fa */
 void waitVerticalRetrace();
 
+/* 1b06:0408 */
+void waitForLine(std::int16_t line);
+
 /* 17a7:0106 */
 void waitForNRetraces(std::int16_t n);
 

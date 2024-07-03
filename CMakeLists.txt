@@ -5,6 +5,7 @@ project(reSL)
 file(GLOB_RECURSE HEADERS "*.h")
 
 set(SOURCES
+    src/game/demo.cpp
     src/game/dialog.cpp
     src/game/draw_header.cpp
     src/game/drawing.cpp
@@ -48,6 +49,7 @@ set(SOURCES
     src/game/resources/train_glyph.cpp
     src/game/resources/train_specification.cpp
     src/game/road_construction.cpp
+    src/game/save_game.cpp
     src/game/semaphore.cpp
     src/game/static_object.cpp
     src/game/status_bar.cpp

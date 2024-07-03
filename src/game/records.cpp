@@ -75,4 +75,10 @@ void showRecordsScreen()
     }
 }
 
+/* 174e:00cc */
+void writeRecords()
+{
+    // TODO implement
+}
+
 } // namespace resl

@@ -56,6 +56,16 @@ void waitVerticalRetrace()
     Driver::instance().vga().waitVerticalRetrace();
 }
 
+/* 1b06:0408 */
+void waitForLine(std::int16_t /* line */)
+{
+    // The original game uses this to get rid of screen blinking in some cases.
+    // This is useless for us, because we have synchronous screen updates.
+    // So, we just wait for the vertical retrace to avoid loosing timings and to
+    // make a screen refresh point.
+    waitVerticalRetrace();
+}
+
 /* 17a7:0106 */
 void waitForNRetraces(std::int16_t n)
 {

@@ -1,23 +1,29 @@
 #include "main_loop.h"
 
+#include "demo.h"
 #include "dialog.h"
 #include "draw_header.h"
 #include "entrance.h"
 #include "header.h"
 #include "init.h"
+#include "io_status.h"
 #include "keyboard.h"
 #include "load_game.h"
 #include "main_menu.h"
+#include "melody.h"
 #include "mouse/construction_mode.h"
 #include "mouse/mouse_mode.h"
 #include "mouse/mouse_state.h"
 #include "rail.h"
+#include "records.h"
 #include "resources/entrance_rails.h"
+#include "save_game.h"
 #include "static_object.h"
 #include "status_bar.h"
 #include "train.h"
 #include "types/header_field.h"
 #include "types/rail_info.h"
+#include "types/rectangle.h"
 #include <graphics/animation.h>
 #include <graphics/color.h>
 #include <graphics/drawing.h>
@@ -51,6 +57,74 @@ static std::int16_t incrementGameTime(std::int16_t delta)
 
     g_gameTime -= 2000;
     return g_headers[static_cast<int>(HeaderFieldId::Year)].value;
+}
+
+/* 15e8:0bbd */
+static void pauseMenuShowSaveItem()
+{
+    g_dialogs[static_cast<int>(DialogType::Pause)].itemNames[1] = "Save";
+}
+
+/* 15e8:0bcf */
+static void pauseMenuShowOkItem()
+{
+    g_dialogs[static_cast<int>(DialogType::Pause)].itemNames[1] = "  OK";
+}
+
+enum class PauseMenuAction {
+    ContinueGame,
+    ReturnToMainMenu
+};
+
+/* 16a6:0154 */
+inline PauseMenuAction showPauseMenu()
+{
+    pauseMenuShowSaveItem();
+    Rectangle dialogRect = drawDialog(DialogType::Pause, 0);
+    writeRecords();
+
+    for (;;) {
+        /* 16a6:016f */
+        g_lastKeyPressed = 0;
+        std::int16_t item = handleDialog(DialogType::Pause);
+        g_lastKeyPressed = 0;
+        switch (item) {
+        case -1:
+            // Timeout
+            break;
+
+        case 0:
+            /* 16a6:0195 */
+            // [G]o
+            vga::setVideoModeR0W1();
+            graphics::copyFromShadowBuffer(dialogRect);
+            vga::setVideoModeR0W2();
+            scheduleAllTrainsRedrawing();
+            enableTimer();
+            spawnNewTrain();
+            return PauseMenuAction::ContinueGame;
+
+        case 1:
+            /* 16a6:01b9 */
+            // [S]ave
+            if (saveGame() == IOStatus::NoError)
+                pauseMenuShowOkItem();
+            else
+                alert("Error");
+            break;
+
+        case 2:
+            /* 16a6:01d8 */
+            // [B]ye
+            enableTimer();
+            return PauseMenuAction::ReturnToMainMenu;
+
+        default:
+            // wrong choice
+            /* 16a6:01e0 */
+            playErrorMelody();
+        }
+    }
 }
 
 /* 16a6:0001 */
@@ -99,7 +173,8 @@ Task taskGameMainLoop()
             //  resumeTask((_task *)&taskHandleMouseForDemoAI);
         }
 
-        for (;;) {
+        bool needReturnToMainMenu = false;
+        while (!needReturnToMainMenu) {
             /* 16a6:00cf */
             // TODO
             //  dropPendingTaskMessages()
@@ -119,8 +194,20 @@ Task taskGameMainLoop()
                 co_await sleep(50);
 
                 if (g_lastKeyPressed) {
-                    // TODO implement
-                    /* 16a6:013b */
+                    disableTimer();
+                    if (g_isDemoMode) {
+                        stopDemo();
+                        enableTimer();
+                        needReturnToMainMenu = true;
+                        break;
+                    } else {
+                        PauseMenuAction menuRes = showPauseMenu();
+                        if (menuRes == PauseMenuAction::ReturnToMainMenu) {
+                            needReturnToMainMenu = true;
+                            break;
+                        }
+                        continue;
+                    }
                 }
 
                 updateStatusBar();

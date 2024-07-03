@@ -11,7 +11,7 @@ enum class DialogType {
     Archive,
     Confirmation,
     Pause,
-    CurrentFooterMessage
+    Alert
 };
 
 struct Dialog {
@@ -36,5 +36,8 @@ Rectangle& drawDialog(DialogType, std::int16_t yOffset);
 
 /* 15e8:03b7 */
 std::int16_t handleDialog(DialogType);
+
+/* 15e8:0947 */
+void alert(const char*);
 
 } // namespace resl

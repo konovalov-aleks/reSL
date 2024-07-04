@@ -3,6 +3,7 @@
 #include "demo.h"
 #include "dialog.h"
 #include "draw_header.h"
+#include "drawing.h"
 #include "entrance.h"
 #include "header.h"
 #include "init.h"
@@ -189,7 +190,8 @@ Task taskGameMainLoop()
             g_lastKeyPressed = 0;
             enableTimer();
 
-            for (;;) {
+            bool needRestartGame = false;
+            while (!needRestartGame) {
                 /* 16a6:0126 */
                 co_await sleep(50);
 
@@ -275,9 +277,19 @@ Task taskGameMainLoop()
                     break;
                 case 2000:
                     /* 16a6:03d6 */
-                    // TODO
-                    // show happy 2000 banner
-                    // stop game
+                    playHappy2000YearMelody();
+                    if (!g_isDemoMode)
+                        writeRecords();
+                    createNewWorld();
+                    alert("Happy New 2000 Year!");
+                    g_headers[static_cast<int>(HeaderFieldId::Year)].value = 1800;
+                    g_headers[static_cast<int>(HeaderFieldId::Level)].value++;
+                    g_headers[static_cast<int>(HeaderFieldId::Money)].value += 10;
+                    drawWorld();
+                    graphics::animateScreenShifting();
+                    graphics::flushScreenBuffer(0);
+                    graphics::setVideoFrameOrigin(0, 0);
+                    needRestartGame = true;
                     break;
                 };
             }

@@ -136,4 +136,13 @@ void playRailDamagedMelody()
     nosound();
 }
 
+/* 19b2:027a */
+void playHappy2000YearMelody()
+{
+    playScheduledTrainMelody(100, 105, 20);
+    playScheduledTrainMelody(200, 210, 20);
+    playScheduledTrainMelody(300, 315, 20);
+    playScheduledTrainMelody(400, 420, 20);
+}
+
 } // namespace resl

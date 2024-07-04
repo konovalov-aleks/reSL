@@ -39,4 +39,7 @@ void playGameOverMelody();
 /* 19b2:021a */
 void playRailDamagedMelody();
 
+/* 19b2:027a */
+void playHappy2000YearMelody();
+
 } // namespace resl

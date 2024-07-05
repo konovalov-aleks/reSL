@@ -7,6 +7,11 @@
 
 namespace resl {
 
+/* 1d7d:2122 */
+extern Task g_taskMoveAndRedrawTrains;
+
+//-----------------------------------------------------------------------------
+
 /* 18a5:00c1 */
 void moveAlongPath(Location& loc, std::int16_t distance);
 

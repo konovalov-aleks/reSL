@@ -29,22 +29,11 @@ namespace resl {
 
 using namespace mouse; // FIXME
 
-namespace {
+/* 262d:6ef8 : 1 byte */
+static std::uint8_t g_previousMouseButtonState = 0;
 
-    /* 262d:6ef8 : 1 byte */
-    std::uint8_t g_previousMouseButtonState = 0;
-
-    /* The original game uses an own implementation of stack-based coroutines.
-       I decided not to restore the sources of this mechanic, because it's
-       non-portable and heavily dependent on X86 architecture.
-
-       So, the address below contains a different data structure, but the
-       meaning is roughly the same. */
-
-    /* 1d7d:1c96 */
-    MessageQueue<MsgMouseEvent> g_mouseMsgQueue;
-
-} // namespace
+/* 1d7d:1c96 */
+MessageQueue<MsgMouseEvent> g_mouseMsgQueue;
 
 /* 14af:0761 */
 void handleMouseInput(std::uint16_t mouseEventFlags,

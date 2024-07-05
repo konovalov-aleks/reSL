@@ -31,6 +31,11 @@
 
 namespace resl {
 
+/* 1d7d:2122 */
+Task g_taskMoveAndRedrawTrains;
+
+//-----------------------------------------------------------------------------
+
 enum class MoveAbility {
     Ok,
     // the train has reached a impasse or blocked switch
@@ -55,7 +60,7 @@ static MoveAbility tryMoveAlongPath(Location& loc)
     }
 
     // in the original code:
-    // "p.chunk->x_neighbours[p.forwardDirection].chunk & (~specialChunkPtr)"
+    // "loc.rail->connections[loc.forwardDirection].rail & (~g_disabledSwitchPath)"
     if (!loc.rail->connections[loc.forwardDirection].rail ||                      // impasse
         loc.rail->connections[loc.forwardDirection].rail == g_disabledSwitchPath) // blinking train
         return MoveAbility::BlockedByRoad;

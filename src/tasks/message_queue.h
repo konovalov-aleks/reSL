@@ -51,6 +51,12 @@ public:
             Scheduler::instance().resumeTask(m_waitingTask);
     }
 
+    void clear()
+    {
+        while (!m_queue.empty())
+            m_queue.pop();
+    }
+
 private:
     std::queue<MsgT> m_queue;
     std::coroutine_handle<TaskPromise> m_waitingTask;

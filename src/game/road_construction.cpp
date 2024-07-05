@@ -30,6 +30,9 @@ namespace resl {
 /* 1d7d:1c96 */
 MessageQueue<RailInfo> g_railConstructionMsgQueue;
 
+/* 1d7d:20f8 */
+Task g_taskRoadConstruction;
+
 //-----------------------------------------------------------------------------
 
 // When constructing new rails, the gray background may overlap existing rails
@@ -96,8 +99,9 @@ Task taskRoadConstruction()
         g_areaToRedraw.x2 = 0;
 
         destroyStaticObjectsForRailConstruction(rail);
-        penalty = g_cuttingDownStaticObjectsByKind[StaticObjectKind::House] +
-            g_cuttingDownStaticObjectsByKind[StaticObjectKind::Tree];
+        penalty =
+            g_cuttingDownStaticObjectsByKind[static_cast<int>(StaticObjectKind::House)] +
+            g_cuttingDownStaticObjectsByKind[static_cast<int>(StaticObjectKind::Tree)];
         if (penalty) {
             showStatusMessage("Cutting down the tree(s) or house(s)");
             for (std::int16_t i = 0; i < penalty; ++i) {

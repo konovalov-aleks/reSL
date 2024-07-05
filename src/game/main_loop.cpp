@@ -5,6 +5,7 @@
 #include "draw_header.h"
 #include "drawing.h"
 #include "entrance.h"
+#include "game_data.h"
 #include "header.h"
 #include "init.h"
 #include "io_status.h"
@@ -38,16 +39,15 @@
 
 namespace resl {
 
+/* 1d7d:20ce */
+Task g_taskGameMainLoop;
+
 // Time elapsed since the beginning of the current game year.
 // One game year corresponds to the value 2000 of this counter.
 /* 262d:6f50 : 2 bytes */
 static std::int16_t g_gameTime = 0;
 
-/* 262d:6f4f : 1 byte */
-static bool g_gameOver = false;
-
-/* 262d:5eff : 1 byte */
-static bool g_isDemoMode = false;
+//-----------------------------------------------------------------------------
 
 /* 16a6:0750 */
 static std::int16_t incrementGameTime(std::int16_t delta)
@@ -176,9 +176,7 @@ Task taskGameMainLoop()
 
         bool needReturnToMainMenu = false;
         while (!needReturnToMainMenu) {
-            /* 16a6:00cf */
-            // TODO
-            //  dropPendingTaskMessages()
+            resetTasks();
 
             g_gameTime = 0;
             mouse::g_state.mode->drawFn();

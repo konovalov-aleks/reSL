@@ -15,26 +15,12 @@
 #include <cstdio>
 
 namespace resl {
-namespace {
 
-    struct HeaderValueChangeRequest {
-        std::int8_t delta;
-        HeaderFieldId fieldId;
-        // if delta is zero, the value will be set without animation
-        std::int16_t value;
-    };
+/* 1d7d:00de : 18 bytes */
+MessageQueue<HeaderValueChangeRequest> g_headerAnimationTaskQueue;
 
-    /* The original game uses an own implementation of stack-based coroutines.
-       I decided not to restore the sources of this mechanic, because it's
-       non-portable and heavily dependent on X86 architecture.
-
-       So, the address below contains a different data structure, but the
-       meaning is roughly the same.
-
-       1d7d:00de : 18 bytes */
-    MessageQueue<HeaderValueChangeRequest> g_headerAnimationTaskQueue;
-
-} // namespace
+/* 1d7d:20dc */
+Task g_taskHeaderFieldAnimation;
 
 /* 1d7d:00f0 : 72 bytes */
 Headers g_headers = {

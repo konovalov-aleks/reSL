@@ -11,4 +11,7 @@ void initGameData();
 /* 16a6:0963 */
 void createNewWorld();
 
+/* 16a6:0973 */
+void resetTasks();
+
 } // namespace resl

@@ -2,8 +2,6 @@
 
 #include "scheduler.h"
 
-#include <utility>
-
 namespace resl {
 
 void SleepAwaitable::await_suspend(std::coroutine_handle<TaskPromise> hdl)
@@ -11,9 +9,15 @@ void SleepAwaitable::await_suspend(std::coroutine_handle<TaskPromise> hdl)
     hdl.promise().m_sleepUntil = m_awakeTime;
 }
 
-void addTask(Task&& task)
+Task addTask(Task task)
 {
-    Scheduler::instance().addTask(std::move(task));
+    Scheduler::instance().addTask(task);
+    return task;
+}
+
+bool stopTask(Task task)
+{
+    return Scheduler::instance().stopTask(task);
 }
 
 void runScheduler()

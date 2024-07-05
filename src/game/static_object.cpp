@@ -120,8 +120,8 @@ static bool needRemoveObjectToBuildRail(const StaticObject& obj, const Rail& r)
 /* 17bf:04ac */
 void destroyStaticObjectsForRailConstruction(const Rail& r)
 {
-    g_cuttingDownStaticObjectsByKind[StaticObjectKind::Tree] = 0;
-    g_cuttingDownStaticObjectsByKind[StaticObjectKind::House] = 0;
+    g_cuttingDownStaticObjectsByKind[static_cast<int>(StaticObjectKind::Tree)] = 0;
+    g_cuttingDownStaticObjectsByKind[static_cast<int>(StaticObjectKind::House)] = 0;
 
     for (StaticObject& obj : g_staticObjects) {
         if (!needRemoveObjectToBuildRail(obj, r))
@@ -134,7 +134,7 @@ void destroyStaticObjectsForRailConstruction(const Rail& r)
 
         case StaticObjectKind::House:
         case StaticObjectKind::Tree:
-            ++g_cuttingDownStaticObjectsByKind[obj.kind];
+            ++g_cuttingDownStaticObjectsByKind[static_cast<int>(obj.kind)];
             obj.kind = StaticObjectKind::None;
             eraseStaticObject(obj, 350);
             if (obj.x < g_areaToRedraw.x1)

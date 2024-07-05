@@ -8,6 +8,7 @@
 #include "init.h"
 #include "keyboard.h"
 #include "load_game.h"
+#include "main_loop.h"
 #include "melody.h"
 #include "mouse/construction_mode.h"
 #include "mouse/management_mode.h"
@@ -23,7 +24,9 @@
 #include <system/exit.h>
 #include <system/filesystem.h>
 #include <system/keyboard.h>
+#include <tasks/task.h>
 
+#include <cassert>
 #include <cstdint>
 #include <cstdio>
 #include <iostream>
@@ -277,6 +280,15 @@ void drawMainMenuBackground(std::int16_t yOffset)
     graphics::imageDot7(0, yOffset, SCREEN_WIDTH, SCREEN_HEIGHT, g_pageBuffer);
     drawStaticObjects(yOffset);
     drawCopyright(yOffset);
+}
+
+/* 16a6:065f */
+void returnToMainMenu()
+{
+    vga::waitForNRetraces(40);
+    [[maybe_unused]] bool ok = stopTask(g_taskGameMainLoop);
+    assert(ok);
+    g_taskGameMainLoop = addTask(taskGameMainLoop());
 }
 
 } // namespace resl

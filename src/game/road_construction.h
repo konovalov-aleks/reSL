@@ -16,6 +16,9 @@ namespace resl {
 /* 1d7d:1c96 */
 extern MessageQueue<RailInfo> g_railConstructionMsgQueue;
 
+/* 1d7d:20f8 */
+extern Task g_taskRoadConstruction;
+
 //-----------------------------------------------------------------------------
 
 /* 17bf:000d */

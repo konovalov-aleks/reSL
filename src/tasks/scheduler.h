@@ -20,6 +20,7 @@ public:
     }
 
     void addTask(Task);
+    bool stopTask(Task);
     void resumeTask(std::coroutine_handle<TaskPromise>);
 
     void run();

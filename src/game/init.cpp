@@ -1,10 +1,13 @@
 #include "init.h"
 
 #include "entrance.h"
+#include "header.h"
+#include "move_trains.h"
 #include "rail.h"
 #include "resources/entrance_rails.h"
 #include "resources/movement_paths.h"
 #include "resources/rail_connection_bias.h"
+#include "road_construction.h"
 #include "semaphore.h"
 #include "static_object.h"
 #include "switch.h"
@@ -12,6 +15,8 @@
 #include "types/rail_info.h"
 #include <graphics/color.h>
 #include <system/random.h>
+#include <tasks/message_queue.h>
+#include <tasks/task.h>
 
 #include <cassert>
 #include <cstdint>
@@ -204,6 +209,29 @@ void createNewWorld()
     resetGameData();
     generateEntrances();
     generateForest();
+}
+
+/* 16a6:0973 */
+void resetTasks()
+{
+    // The original game uses different coroutine implementation =>
+    // this function is different there. But the common algorithm
+    // is the same:
+    // * clear message queues
+    // * restart all tasks
+    g_railConstructionMsgQueue.clear();
+    stopTask(g_taskRoadConstruction);
+    g_taskRoadConstruction = addTask(taskRoadConstruction());
+
+    g_headerAnimationTaskQueue.clear();
+    stopTask(g_taskHeaderFieldAnimation);
+    g_taskHeaderFieldAnimation = addTask(taskHeaderFieldAnimation());
+
+    stopTask(g_taskMoveAndRedrawTrains);
+    g_taskMoveAndRedrawTrains = addTask(taskMoveAndRedrawTrains());
+
+    // TODO
+    //    g_mouseMsgQueue.clear();
 }
 
 } // namespace resl

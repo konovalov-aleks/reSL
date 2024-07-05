@@ -1,8 +1,10 @@
 #include "game_over.h"
 
+#include "game_data.h"
+#include "main_menu.h"
 #include "melody.h"
+#include "records.h"
 #include <graphics/drawing.h>
-#include <graphics/vga.h>
 #include <system/buffer.h>
 #include <system/filesystem.h>
 
@@ -19,18 +21,11 @@ void gameOver()
     graphics::imageDot7(184, 58, 284, 263, g_pageBuffer);
     playGameOverMelody();
 
-    // TODO
-    // if (!isDemoMode)
-    //     writeResults();
-    //
-    // g_gameOver = true;
-    //
-    // returnToMainMenu();
+    if (!g_isDemoMode)
+        writeRecords();
 
-    // FIXME temporary hack - remove this
-    for (;;) {
-        vga::waitVerticalRetrace();
-    }
+    g_gameOver = true;
+    returnToMainMenu();
 }
 
 } // namespace resl

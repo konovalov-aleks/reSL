@@ -1,13 +1,10 @@
 #include "game/init.h"
 
-#include "game/header.h"
 #include "game/keyboard.h"
 #include "game/main_loop.h"
 #include "game/mouse/mouse.h"
-#include "game/move_trains.h"
 #include "game/records.h"
 #include "game/resources/train_glyph.h"
-#include "game/road_construction.h"
 #include "game/train.h"
 #include "graphics/color.h"
 #include "graphics/drawing.h"
@@ -71,12 +68,9 @@ void startGame()
     Driver::instance().setMouseHandler(&handleMouseInput);
     Driver::instance().setKeyboardHandler(&keyboardInteruptionHandler);
 
-    addTask(taskGameMainLoop());
+    g_taskGameMainLoop = addTask(taskGameMainLoop());
     addTask(taskMouseEventHandling());
-    addTask(taskHeaderFieldAnimation());
-    addTask(taskMoveAndRedrawTrains());
     addTask(taskSpawnTrains());
-    addTask(taskRoadConstruction());
 }
 
 Task implDrawTrainsDemo()

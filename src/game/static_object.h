@@ -7,7 +7,7 @@
 
 namespace resl {
 
-enum StaticObjectKind : std::uint8_t {
+enum class StaticObjectKind : std::uint8_t {
     None = 0,
     BuildingHouse = 1,
     House = 2,

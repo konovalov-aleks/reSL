@@ -39,6 +39,23 @@ void Scheduler::addTask(Task task)
         m_readyTasks.push_front(task);
 }
 
+bool Scheduler::stopTask(Task task)
+{
+    auto iter = std::ranges::find(m_tasks, task);
+    if (iter == m_tasks.end())
+        return false;
+    m_tasks.erase(iter);
+
+    auto readyIter = std::ranges::find(m_readyTasks, task);
+    if (readyIter != m_readyTasks.end())
+        m_readyTasks.erase(readyIter);
+
+    m_sleepingTasks.erase(task);
+
+    task.destroy();
+    return true;
+}
+
 void Scheduler::resumeTask(std::coroutine_handle<TaskPromise> task)
 {
     if (!task.promise().m_suspended)

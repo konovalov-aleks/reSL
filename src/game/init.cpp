@@ -122,6 +122,22 @@ static void generateEntrances()
 {
     for (std::int16_t i = 0; i < NormalEntranceCount; ++i) {
         Entrance& entrance = g_entrances[i];
+
+        /*** BUGFIX ***
+
+        ShortLine v1.1 has a bug: if the previous game session was stopped
+        when the first entrance has waiting trains (the yellow dispatcher is
+        showing the flag), then when starting a new game the program will freeze.
+        The reason is that they don't reset 'entrance.waitingTrains' variable =>
+        it starts executing 'tryRunWaitingTrains' function (16a6:08bb). This
+        function in a loop tries to generate a pair of random existing
+        entrances, but at the beginning there is only one entrance
+        => the loop become infinite
+
+        The following line fixes the problem:
+        */
+        entrance.waitingTrainsCount = 0;
+
         const std::int16_t rIdx = genRandomNumber(std::size(g_entranceRails));
         entrance.entranceRailInfoIdx = rIdx;
         const RailInfo& ri = g_entranceRails[entrance.entranceRailInfoIdx];

@@ -23,7 +23,7 @@ TODO
 3. Records [WIP]
 4. ~~Archive~~
 5. Demo
-6. "Game over" screen [WIP]
+6. ~~"Game over" screen~~
 7. ~~"Happy 2000 year" screen~~
 8. Loading screen
 9. ~~Pause menu~~
@@ -43,6 +43,17 @@ I initially started reverse engeneering the second version. But I soon realized 
 * v2.0 is written on Pascal using BGI library. But v1.1 is written on TurboC using assembler parts for working with graphics and to implement some tricky mechanics (ShortLine even uses coroutines written on assembler!).
 
 So, v1.1 works better and it's much more interesting to decompile.
+
+## Differences from the original game
+
+The aim of this project is to recreate the game as close as possible to the original ShortLine.
+Therefore, the existing differences between reSL and the original game are due to one of following reasons:
+* the original game was written for DOS, but reSL should be cross-platform
+* the original game has some obvious bugs and it's weird not to fix them.
+
+### Fixed bugs of the original game
+
+1. If the last game session was stopped when trains are waiting in the first entrance (the yellow dispatcher is showing the flag), then when starting a new game the program will freeze.
 
 ## Reverse engineering process
 

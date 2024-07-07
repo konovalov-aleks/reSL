@@ -11,7 +11,7 @@ https://www.old-games.ru/game/download/1232.html
 <img width="640" alt="reSL" src="https://github.com/konovalov-aleks/reSL/assets/11459433/35f3f24b-b513-44ed-a5a8-17c03803bbab">
 
 ### Progress:
-~98% done
+~99% done
 
 **You can try the live demo here: https://konovalov-aleks.github.io/**
 
@@ -27,7 +27,7 @@ TODO
 7. ~~"Happy 2000 year" screen~~
 8. Loading screen
 9. ~~Pause menu~~
-10. Small font rendering
+10. ~~Small font rendering~~
 11. "Manual" screen
 
 ## Idea and goals of the project:

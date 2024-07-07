@@ -43,6 +43,7 @@ set(SOURCES
     src/game/resources/rail_type_meta.cpp
     src/game/resources/semaphore_glyph.cpp
     src/game/resources/semaphore_glyph_bias.cpp
+    src/game/resources/small_font.cpp
     src/game/resources/static_object_glyph.cpp
     src/game/resources/text_glyphs.cpp
     src/game/resources/train_finished_exclamation_glyph.cpp

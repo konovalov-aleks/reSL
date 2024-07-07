@@ -2,7 +2,11 @@
 
 #include "color.h"
 #include "glyph.h"
+#include "vga.h"
+#include <game/resources/small_font.h>
 #include <game/resources/text_glyphs.h>
+#include <system/driver/driver.h>
+#include <utility/sar.h>
 
 namespace resl {
 
@@ -54,9 +58,36 @@ void drawText(std::int16_t x, std::int16_t y, const char* s, Color color)
 }
 
 /* 1b06:077c */
-void drawTextSmall(std::int16_t, std::int16_t, const char*, Color)
+void drawTextSmall(std::int16_t x, std::int16_t y, const char* s, Color color)
 {
-    // TODO implement
+    /* The original game searches two fonts in video memory: 8 and 14.
+       It also has ability to choose the current font:
+            1b06:052a   chooseSmallFont8
+            1b06:0539   chooseSmallFont14
+
+       But actually, the game chooses Font 14 at startup and never
+       changes it from then on.
+
+       Thus, only font 14 is implemented here.
+   */
+
+    /* 1b06:01e8 : 2 bytes */
+    static constexpr std::int16_t g_curSmallFontSize = 14;
+    /* 1b06:01ea : 4 bytes */
+    static constexpr const std::uint8_t* g_curSmallFontData = g_font14Data;
+
+    vga::VideoMemPtr symbStartPtr =
+        vga::VIDEO_MEM_START_ADDR + y * vga::VIDEO_MEM_ROW_BYTES + sar(x, 3);
+
+    for (; *s; ++s, ++symbStartPtr) {
+        const std::uint8_t* glyphPtr = &g_curSmallFontData[*s * g_curSmallFontSize];
+        vga::VideoMemPtr ptr = symbStartPtr;
+        for (std::int16_t curY = 0; curY < g_curSmallFontSize; ++curY) {
+            Driver::instance().vga().setWriteMask(glyphPtr[curY]);
+            Driver::instance().vga().write(ptr, color);
+            ptr += vga::VIDEO_MEM_ROW_BYTES;
+        }
+    }
 }
 
 /* 15e8:0984 */

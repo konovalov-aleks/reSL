@@ -2,11 +2,14 @@
 
 #include "scheduler.h"
 
+#include <cassert>
+
 namespace resl {
 
 void SleepAwaitable::await_suspend(std::coroutine_handle<TaskPromise> hdl)
 {
-    hdl.promise().m_sleepUntil = m_awakeTime;
+    assert(hdl.promise().m_context);
+    hdl.promise().m_context->m_sleepUntil = m_awakeTime;
 }
 
 Task addTask(Task task)
@@ -15,9 +18,11 @@ Task addTask(Task task)
     return task;
 }
 
-bool stopTask(Task task)
+bool stopTask(Task& task)
 {
-    return Scheduler::instance().stopTask(task);
+    bool res = Scheduler::instance().stopTask(task);
+    task = {};
+    return res;
 }
 
 void runScheduler()

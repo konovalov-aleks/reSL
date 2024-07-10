@@ -2,12 +2,14 @@
 
 #include "task.h"
 
+#include <cassert>
 #include <chrono>
 #include <compare>
 #include <deque>
+#include <list>
 #include <optional>
 #include <set>
-#include <vector>
+#include <utility>
 
 namespace resl {
 
@@ -36,13 +38,17 @@ private:
     public:
         bool operator()(const Task& a, const Task& b) const noexcept
         {
-            return a.promise().m_sleepUntil < b.promise().m_sleepUntil;
+            assert(a.promise().m_context);
+            assert(b.promise().m_context);
+            return a.promise().m_context->m_sleepUntil < b.promise().m_context->m_sleepUntil;
         }
     };
 
     void reset();
 
-    std::vector<Task> m_tasks;
+    void validateState();
+
+    std::list<std::pair<Task, Context>> m_tasks;
 
     std::deque<Task> m_readyTasks;
     std::multiset<Task, AwakeTimeCompare> m_sleepingTasks;

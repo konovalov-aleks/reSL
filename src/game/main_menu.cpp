@@ -1,5 +1,6 @@
 #include "main_menu.h"
 
+#include "demo.h"
 #include "dialog.h"
 #include "draw_header.h"
 #include "drawing.h"
@@ -213,9 +214,17 @@ void mainMenu()
         case 1:
             /* 15e8:0590 */
             // [D]emo
-            // TODO implement
-            std::cout << "Sorry, demo is not implemented yet" << std::endl;
-            playErrorMelody();
+            if (loadDemo() == IOStatus::NoError) {
+                g_isDemoMode = true;
+                drawWorld();
+                graphics::animateScreenShifting();
+                graphics::flushScreenBuffer(0);
+                graphics::setVideoFrameOrigin(0, 0);
+                fillGameFieldBackground(350);
+                drawFieldBackground(350);
+                mouse::g_state.mode = &mouse::g_modeManagement;
+                return;
+            }
             break;
 
         case 2:

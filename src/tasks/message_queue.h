@@ -23,7 +23,8 @@ public:
         bool await_ready() { return !m_msgQueue->m_queue.empty(); }
         void await_suspend(std::coroutine_handle<TaskPromise> task)
         {
-            task.promise().m_suspended = true;
+            assert(task.promise().m_context);
+            task.promise().m_context->m_suspended = true;
             m_msgQueue->m_waitingTask = task;
         }
 

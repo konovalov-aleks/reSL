@@ -158,9 +158,11 @@ void VGAEmulation::init()
     SDL_SetWindowTitle(m_window, g_windowTitle);
     SDL_WarpMouseInWindow(m_window, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 
+    // roundUp(memSize / vgaRowBytes)
+    constexpr int nRows = 1 + (sizeof(VGAState::mem) / sizeof(VGAState::mem[0]) - 1) / vga::VIDEO_MEM_ROW_BYTES;
     m_screen = SDL_CreateTexture(
         m_renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING,
-        vga::VIDEO_MEM_ROW_BYTES * 8, vga::VIDEO_MEM_N_ROWS);
+        vga::VIDEO_MEM_ROW_BYTES * 8, nRows);
     if (!m_screen) [[unlikely]] {
         std::cerr << "Unable to create SDL texture! SDL_Error: " << SDL_GetError() << std::endl;
         close();
@@ -376,7 +378,7 @@ void VGAEmulation::setPaletteItem(std::uint8_t idx, std::uint32_t rgb)
     std::size_t srcByte = 0;
     std::uint32_t* dst = m_screenPixels;
     for (int y = 0; y < vga::VIDEO_MEM_N_ROWS; ++y) {
-        std::size_t s = srcByte;
+        const std::size_t s = srcByte;
         for (int x = 0; x <= m_wndWidth; x += 8) {
             for (int bit = 0; bit < 8; ++bit) {
                 std::uint8_t color =

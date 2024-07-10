@@ -28,7 +28,7 @@ using VideoMemPtr = unsigned;
 inline static constexpr unsigned VIDEO_MEM_ROW_BYTES = 0x5C;
 inline static constexpr VideoMemPtr VIDEO_MEM_START_ADDR = 0xA0000; /* A000:0000 */
 // entire page of the video memory A000:0000 - A000:FFFF
-inline static constexpr unsigned VIDEO_MEM_N_ROWS = 0x10000 / VIDEO_MEM_ROW_BYTES + 1;
+inline static constexpr unsigned VIDEO_MEM_N_ROWS = 0x10000 / VIDEO_MEM_ROW_BYTES;
 
 //-----------------------------------------------------------------------------
 

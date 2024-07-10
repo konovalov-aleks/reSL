@@ -139,8 +139,7 @@ Task taskGameMainLoop()
 
     bool isOddIter = false;
 
-    // TODO
-    // stopTask((_task *)&taskHandleMouseForDemoAI);
+    stopTask(g_taskDemoAI);
 
     graphics::setVideoFrameOrigin(0, 0);
     graphics::shiftScreen(511);
@@ -169,9 +168,8 @@ Task taskGameMainLoop()
         mainMenu();
 
         if (g_isDemoMode) {
-            // TODO
-            //  restartTask((_task *)&taskHandleMouseForDemoAI);
-            //  resumeTask((_task *)&taskHandleMouseForDemoAI);
+            stopTask(g_taskDemoAI);
+            g_taskDemoAI = addTask(taskDemoAI());
         }
 
         bool needReturnToMainMenu = false;

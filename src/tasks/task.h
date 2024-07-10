@@ -12,22 +12,55 @@ namespace resl {
 
 struct TaskPromise;
 
-struct Task : public std::coroutine_handle<TaskPromise> {
+struct Context {
     using Time = std::chrono::steady_clock::time_point;
 
+    std::optional<Time> m_sleepUntil;
+    bool m_suspended = false;
+};
+
+struct Task : public std::coroutine_handle<TaskPromise> {
     using promise_type = TaskPromise;
+
+    bool await_ready() { return false; }
+    inline void await_suspend(std::coroutine_handle<TaskPromise> inner);
+    void await_resume() {};
+    inline void resume() const;
 };
 
 struct TaskPromise {
     Task get_return_object() { return { Task::from_promise(*this) }; }
+
     std::suspend_always initial_suspend() noexcept { return {}; }
     std::suspend_always final_suspend() noexcept { return {}; }
     void return_void() { }
     void unhandled_exception() { std::abort(); }
 
-    std::optional<Task::Time> m_sleepUntil;
-    bool m_suspended = false;
+    Task m_inner;
+    Context* m_context = nullptr;
+
+    friend class Task;
 };
+
+void Task::await_suspend(std::coroutine_handle<TaskPromise> outher)
+{
+    assert(outher.promise().m_context);
+    outher.promise().m_inner = *this;
+    promise().m_context = outher.promise().m_context;
+}
+
+void Task::resume() const
+{
+    if (promise().m_inner) {
+        if (!promise().m_inner.done()) {
+            promise().m_inner.resume();
+            return;
+        }
+        promise().m_inner.destroy();
+        promise().m_inner = {};
+    }
+    std::coroutine_handle<TaskPromise>::resume();
+}
 
 class SleepAwaitable {
 public:
@@ -44,11 +77,11 @@ public:
     void await_resume() { }
 
 private:
-    std::optional<Task::Time> m_awakeTime;
+    std::optional<Context::Time> m_awakeTime;
 };
 
 Task addTask(Task);
-bool stopTask(Task);
+bool stopTask(Task&);
 
 inline SleepAwaitable yield()
 {

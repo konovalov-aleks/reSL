@@ -22,7 +22,7 @@ TODO
 2. ~~Main menu~~
 3. Records [WIP]
 4. ~~Archive~~
-5. Demo
+5. ~~Demo~~
 6. ~~"Game over" screen~~
 7. ~~"Happy 2000 year" screen~~
 8. Loading screen

@@ -128,8 +128,8 @@ else()
             ${CMAKE_CURRENT_SOURCE_DIR}/resources/GAMEOVER.7
             $<TARGET_FILE_DIR:resl>/GAMEOVER.7
         COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_CURRENT_SOURCE_DIR}/resources/DEMO_A
-            $<TARGET_FILE_DIR:resl>/DEMO_A
+            ${CMAKE_CURRENT_SOURCE_DIR}/resources/demo_a
+            $<TARGET_FILE_DIR:resl>/demo_a
     )
 endif()
 

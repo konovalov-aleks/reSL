@@ -11,6 +11,7 @@
 #include "io_status.h"
 #include "keyboard.h"
 #include "load_game.h"
+#include "loading_screen.h"
 #include "main_menu.h"
 #include "melody.h"
 #include "mouse/construction_mode.h"
@@ -144,9 +145,8 @@ Task taskGameMainLoop()
     graphics::setVideoFrameOrigin(0, 0);
     graphics::shiftScreen(511);
 
-    // TODO
-    //    if ((isDemoMode != false) || (g_gameOver == false)) {
-    //        showLoadingScreen();
+    if (g_isDemoMode || !g_gameOver)
+        showLoadingScreen();
 
     g_gameOver = false;
 

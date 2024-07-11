@@ -18,6 +18,7 @@ set(SOURCES
     src/game/io_status.cpp
     src/game/keyboard.cpp
     src/game/load_game.cpp
+    src/game/loading_screen.cpp
     src/game/main_loop.cpp
     src/game/main_menu.cpp
     src/game/melody.cpp
@@ -130,6 +131,12 @@ else()
         COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_CURRENT_SOURCE_DIR}/resources/demo_a
             $<TARGET_FILE_DIR:resl>/demo_a
+        COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_CURRENT_SOURCE_DIR}/resources/captions.7
+            $<TARGET_FILE_DIR:resl>/captions.7
+        COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_CURRENT_SOURCE_DIR}/resources/poster.7
+            $<TARGET_FILE_DIR:resl>/poster.7
     )
 endif()
 

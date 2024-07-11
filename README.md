@@ -25,7 +25,7 @@ TODO
 5. ~~Demo~~
 6. ~~"Game over" screen~~
 7. ~~"Happy 2000 year" screen~~
-8. Loading screen
+8. ~~Loading screen~~
 9. ~~Pause menu~~
 10. ~~Small font rendering~~
 11. "Manual" screen
@@ -54,6 +54,7 @@ Therefore, the existing differences between reSL and the original game are due t
 ### Fixed bugs of the original game
 
 1. If the last game session was stopped when trains are waiting in the first entrance (the yellow dispatcher is showing the flag), then when starting a new game the program will freeze.
+2. The loading screen is momentarily drawn in incorrect colors.
 
 ## Reverse engineering process
 

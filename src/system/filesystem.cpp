@@ -14,10 +14,6 @@
 #include <filesystem>
 #include <system_error>
 
-#ifndef O_BINARY
-#   define O_BINARY 0
-#endif
-
 namespace resl {
 
 /* 262d:7378 - 14 bytes */

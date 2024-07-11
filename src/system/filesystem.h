@@ -5,6 +5,10 @@
 
 namespace resl {
 
+#ifndef O_BINARY
+#   define O_BINARY 0
+#endif
+
 // The original game uses a cumbersome structure DTA from DOS API with many
 // useless fields:
 //      https://www.stanislavs.org/helppc/int_21-4e.html

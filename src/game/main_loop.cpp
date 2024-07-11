@@ -10,7 +10,6 @@
 #include "init.h"
 #include "io_status.h"
 #include "keyboard.h"
-#include "load_game.h"
 #include "loading_screen.h"
 #include "main_menu.h"
 #include "melody.h"

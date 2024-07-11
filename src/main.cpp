@@ -68,8 +68,8 @@ void startGame()
     Driver::instance().setMouseHandler(&handleMouseInput);
     Driver::instance().setKeyboardHandler(&keyboardInteruptionHandler);
 
-    g_taskGameMainLoop = addTask(taskGameMainLoop());
     addTask(taskMouseEventHandling());
+    g_taskGameMainLoop = addTask(taskGameMainLoop());
     addTask(taskSpawnTrains());
 }
 
@@ -151,7 +151,6 @@ Task sdlLoop()
 {
     for (;;) {
         Driver::instance().pollEvent();
-        Driver::instance().vga().flush();
         co_await sleep(2);
     }
 }

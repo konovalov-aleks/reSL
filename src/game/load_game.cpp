@@ -27,10 +27,6 @@
 #include <cstddef>
 #include <cstdint>
 
-#ifndef O_BINARY
-#   define O_BINARY 0
-#endif
-
 namespace resl {
 
 /* sizeof(EntranceInfo) can be different, because we have different size of
@@ -223,13 +219,6 @@ IOStatus loadSavedGame(const char* fileName)
     }
     x_smthRelatedToKeyboard(ioStatus);
     return ioStatus;
-}
-
-/* 174e:052b */
-std::int16_t readLevel()
-{
-    // TODO implement
-    return 1;
 }
 
 /* 1400:0638 */

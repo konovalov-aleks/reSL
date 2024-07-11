@@ -9,7 +9,7 @@ std::uint16_t g_railsLoadedOffset;
 std::uint16_t g_entrancesLoadedOffset;
 
 /* 1d7d:01e8 : 20 byte */
-char g_playerName[20];
+char g_playerName[20] = "Unknown";
 
 /* 262d:5eff : 1 byte */
 bool g_isDemoMode = false;

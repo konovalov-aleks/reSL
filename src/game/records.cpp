@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <cassert>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -22,13 +23,32 @@
 
 namespace resl {
 
-struct Record {
+/*
+
+The records file "results.tbl" is a hash table with a fixed capacity (833 slots).
+The key is the player name, the hash table doesn't use any hash conflict
+resolution algorithm => it will overwrite the other player's results if the
+name hashes are equal.
+
+Every item contain information about the player's best results in terms of
+the number of finished trains and the duration of the game.
+
+*/
+
+struct RecordItem {
     std::uint16_t trains;
     std::uint16_t money;
     std::uint16_t year;
     std::uint16_t level;
-    char reserved[8];
-    char name[20];
+};
+
+// Best player results
+struct Record {
+    // The player's best results based on the number of finished trains.
+    RecordItem byTrains;
+    // The player's best results based on the game duration.
+    RecordItem byYears;
+    char playerName[20];
 };
 
 static constexpr char g_recordsFileName[] = "results.tbl";
@@ -36,7 +56,20 @@ static constexpr char g_recordsFileName[] = "results.tbl";
 /* 174e:000c */
 static int recordCompareByTrains(const void* a, const void* b)
 {
-    return reinterpret_cast<const Record*>(b)->trains < reinterpret_cast<const Record*>(a)->trains
+    assert(a && b);
+    const Record* ra = reinterpret_cast<const Record*>(a);
+    const Record* rb = reinterpret_cast<const Record*>(b);
+    return rb->byTrains.trains < ra->byTrains.trains ? -1 : 1;
+}
+
+/* 174e:0027 */
+static int recordCompareByLevelAndYear(const void* a, const void* b)
+{
+    assert(a && b);
+    const RecordItem& ra = reinterpret_cast<const Record*>(a)->byYears;
+    const RecordItem& rb = reinterpret_cast<const Record*>(b)->byYears;
+    return rb.level < ra.level ||
+            (rb.level == ra.level && rb.year < ra.year)
         ? -1
         : 1;
 }
@@ -50,12 +83,12 @@ void showRecordsScreen()
         // Normalize the representation - move all non-empty records to the head
         Record* records = (Record*)g_pageBuffer;
         std::size_t nRecords = 0;
-        while (nRecords < 833 && records[nRecords].name[0])
+        while (nRecords < 833 && records[nRecords].playerName[0])
             ++nRecords;
 
         std::size_t i = nRecords;
         while (++i < 833) {
-            if (records[i].name[0])
+            if (records[i].playerName[0])
                 std::memcpy(&records[nRecords++], &records[i], sizeof(Record));
         }
 
@@ -74,12 +107,26 @@ void showRecordsScreen()
         drawTextSmall(114, 548,
                       " #  Name        Level : Year   Money   Trains", Color::Black);
         std::qsort(records, nRecords, sizeof(Record), &recordCompareByTrains);
-        for (std::uint16_t i = 0; i <= 9 && records[i].trains; ++i) {
+        for (std::uint16_t i = 0; i < 10 && records[i].byTrains.trains; ++i) {
             char buf[80];
+            const RecordItem& ri = records[i].byTrains;
             std::snprintf(
-                buf, sizeof(buf), "%2d. %-14s %6u %4u,000 %6u %2u", i + 1, records[i].name,
-                records[i].trains, records[i].money, records[i].year, records[i].level);
+                buf, sizeof(buf), "%2d. %-14s %6u %4u,000 %6u %2u", i + 1,
+                records[i].playerName, static_cast<unsigned>(ri.trains),
+                static_cast<unsigned>(ri.money), static_cast<unsigned>(ri.year),
+                static_cast<unsigned>(ri.level));
             drawTextSmall(114, (i + 2) * 12 + 370, buf, Color::Black);
+        }
+
+        std::qsort(records, nRecords, sizeof(Record), &recordCompareByLevelAndYear);
+        for (std::uint16_t i = 0; i < 10 && records[i].byYears.level; ++i) {
+            char buf[80];
+            const RecordItem& ri = records[i].byYears;
+            std::snprintf(
+                buf, sizeof(buf), "%2d. %-14s %2u : %4u %4u,000 %5u", i + 1,
+                records[i].playerName, static_cast<unsigned>(ri.level), static_cast<unsigned>(ri.year),
+                static_cast<unsigned>(ri.money), static_cast<unsigned>(ri.trains));
+            drawTextSmall(114, (i + 2) * 12 + 548, buf, Color::Black);
         }
     }
 }

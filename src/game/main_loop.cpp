@@ -164,6 +164,8 @@ Task taskGameMainLoop()
         graphics::flushScreenBuffer(0);
         graphics::setVideoFrameOrigin(0, 0);
 
+        g_isDemoMode = false;
+
         mainMenu();
 
         if (g_isDemoMode) {

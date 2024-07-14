@@ -52,6 +52,7 @@ struct Record {
 };
 
 static constexpr char g_recordsFileName[] = "results.tbl";
+static constexpr unsigned g_recordsTableCapacity = 833;
 
 /* 174e:000c */
 static int recordCompareByTrains(const void* a, const void* b)
@@ -83,12 +84,12 @@ void showRecordsScreen()
         // Normalize the representation - move all non-empty records to the head
         Record* records = (Record*)g_pageBuffer;
         std::size_t nRecords = 0;
-        while (nRecords < 833 && records[nRecords].playerName[0])
+        while (nRecords < g_recordsTableCapacity && *records[nRecords].playerName)
             ++nRecords;
 
         std::size_t i = nRecords;
-        while (++i < 833) {
-            if (records[i].playerName[0])
+        while (++i < g_recordsTableCapacity) {
+            if (*records[i].playerName)
                 std::memcpy(&records[nRecords++], &records[i], sizeof(Record));
         }
 
@@ -138,7 +139,7 @@ static std::uint16_t playerNameHash()
     const char* c = g_playerName;
     for (std::int16_t i = 0; i < std::size(g_playerName) && *c; ++i, ++c)
         hash += *c << (i << 1);
-    return hash % 833;
+    return hash % g_recordsTableCapacity;
 }
 
 /* 174e:00cc */

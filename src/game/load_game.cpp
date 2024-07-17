@@ -25,13 +25,16 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <iterator>
 #include <type_traits>
+
+#ifndef NDEBUG
+#   include <algorithm>
+#   include <iterator>
+#endif // !NDEBUG
 
 namespace resl {
 

@@ -1,14 +1,14 @@
 //
 // This is a generated file, do not change it manually.
-// Use the script "generate_rail_info.py" instead.
+// Use the script "generate_rail_connection_rule.py" instead.
 //
 
-#include "rail_info.h"
+#include "rail_connection_rule.h"
 
 namespace resl {
 
 /* 1d7d:2402 - 216 bytes */
-RailInfo2 x_railInfo[6][6] = {
+RailConnectionRule g_railConnectionRules[6][6] = {
     { // 0
         { 5, -1, 0, 0, 0 },
         { 0, -1, 0, 0, 1 },

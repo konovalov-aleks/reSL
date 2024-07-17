@@ -3,8 +3,8 @@
 #include "rail.h"
 #include "resources/movement_paths.h"
 #include "resources/rail_connection_bias.h"
+#include "resources/rail_connection_rule.h"
 #include "resources/rail_glyph.h"
-#include "resources/rail_info.h"
 #include "resources/semaphore_glyph_bias.h"
 #include "train.h"
 #include "types/rail_info.h"
@@ -60,7 +60,7 @@ void createSwitches(const RailInfo& r)
     g_railroadTypeMasks[r.tileX][r.tileY] |= (1 << r.railType);
 
     for (std::uint16_t i = 0; i < 6; ++i) {
-        const RailInfo2& ri = x_railInfo[r.railType][i];
+        const RailConnectionRule& ri = g_railConnectionRules[r.railType][i];
         const std::int16_t tileX = r.tileX + ri.tileDX;
         const std::int16_t tileY = r.tileY + ri.tileDY;
         if (!(g_railroadTypeMasks[tileX][tileY] & (1 << ri.railType)))
@@ -78,7 +78,7 @@ void createSwitches(const RailInfo& r)
                 rc2.slot = ri.slot1;
             } else if (rc1.rail != g_disabledSwitchPath) {
                 Switch& s = g_switches[g_nSwitches++];
-                s.x_someSwitchIndex = -1;
+                s.adjucentSwitchIdx = -1;
                 s.exit.rail = &rail;
                 s.exit.slot = ri.slot1;
                 s.disabledPath.rail = &rail2;
@@ -89,7 +89,7 @@ void createSwitches(const RailInfo& r)
             }
         } else if (rc2.rail != g_disabledSwitchPath) {
             Switch& s = g_switches[g_nSwitches++];
-            s.x_someSwitchIndex = -1;
+            s.adjucentSwitchIdx = -1;
             s.exit.rail = &rail2;
             s.exit.slot = ri.slot2;
             s.disabledPath.rail = &rail;
@@ -99,12 +99,13 @@ void createSwitches(const RailInfo& r)
             configChunkStepsForSwitch(s.disabledPath);
 
             for (Switch* s2 = g_switches; s2 < &s; ++s2) {
-                if (s2->entry.rail != &rail2)
-                    continue;
-
-                s.x_someSwitchIndex = s2 - g_switches;
-                s2->x_someSwitchIndex = &s - g_switches;
-                break;
+                // Handle X-shaped crossings.
+                // In this case, we switches are connected each other directly.
+                if (s2->entry.rail == &rail2 && s2->entry.slot == ri.slot2) {
+                    s.adjucentSwitchIdx = s2 - g_switches;
+                    s2->adjucentSwitchIdx = &s - g_switches;
+                    break;
+                }
             }
         }
     }
@@ -124,8 +125,8 @@ void toggleSwitch(Switch& s)
 
     std::swap(s.entry, s.disabledPath);
 
-    if (s.x_someSwitchIndex != -1)
-        g_switches[s.x_someSwitchIndex].exit = s.entry;
+    if (s.adjucentSwitchIdx != -1)
+        g_switches[s.adjucentSwitchIdx].exit = s.entry;
 }
 
 /* 13d1:010f */

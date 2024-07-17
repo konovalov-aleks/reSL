@@ -39,8 +39,8 @@ set(SOURCES
     src/game/resources/impasse_glyph.cpp
     src/game/resources/movement_paths.cpp
     src/game/resources/rail_connection_bias.cpp
+    src/game/resources/rail_connection_rule.cpp
     src/game/resources/rail_glyph.cpp
-    src/game/resources/rail_info.cpp
     src/game/resources/rail_type_meta.cpp
     src/game/resources/semaphore_glyph.cpp
     src/game/resources/semaphore_glyph_bias.cpp

@@ -2,7 +2,9 @@
 
 #include <graphics/vga.h>
 
+#include <SDL_rect.h>
 #include <SDL_render.h>
+#include <SDL_stdinc.h>
 #include <SDL_video.h>
 
 #include <array>
@@ -94,16 +96,15 @@ private:
     void init();
     void close();
 
-    void lockTexture();
-    void unlockTexture();
+    Uint32 choosePixelFormat();
+    void generatePalette(Uint32 pixelFormat);
 
     void updateVideoMemory(unsigned);
+    bool updatePicture();
 
     SDL_Window* m_window = nullptr;
     SDL_Renderer* m_renderer = nullptr;
     SDL_Texture* m_screen = nullptr;
-    std::uint32_t* m_screenPixels = nullptr;
-    int m_screenPixelsPitch = 0;
 
     int m_wndWidth = SCREEN_WIDTH;
     int m_wndHeight = SCREEN_HEIGHT;
@@ -112,7 +113,8 @@ private:
 
     ClockT::time_point m_nextFrameTime = {};
 
-    bool m_dirty = true;
+    SDL_Rect m_dirtyRect = {};
+    bool m_needRedraw = false;
 };
 
 } // namespace resl

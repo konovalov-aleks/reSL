@@ -17,6 +17,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <iterator>
+#include <limits>
 
 #ifdef __EMSCRIPTEN__
 #   include <emscripten.h>
@@ -29,6 +31,15 @@ namespace resl {
 // https://www.cs.utexas.edu/~lorenzo/corsi/439/ref/hardware/vgadoc/VGAREGS.TXT
 
 static const char g_windowTitle[] = "reSL - reverse engineered ShortLine game";
+
+static constexpr Uint32 g_supportedPixelFormats[] = {
+    SDL_PIXELFORMAT_RGB888,
+    SDL_PIXELFORMAT_BGR888,
+    SDL_PIXELFORMAT_ARGB8888,
+    SDL_PIXELFORMAT_ABGR8888,
+    SDL_PIXELFORMAT_RGBA8888,
+    SDL_PIXELFORMAT_BGRA8888,
+};
 
 VGAEmulation::VGAEmulation()
 {
@@ -47,10 +58,8 @@ void VGAEmulation::flush()
         return;
     m_nextFrameTime = now + std::chrono::microseconds(1000000 / s_FPS);
 
-    if (m_dirty) {
-        m_dirty = false;
-
-        unlockTexture();
+    if (updatePicture() || m_needRedraw) {
+        m_needRedraw = false;
 
         const bool isDebugGraphicsMode = m_wndWidth != SCREEN_WIDTH;
         if (isDebugGraphicsMode) [[unlikely]] {
@@ -102,7 +111,7 @@ void VGAEmulation::flush()
         }
         SDL_RenderPresent(m_renderer);
 
-        lockTexture();
+        m_dirtyRect = {};
     }
 
     // need to poll events to make the image appear
@@ -142,9 +151,10 @@ void VGAEmulation::setDebugMode(bool debug)
 
 void VGAEmulation::init()
 {
+    const Uint32 flags = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI |
+        SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL;
     int err = SDL_CreateWindowAndRenderer(
-        m_wndWidth, m_wndHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI, &m_window,
-        &m_renderer);
+        m_wndWidth, m_wndHeight, flags, &m_window, &m_renderer);
     if (err) [[unlikely]] {
         std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError() << std::endl;
         close();
@@ -158,16 +168,72 @@ void VGAEmulation::init()
     SDL_SetWindowTitle(m_window, g_windowTitle);
     SDL_WarpMouseInWindow(m_window, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 
+    const Uint32 pixelFormat = choosePixelFormat();
+    std::cout << "Pixel format: " << SDL_GetPixelFormatName(pixelFormat)
+              << std::endl;
+    generatePalette(pixelFormat);
+
     // roundUp(memSize / vgaRowBytes)
-    constexpr int nRows = 1 + (sizeof(VGAState::mem) / sizeof(VGAState::mem[0]) - 1) / vga::VIDEO_MEM_ROW_BYTES;
+    constexpr int nRows =
+        1 + (sizeof(VGAState::mem) / sizeof(VGAState::mem[0]) - 1) / vga::VIDEO_MEM_ROW_BYTES;
     m_screen = SDL_CreateTexture(
-        m_renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING,
+        m_renderer, pixelFormat, SDL_TEXTUREACCESS_STREAMING,
         vga::VIDEO_MEM_ROW_BYTES * 8, nRows);
     if (!m_screen) [[unlikely]] {
         std::cerr << "Unable to create SDL texture! SDL_Error: " << SDL_GetError() << std::endl;
         close();
         std::exit(EXIT_FAILURE);
     }
+
+    SDL_SetRenderTarget(m_renderer, nullptr);
+}
+
+void VGAEmulation::close()
+{
+    if (m_screen)
+        SDL_DestroyTexture(m_screen);
+    if (m_renderer)
+        SDL_DestroyRenderer(m_renderer);
+
+    m_renderer = nullptr;
+    m_window = nullptr;
+    m_screen = nullptr;
+}
+
+Uint32 VGAEmulation::choosePixelFormat()
+{
+    SDL_RendererInfo rInfo;
+    if (SDL_GetRendererInfo(m_renderer, &rInfo)) [[unlikely]] {
+        std::cerr << "WARNING: SDL_GetRendererInfo failed. SDL_Error: " << SDL_GetError()
+                  << "\nWill use the default pixel format" << std::endl;
+        return g_supportedPixelFormats[0];
+    }
+
+    Uint32 res = 0;
+    std::cout << "Renderer: " << rInfo.name << "\nSupported pixel formats:\n";
+    for (Uint32 i = 0; i < rInfo.num_texture_formats; ++i) {
+        std::cout << '\t'
+                  << SDL_GetPixelFormatName(rInfo.texture_formats[i])
+                  << std::endl;
+    }
+    auto iter = std::find_first_of(
+        rInfo.texture_formats, rInfo.texture_formats + rInfo.num_texture_formats,
+        std::begin(g_supportedPixelFormats), std::end(g_supportedPixelFormats));
+    if (iter != rInfo.texture_formats + rInfo.num_texture_formats)
+        return *iter;
+
+    std::cerr << "WARNING: no one preferred pixel format suits, "
+                 "the default format will be used instead"
+              << std::endl;
+    return g_supportedPixelFormats[0];
+}
+
+void VGAEmulation::generatePalette(Uint32 pixelFormat)
+{
+    assert(std::find(
+               std::begin(g_supportedPixelFormats),
+               std::end(g_supportedPixelFormats),
+               pixelFormat) != std::end(g_supportedPixelFormats));
 
     m_vgaState.palette = {
         0x55AA00, // Green
@@ -188,45 +254,74 @@ void VGAEmulation::init()
         0x000000  // Blinking color (Black/White)
     };
 
-    lockTexture();
+    if (pixelFormat == SDL_PIXELFORMAT_RGB888)
+        return;
 
-    SDL_SetRenderTarget(m_renderer, nullptr);
+    if (pixelFormat == SDL_PIXELFORMAT_BGR888 ||
+        pixelFormat == SDL_PIXELFORMAT_ABGR8888 ||
+        pixelFormat == SDL_PIXELFORMAT_BGRA8888) {
+
+        // RGB -> BGR
+        for (std::uint32_t& v : m_vgaState.palette)
+            v = (v & 0xFF) << 16 | (v & 0xFF00) | (v >> 16);
+    }
+
+    // add alpha value
+    if (pixelFormat == SDL_PIXELFORMAT_ARGB8888 ||
+        pixelFormat == SDL_PIXELFORMAT_ABGR8888) {
+
+        for (std::uint32_t& v : m_vgaState.palette)
+            v = v | 0xFF000000;
+
+    } else if (pixelFormat == SDL_PIXELFORMAT_RGBA8888 ||
+               pixelFormat == SDL_PIXELFORMAT_BGRA8888) {
+
+        for (std::uint32_t& v : m_vgaState.palette)
+            v = (v << 8) | 0xFF;
+    }
 }
 
-void VGAEmulation::close()
+bool VGAEmulation::updatePicture()
 {
-    if (m_screen)
-        SDL_DestroyTexture(m_screen);
-    if (m_renderer)
-        SDL_DestroyRenderer(m_renderer);
-    if (m_window)
-        SDL_DestroyWindow(m_window);
+    SDL_Rect screenRect = { 0, 0, m_wndWidth, vga::VIDEO_MEM_N_ROWS };
+    SDL_IntersectRect(&m_dirtyRect, &screenRect, &m_dirtyRect);
+    if (SDL_RectEmpty(&m_dirtyRect))
+        return false;
 
-    m_renderer = nullptr;
-    m_window = nullptr;
-    m_screen = nullptr;
-}
-
-void VGAEmulation::lockTexture()
-{
-    int err = SDL_LockTexture(m_screen, nullptr, reinterpret_cast<void**>(&m_screenPixels), &m_screenPixelsPitch);
+    std::uint32_t* dst = nullptr;
+    int pitch = 0;
+    int err = SDL_LockTexture(m_screen, &m_dirtyRect, reinterpret_cast<void**>(&dst), &pitch);
     if (err) [[unlikely]] {
         std::cerr << "Unable to lock the texture! SDL_Error: " << SDL_GetError() << std::endl;
         std::exit(EXIT_FAILURE);
     }
-    assert(m_screenPixels);
-    assert(m_screenPixelsPitch);
-    assert(m_screenPixelsPitch % sizeof(std::uint32_t) == 0);
-    m_screenPixelsPitch /= sizeof(std::uint32_t);
-}
+    assert(dst);
+    assert(pitch);
+    assert(pitch % sizeof(std::uint32_t) == 0);
+    pitch /= sizeof(std::uint32_t);
 
-void VGAEmulation::unlockTexture()
-{
+    std::size_t srcByte =
+        m_dirtyRect.y * vga::VIDEO_MEM_ROW_BYTES + m_dirtyRect.x / 8;
+    for (int y = 0; y < m_dirtyRect.h; ++y) {
+        const std::size_t s = srcByte;
+        for (int x = 0; x < m_dirtyRect.w; ++x) {
+            const int bit = (x + m_dirtyRect.x) & 7;
+            assert(srcByte < 0x10000);
+            std::uint8_t color =
+                (((m_vgaState.mem[srcByte][3] << bit) & 0x80) >> 4) |
+                (((m_vgaState.mem[srcByte][2] << bit) & 0x80) >> 5) |
+                (((m_vgaState.mem[srcByte][1] << bit) & 0x80) >> 6) |
+                (((m_vgaState.mem[srcByte][0] << bit) & 0x80) >> 7);
+            dst[x] = m_vgaState.palette[color];
+            if (bit == 7)
+                ++srcByte;
+        }
+        dst += pitch;
+        srcByte = s + vga::VIDEO_MEM_ROW_BYTES;
+    }
+
     SDL_UnlockTexture(m_screen);
-#ifndef NDEBUG
-    m_screenPixels = nullptr;
-    m_screenPixelsPitch = 0;
-#endif // !NDEBUG
+    return true;
 }
 
 void VGAEmulation::updateVideoMemory(unsigned srcByte)
@@ -237,16 +332,8 @@ void VGAEmulation::updateVideoMemory(unsigned srcByte)
     if (x >= m_wndWidth)
         return;
 
-    std::uint32_t* dst = &m_screenPixels[x + y * m_screenPixelsPitch];
-    for (int bit = 0; bit < 8; ++bit) {
-        std::uint8_t color =
-            (((m_vgaState.mem[srcByte][3] << bit) & 0x80) >> 4) |
-            (((m_vgaState.mem[srcByte][2] << bit) & 0x80) >> 5) |
-            (((m_vgaState.mem[srcByte][1] << bit) & 0x80) >> 6) |
-            (((m_vgaState.mem[srcByte][0] << bit) & 0x80) >> 7);
-        dst[bit] = m_vgaState.palette[color];
-    }
-    m_dirty = true;
+    SDL_Rect r = { x, y, 8, 1 };
+    SDL_UnionRect(&m_dirtyRect, &r, &m_dirtyRect);
 }
 
 void VGAEmulation::write(vga::VideoMemPtr memPtr, std::uint8_t color)
@@ -342,7 +429,7 @@ void VGAEmulation::setLineCompareRegister(std::uint16_t y)
     y = y & 0x1FF;
     if (m_vgaState.overflowLineCompare != y) {
         m_vgaState.overflowLineCompare = y;
-        m_dirty = true;
+        m_needRedraw = true;
     }
 }
 
@@ -351,7 +438,7 @@ void VGAEmulation::setFrameOrigin(std::int16_t x, std::int16_t y)
     assert(x == 0); // not supported
     if (m_vgaState.yOrigin != y) {
         m_vgaState.yOrigin = y;
-        m_dirty = true;
+        m_needRedraw = true;
     }
 }
 
@@ -375,8 +462,12 @@ void VGAEmulation::setPaletteItem(std::uint8_t idx, std::uint32_t rgb)
     assert(idx < m_vgaState.palette.size());
     m_vgaState.palette[idx] = rgb;
 
+    int x1 = std::numeric_limits<int>::max();
+    int x2 = std::numeric_limits<int>::min();
+    int y1 = std::numeric_limits<int>::max();
+    int y2 = std::numeric_limits<int>::min();
+
     std::size_t srcByte = 0;
-    std::uint32_t* dst = m_screenPixels;
     for (int y = 0; y < vga::VIDEO_MEM_N_ROWS; ++y) {
         const std::size_t s = srcByte;
         for (int x = 0; x <= m_wndWidth; x += 8) {
@@ -387,14 +478,22 @@ void VGAEmulation::setPaletteItem(std::uint8_t idx, std::uint32_t rgb)
                     (((m_vgaState.mem[srcByte][1] << bit) & 0x80) >> 6) |
                     (((m_vgaState.mem[srcByte][0] << bit) & 0x80) >> 7);
                 if (color == idx) {
-                    m_dirty = true;
-                    dst[x + bit] = rgb;
+                    int xx = x + bit;
+                    x1 = std::min(x1, xx);
+                    x2 = std::max(x2, xx);
+                    y1 = std::min(y1, y);
+                    y2 = std::max(y2, y);
                 }
             }
             ++srcByte;
         }
-        dst += m_screenPixelsPitch;
         srcByte = s + vga::VIDEO_MEM_ROW_BYTES;
+    }
+
+    if (x2 >= x1) {
+        assert(y2 >= y1);
+        SDL_Rect r = { x1, y1, x2 - x1 + 1, y2 - y1 + 1 };
+        SDL_UnionRect(&m_dirtyRect, &r, &m_dirtyRect);
     }
 }
 

@@ -150,7 +150,7 @@ const std::map<std::string, std::function<void(int, const char*[])>> commands = 
 Task sdlLoop()
 {
     for (;;) {
-        Driver::instance().pollEvent();
+        Driver::instance().vga().flush();
         co_await sleep(2);
     }
 }

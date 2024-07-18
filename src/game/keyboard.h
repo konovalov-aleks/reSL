@@ -18,4 +18,7 @@ extern std::uint8_t g_lastKeyCode;
 /* 14af:06e7 */
 void keyboardInteruptionHandler(std::uint8_t keycode);
 
+/* 1c71:000f */
+void updateKeyboardLeds(std::int16_t);
+
 } // namespace resl

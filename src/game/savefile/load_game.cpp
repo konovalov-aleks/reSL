@@ -3,19 +3,21 @@
 // IWYU pragma: no_include <sys/_types/_seek_set.h>
 // IWYU pragma: no_include <sys/fcntl.h>
 
-#include "entrance.h"
-#include "game_data.h"
-#include "header.h"
-#include "init.h"
-#include "io_status.h"
-#include "rail.h"
-#include "semaphore.h"
-#include "static_object.h"
-#include "switch.h"
-#include "train.h"
-#include "types/header_field.h"
-#include "types/rail_info.h"
-#include "types/rectangle.h"
+#include "common.h"
+#include <game/entrance.h>
+#include <game/game_data.h>
+#include <game/header.h>
+#include <game/init.h>
+#include <game/io_status.h>
+#include <game/keyboard.h>
+#include <game/rail.h>
+#include <game/semaphore.h>
+#include <game/static_object.h>
+#include <game/switch.h>
+#include <game/train.h>
+#include <game/types/header_field.h>
+#include <game/types/rail_info.h>
+#include <game/types/rectangle.h>
 #include <graphics/color.h>
 #include <system/filesystem.h>
 #include <system/time.h>
@@ -123,10 +125,9 @@ namespace {
 
         void readBytes(char* dst, std::size_t n)
         {
-            ssize_t cnt = ::read(m_fd, dst, n);
+            [[maybe_unused]] ssize_t cnt = ::read(m_fd, dst, n);
             // the original game also has no check if data was succesfully read
             assert(cnt == n);
-            (void)cnt;
         }
 
         // The original game stores the pointers in the save file, but uses
@@ -239,24 +240,14 @@ namespace {
 
 } // namespace
 
-/* sizeof(EntranceInfo) can be different, because we have different size of
- * pointer */
-constexpr std::size_t fileEntranceInfoSize = 0x16;
-/* offsetof(EntranceInfo, obj) */
-constexpr std::size_t fileEntranceInfoObjOffset = 4;
-/* sizeof(Chunk) */
-constexpr std::size_t fileChunkSize = 0x12;
-/* sizeof(Chunk) */
-constexpr std::size_t fileChunkArraySize = fileChunkSize * 6 * 10 * 11;
-
 static Rail* fixLoadedRailPtr(Rail* p)
 {
     assert(
         reinterpret_cast<std::intptr_t>(p) >= g_railsLoadedOffset &&
-        reinterpret_cast<std::intptr_t>(p) <= g_railsLoadedOffset + fileChunkArraySize);
+        reinterpret_cast<std::intptr_t>(p) <= g_railsLoadedOffset + fileRailArraySize);
     std::ptrdiff_t offset = reinterpret_cast<std::intptr_t>(p) - g_railsLoadedOffset;
-    assert(offset % fileChunkSize == 0);
-    return &g_rails[0][0][0] + (offset / fileChunkSize);
+    assert(offset % fileRailSize == 0);
+    return &g_rails[0][0][0] + (offset / fileRailSize);
 }
 
 /* 1400:0061 */
@@ -266,10 +257,10 @@ static void fixLoadedLocation(Location& l)
         return;
 
     const std::intptr_t c = reinterpret_cast<std::intptr_t>(l.rail);
-    if (c >= g_entrancesLoadedOffset + fileEntranceInfoObjOffset &&
-        c <= g_entrancesLoadedOffset + fileEntranceInfoObjOffset + fileEntranceInfoSize * 5) {
+    if (c >= g_entrancesLoadedOffset + fileEntranceRailOffset &&
+        c <= g_entrancesLoadedOffset + fileEntranceRailOffset + fileEntranceInfoSize * 5) {
         // obj is inside entrances array
-        std::ptrdiff_t offset = c - (g_entrancesLoadedOffset + fileEntranceInfoObjOffset);
+        std::ptrdiff_t offset = c - (g_entrancesLoadedOffset + fileEntranceRailOffset);
         assert(offset % fileEntranceInfoSize == 0);
         l.rail = &g_entrances[offset / fileEntranceInfoSize].rail;
     } else {
@@ -314,7 +305,7 @@ static void loadGameState(const char* fileName, char* switchStates, char* semaph
     */
     int fd = open(fileName, O_BINARY | O_RDONLY);
     if (fd == -1) [[unlikely]]
-        ioStatus = OpenError;
+        g_ioStatus = IOStatus::OpenError;
     else {
         Reader r(fd);
 
@@ -389,9 +380,19 @@ static void loadGameState(const char* fileName, char* switchStates, char* semaph
                     t.year = r.read<std::int16_t>();
                     t.lastMovementTime = r.read<std::int16_t>();
                     for (Carriage& c : t.carriages) {
-                        c.next = r.readPtr<Carriage>();
+                        // The value is a garbage (broken pointer). This is not
+                        // a problem since the value will be overwritten before
+                        // use, but we won't store it for better safety
+                        r.read<std::uint16_t>();
+                        c.next = nullptr;
+
                         c.drawingPriority = r.read<std::int16_t>();
-                        c.train = r.readPtr<Train>();
+
+                        // This pointer is also not used after loading and
+                        // contains a broken value.
+                        r.read<std::uint16_t>();
+                        c.train = nullptr;
+
                         c.dstEntranceIdx = r.read<std::uint8_t>();
                         c.type = r.read<CarriageType>();
                         c.direction = r.read<std::uint8_t>();
@@ -410,6 +411,7 @@ static void loadGameState(const char* fileName, char* switchStates, char* semaph
 
         g_railRoadCount = r.read<std::uint16_t>();
         for (std::uint16_t i = 0; i < g_railRoadCount; ++i) {
+            auto bs = r.expectedSize(6);
             RailInfo& ri = g_railRoad[i];
             ri.roadTypeMask = r.read<std::uint8_t>();
             ri.tileX = r.read<std::uint8_t>();
@@ -432,15 +434,8 @@ static void loadGameState(const char* fileName, char* switchStates, char* semaph
 
         fd = close(fd);
         if (fd) [[unlikely]]
-            ioStatus = CloseError;
+            g_ioStatus = IOStatus::CloseError;
     }
-}
-
-/* 1c71:000f */
-IOStatus x_smthRelatedToKeyboard(IOStatus errCode)
-{
-    // TODO research & implement
-    return errCode;
 }
 
 /* 1400:009c */
@@ -449,11 +444,11 @@ IOStatus loadSavedGame(const char* fileName)
     char switchStatesBuf[100];
     char semaphoresIsRed[100];
 
-    ioStatus = NoError;
+    g_ioStatus = IOStatus::NoError;
     resetGameData();
     loadGameState(fileName, switchStatesBuf, semaphoresIsRed);
 
-    if (ioStatus == NoError) {
+    if (g_ioStatus == IOStatus::NoError) {
         for (Train& train : g_trains) {
             fixLoadedLocation(train.head);
             fixLoadedLocation(train.tail);
@@ -482,8 +477,8 @@ IOStatus loadSavedGame(const char* fileName)
         for (int i = 0; i < g_semaphoreCount; ++i)
             g_semaphores[i].isRed = semaphoresIsRed[i];
     }
-    x_smthRelatedToKeyboard(ioStatus);
-    return ioStatus;
+    updateKeyboardLeds(static_cast<std::int16_t>(g_ioStatus));
+    return g_ioStatus;
 }
 
 /* 1400:0638 */

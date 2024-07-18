@@ -2,12 +2,12 @@
 
 #include "game_data.h"
 #include "io_status.h"
-#include "load_game.h"
 #include "main_menu.h"
 #include "mouse/management_mode.h"
 #include "mouse/mouse.h"
 #include "mouse/mouse_mode.h"
 #include "mouse/mouse_state.h"
+#include "savefile/load_game.h"
 #include "semaphore.h"
 #include "switch.h"
 #include <graphics/vga.h>

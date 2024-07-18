@@ -25,4 +25,10 @@ void keyboardInteruptionHandler(std::uint8_t keycode)
     g_lastKeyCode = keycode;
 }
 
+/* 1c71:000f */
+void updateKeyboardLeds(std::int16_t)
+{
+    // TODO implement
+}
+
 } // namespace resl

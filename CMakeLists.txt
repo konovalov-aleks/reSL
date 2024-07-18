@@ -17,7 +17,6 @@ set(SOURCES
     src/game/init.cpp
     src/game/io_status.cpp
     src/game/keyboard.cpp
-    src/game/load_game.cpp
     src/game/loading_screen.cpp
     src/game/main_loop.cpp
     src/game/main_menu.cpp
@@ -51,7 +50,8 @@ set(SOURCES
     src/game/resources/train_glyph.cpp
     src/game/resources/train_specification.cpp
     src/game/road_construction.cpp
-    src/game/save_game.cpp
+    src/game/savefile/load_game.cpp
+    src/game/savefile/save_game.cpp
     src/game/semaphore.cpp
     src/game/static_object.cpp
     src/game/status_bar.cpp

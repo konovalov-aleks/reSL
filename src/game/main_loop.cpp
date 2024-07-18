@@ -19,7 +19,7 @@
 #include "rail.h"
 #include "records.h"
 #include "resources/entrance_rails.h"
-#include "save_game.h"
+#include "savefile/save_game.h"
 #include "static_object.h"
 #include "status_bar.h"
 #include "train.h"

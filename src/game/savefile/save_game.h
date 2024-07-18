@@ -1,6 +1,6 @@
 #pragma once
 
-#include "io_status.h"
+#include <game/io_status.h>
 
 namespace resl {
 

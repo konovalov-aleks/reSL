@@ -5,6 +5,7 @@
 
 #include <SDL_blendmode.h>
 #include <SDL_error.h>
+#include <SDL_hints.h>
 #include <SDL_mouse.h>
 #include <SDL_pixels.h>
 #include <SDL_rect.h>
@@ -60,6 +61,9 @@ void VGAEmulation::flush()
 
     if (updatePicture() || m_needRedraw) {
         m_needRedraw = false;
+
+        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0xFF);
+        SDL_RenderClear(m_renderer);
 
         const bool isDebugGraphicsMode = m_wndWidth != SCREEN_WIDTH;
         if (isDebugGraphicsMode) [[unlikely]] {
@@ -151,6 +155,8 @@ void VGAEmulation::setDebugMode(bool debug)
 
 void VGAEmulation::init()
 {
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
+
     const Uint32 flags = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI |
         SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL;
     int err = SDL_CreateWindowAndRenderer(

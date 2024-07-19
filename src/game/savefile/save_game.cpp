@@ -353,7 +353,7 @@ static void saveGameState(const char* fileName)
 
     char data[200];
     for (std::int16_t i = 0; i < g_nSwitches; ++i)
-        data[i] = &g_switches[i].entry < &g_switches[i].disabledPath;
+        data[i] = g_switches[i].entry.rail < g_switches[i].disabledPath.rail;
     w.write<std::uint16_t>(g_nSwitches);
     w.writeBytes(data, g_nSwitches);
 

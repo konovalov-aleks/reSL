@@ -138,22 +138,33 @@ static void generateEntrances()
         */
         entrance.waitingTrainsCount = 0;
 
-        const std::int16_t rIdx = genRandomNumber(std::size(g_entranceRails));
-        entrance.entranceRailInfoIdx = rIdx;
-        const RailInfo& ri = g_entranceRails[entrance.entranceRailInfoIdx];
-        for (std::int16_t j = 0; j < i; ++j) {
-            const std::int16_t r2Idx = g_entrances[j].entranceRailInfoIdx;
-            const RailInfo& ri2 = g_entranceRails[r2Idx];
-            if (i == 1) {
-                if (std::abs(rIdx - r2Idx) < 23)
-                    break;
-            } else {
-                std::int16_t distX =
-                    std::abs((ri.tileX - ri.tileY) * 88 + 320 - (ri2.tileX - ri2.tileY) * 88 + 320);
-                if (distX < 320 && std::abs(rIdx - r2Idx) < 10)
-                    break;
+        bool suits = false;
+        while (!suits) {
+            const std::int16_t rIdx = genRandomNumber(std::size(g_entranceRails));
+            entrance.entranceRailInfoIdx = rIdx;
+            const RailInfo& ri = g_entranceRails[entrance.entranceRailInfoIdx];
+
+            suits = true;
+            for (std::int16_t j = 0; j < i; ++j) {
+                const std::int16_t r2Idx = g_entrances[j].entranceRailInfoIdx;
+                const RailInfo& ri2 = g_entranceRails[r2Idx];
+                if (i == 1) {
+                    if (std::abs(rIdx - r2Idx) < 23) {
+                        suits = false;
+                        break;
+                    }
+                } else {
+                    std::int16_t distX =
+                        std::abs((ri.tileX - ri.tileY) * 88 + 320 - (ri2.tileX - ri2.tileY) * 88 + 320);
+                    if (distX < 320 && std::abs(rIdx - r2Idx) < 10) {
+                        suits = false;
+                        break;
+                    }
+                }
             }
         }
+
+        const RailInfo& ri = g_entranceRails[entrance.entranceRailInfoIdx];
         Rail& rail = g_rails[ri.tileX][ri.tileY][ri.railType];
         bool visible = isVisible(rail);
         Rail& entranceRail = g_entrances[i].rail;

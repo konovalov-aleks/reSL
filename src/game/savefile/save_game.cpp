@@ -98,7 +98,7 @@ namespace {
 
         void writeBytes(const char* buf, std::size_t len)
         {
-            [[maybe_unused]] std::size_t res = std::fwrite(buf, len, 1, m_file);
+            [[maybe_unused]] std::size_t res = std::fwrite(buf, 1, len, m_file);
             // the original game also has no check if data was successfully written
             assert(res == len);
         }

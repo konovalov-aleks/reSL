@@ -4,16 +4,17 @@
 
 #include <algorithm>
 #include <cassert>
-#include <chrono>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
-#include <filesystem>
-#include <system_error>
 
 #ifdef WIN32
+#   include <windows.h>
 #else
+#   include <chrono>
+#   include <filesystem>
 #   include <glob.h>
+#   include <system_error>
 #endif
 
 namespace resl {
@@ -56,23 +57,60 @@ namespace {
 
     class FileSearch {
     public:
-        int findFirst(const char*)
+        ~FileSearch()
         {
-            // TODO implement
-            return 1;
+            close();
         }
 
-        int findNext()
+        bool findFirst(const char* pattern)
         {
-            // TODO implement
-            return 1;
+            close();
+            m_handle = FindFirstFileA(pattern, &m_data);
+            return m_handle != INVALID_HANDLE_VALUE;
+        }
+
+        bool findNext()
+        {
+            return FindNextFileA(m_handle, &m_data) != 0;
         }
 
         FileInfo lastSearchResult()
         {
-            // TODO implement
-            return {};
+            FileInfo result = {};
+            result.fileName = m_data.cFileName;
+
+            FILETIME localTime;
+            SYSTEMTIME st;
+            if (FileTimeToLocalFileTime(&m_data.ftCreationTime, &localTime) &&
+                FileTimeToSystemTime(&localTime, &st)) {
+
+                // Date and time format:
+                // https://www.stanislavs.org/helppc/file_attributes.html
+                assert(st.wDay >= 1 && st.wDay <= 31);
+                assert(st.wMonth >= 1 && st.wMonth <= 12);
+                result.fileDate =
+                    st.wDay | (st.wMonth << 5) | ((st.wYear - 1980) << 9);
+
+                assert(st.wSecond < 60);
+                assert(st.wMinute < 60);
+                assert(st.wHour < 24);
+                result.fileTime =
+                    (st.wSecond * 2) | (st.wMinute << 5) | (st.wHour << 11);
+            }
+            return result;
         }
+
+    private:
+        void close()
+        {
+            if (m_handle != INVALID_HANDLE_VALUE) {
+                FindClose(m_handle);
+                m_handle = INVALID_HANDLE_VALUE;
+            }
+        }
+
+        WIN32_FIND_DATA m_data;
+        HANDLE m_handle = INVALID_HANDLE_VALUE;
     };
 
 #else // WIN32
@@ -84,18 +122,18 @@ namespace {
             close();
         }
 
-        int findFirst(const char* pattern)
+        bool findFirst(const char* pattern)
         {
             close();
             m_glob = {};
             m_curPath = 0;
-            return glob(pattern, 0, nullptr, &m_glob);
+            return glob(pattern, 0, nullptr, &m_glob) == 0;
         }
 
-        int findNext()
+        bool findNext()
         {
             ++m_curPath;
-            return (m_curPath < m_glob.gl_pathc) ? 0 : 1;
+            return m_curPath < m_glob.gl_pathc;
         }
 
         FileInfo lastSearchResult()
@@ -161,7 +199,7 @@ int findFirst(const char* pattern, std::uint8_t attrs)
     //      https://www.stanislavs.org/helppc/int_21-4e.html
 
     assert(attrs == 0); // other modes are not supported
-    return g_search.findFirst(pattern);
+    return g_search.findFirst(pattern) ? 0 : 1;
 }
 
 /* 12b1:001d */
@@ -169,7 +207,7 @@ int findNext()
 {
     // The original implementation is based on DOS 21h (4F) API call:
     //      https://www.stanislavs.org/helppc/int_21-4f.html
-    return g_search.findNext();
+    return g_search.findNext() ? 0 : 1;
 }
 
 /* 1000:12a8 */

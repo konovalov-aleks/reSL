@@ -130,6 +130,7 @@ cmake --build . -j4
 xcopy c:\projects\SDL2-2.30.5\lib\x64\SDL2.dll .
 # enjoy!
 resl.exe
+```
 
 ### WebAssembly (emscripten)
 

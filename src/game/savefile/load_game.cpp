@@ -121,7 +121,7 @@ namespace {
 
         void readBytes(char* dst, std::size_t n)
         {
-            [[maybe_unused]] std::size_t cnt = std::fread(dst, n, 1, m_file);
+            [[maybe_unused]] std::size_t cnt = std::fread(dst, 1, n, m_file);
             // the original game also has no check if data was succesfully read
             assert(cnt == n);
         }

@@ -9,6 +9,10 @@ namespace resl {
 #   define O_BINARY 0
 #endif
 
+#ifndef O_TEXT
+#   define O_TEXT 0
+#endif
+
 // The original game uses a cumbersome structure DTA from DOS API with many
 // useless fields:
 //      https://www.stanislavs.org/helppc/int_21-4e.html
@@ -23,7 +27,10 @@ struct FileInfo {
 //-----------------------------------------------------------------------------
 
 /* 1abc:0005 */
-ssize_t readFromFile(const char* fileName, void* pagePtr);
+ssize_t readBinaryFile(const char* fileName, void* pagePtr);
+
+/* 1400:067f */
+ssize_t readTextFile(const char* fileName);
 
 /* 1abc:0064 */
 void readIfNotLoaded(const char* fileName, void* pagePtr);

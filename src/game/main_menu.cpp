@@ -9,6 +9,7 @@
 #include "init.h"
 #include "keyboard.h"
 #include "main_loop.h"
+#include "manual.h"
 #include "melody.h"
 #include "mouse/construction_mode.h"
 #include "mouse/management_mode.h"
@@ -30,7 +31,6 @@
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
-#include <iostream>
 
 namespace resl {
 
@@ -95,7 +95,7 @@ inline ArchiveMenuAction showArchiveMenu()
         while (!showNextFile) {
             drawDialog(DialogType::Archive, 350);
             graphics::setVideoFrameOrigin(0, 350);
-            graphics::flushScreenBuffer(0);
+            graphics::copyScreenBufferTo(0);
             showStatusMessage(buf);
             graphics::setVideoFrameOrigin(0, 0);
             drawWorld();
@@ -172,7 +172,7 @@ inline ArchiveMenuAction showArchiveMenu()
                     drawHeaderData(0, 100, 1800, readLevel(), 350);
                     drawDialog(DialogType::MainMenu, 350);
                     graphics::setVideoFrameOrigin(0, 350);
-                    graphics::flushScreenBuffer(0);
+                    graphics::copyScreenBufferTo(0);
                     graphics::setVideoFrameOrigin(0, 0);
                     return ArchiveMenuAction::ReturnToMainMenu;
 
@@ -196,9 +196,15 @@ void mainMenu()
         case 0:
             /* 15e8:04ea */
             // [M]anual
-            // TODO implement
-            std::cout << "Sorry, manual is not implemented yet" << std::endl;
-            playErrorMelody();
+            showManual();
+            readBinaryFile("play.7", g_pageBuffer);
+            drawGameField(350);
+            drawHeaderData(0, 100, 1800, readLevel(), 350);
+            drawDialog(DialogType::MainMenu, 350);
+            graphics::animateScreenShifting();
+            graphics::setVideoFrameOrigin(0, 350);
+            graphics::copyScreenBufferTo(0);
+            graphics::setVideoFrameOrigin(0, 0);
             break;
 
         case -1:
@@ -218,7 +224,7 @@ void mainMenu()
                 g_isDemoMode = true;
                 drawWorld();
                 graphics::animateScreenShifting();
-                graphics::flushScreenBuffer(0);
+                graphics::copyScreenBufferTo(0);
                 graphics::setVideoFrameOrigin(0, 0);
                 fillGameFieldBackground(350);
                 drawFieldBackground(350);
@@ -233,7 +239,7 @@ void mainMenu()
             drawGameField(350);
             drawHeaderData(0, 100, 1800, readLevel(), 350);
             graphics::setVideoFrameOrigin(0, 350);
-            graphics::flushScreenBuffer(0);
+            graphics::copyScreenBufferTo(0);
             graphics::setVideoFrameOrigin(0, 0);
             mouse::g_state.mode = &mouse::g_modeConstruction;
             return;
@@ -280,12 +286,7 @@ void mainMenu()
 /* 132d:00b6 */
 void drawMainMenuBackground(std::int16_t yOffset)
 {
-    // The file name in the original game is lowercase:
-    //  1d7d:0199 "play.7"
-    // But DOS filesystem is case-insensitive => the fact that the file name on disk
-    // and name in the code are in different case is not a problem there.
-    // For portability, I use a name identical to the file name on disk.
-    readFromFile("PLAY.7", g_pageBuffer);
+    readBinaryFile("play.7", g_pageBuffer);
     graphics::imageDot7(0, yOffset, SCREEN_WIDTH, SCREEN_HEIGHT, g_pageBuffer);
     drawStaticObjects(yOffset);
     drawCopyright(yOffset);

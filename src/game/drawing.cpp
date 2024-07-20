@@ -206,12 +206,7 @@ void drawEraseTrainFinishedExclamation(std::int16_t entranceX, std::int16_t entr
 /* 132d:00f9 */
 void drawGameField(std::int16_t yOffset)
 {
-    // The file name in the original game is lowercase:
-    //  1d7d:01a0 "play.7"
-    // But DOS filesystem is case-insensitive => the fact that the file name on disk
-    // and name in the code are in different case is not a problem there.
-    // For portability, I use a name identical to the file name on disk.
-    readIfNotLoaded("PLAY.7", g_pageBuffer);
+    readIfNotLoaded("play.7", g_pageBuffer);
     graphics::imageDot7(0, yOffset, 640, 350, g_pageBuffer);
     drawStaticObjects(yOffset);
     drawCopyright(yOffset);

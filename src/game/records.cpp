@@ -78,7 +78,7 @@ static int recordCompareByLevelAndYear(const void* a, const void* b)
 /* 174e:0266 */
 void showRecordsScreen()
 {
-    ssize_t bytesRead = readFromFile(g_recordsFileName, g_pageBuffer);
+    ssize_t bytesRead = readBinaryFile(g_recordsFileName, g_pageBuffer);
     if (bytesRead != 0 && bytesRead != -1) {
         // The data can contain an empty records
         // Normalize the representation - move all non-empty records to the head

@@ -20,6 +20,7 @@ set(SOURCES
     src/game/loading_screen.cpp
     src/game/main_loop.cpp
     src/game/main_menu.cpp
+    src/game/manual.cpp
     src/game/melody.cpp
     src/game/mouse/construction_mode.cpp
     src/game/mouse/management_mode.cpp
@@ -123,8 +124,8 @@ else()
         TARGET resl
         POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_CURRENT_SOURCE_DIR}/resources/PLAY.7
-            $<TARGET_FILE_DIR:resl>/PLAY.7
+            ${CMAKE_CURRENT_SOURCE_DIR}/resources/play.7
+            $<TARGET_FILE_DIR:resl>/play.7
         COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_CURRENT_SOURCE_DIR}/resources/GAMEOVER.7
             $<TARGET_FILE_DIR:resl>/GAMEOVER.7
@@ -137,6 +138,9 @@ else()
         COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_CURRENT_SOURCE_DIR}/resources/poster.7
             $<TARGET_FILE_DIR:resl>/poster.7
+        COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_CURRENT_SOURCE_DIR}/resources/RULES.TXT
+            $<TARGET_FILE_DIR:resl>/RULES.TXT
     )
 endif()
 

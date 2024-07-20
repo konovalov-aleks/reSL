@@ -4,6 +4,13 @@
 
 namespace resl {
 
+//-----------------------------------------------------------------------------
+
+// http://www.techhelpmanual.com/57-keyboard_scan_codes.html
+inline constexpr std::uint8_t g_keyEscape = 1;
+
+//-----------------------------------------------------------------------------
+
 /* 262d:6ef9 : 1 byte */
 extern std::uint8_t g_lastKeyPressed;
 

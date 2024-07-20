@@ -28,7 +28,7 @@ TODO
 8. ~~Loading screen~~
 9. ~~Pause menu~~
 10. ~~Small font rendering~~
-11. "Manual" screen
+11. ~~"Manual" screen~~
 
 ## Idea and goals of the project:
 

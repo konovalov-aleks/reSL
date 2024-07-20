@@ -344,7 +344,7 @@ void restoreVideoMemRegion24x16(std::int16_t x, std::int16_t y, vga::VideoMemPtr
 }
 
 /* 132d:03c2 */
-void flushScreenBuffer(std::int16_t y)
+void copyScreenBufferTo(std::int16_t y)
 {
     copyRectangle(0, y, 0, y ^ 350, 80, 350);
     vga::setVideoModeR0W2();

@@ -65,6 +65,6 @@ void saveVideoMemRegion24x16(std::int16_t x, std::int16_t y, vga::VideoMemPtr ds
 void restoreVideoMemRegion24x16(std::int16_t x, std::int16_t y, vga::VideoMemPtr src);
 
 /* 132d:03c2 */
-void flushScreenBuffer(std::int16_t y);
+void copyScreenBufferTo(std::int16_t y);
 
 } // namespace resl::graphics

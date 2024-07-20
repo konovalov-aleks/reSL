@@ -161,7 +161,7 @@ Task taskGameMainLoop()
         drawDialog(DialogType::MainMenu, 350);
 
         graphics::animateScreenShifting();
-        graphics::flushScreenBuffer(0);
+        graphics::copyScreenBufferTo(0);
         graphics::setVideoFrameOrigin(0, 0);
 
         g_isDemoMode = false;
@@ -284,7 +284,7 @@ Task taskGameMainLoop()
                     g_headers[static_cast<int>(HeaderFieldId::Money)].value += 10;
                     drawWorld();
                     graphics::animateScreenShifting();
-                    graphics::flushScreenBuffer(0);
+                    graphics::copyScreenBufferTo(0);
                     graphics::setVideoFrameOrigin(0, 0);
                     needRestartGame = true;
                     break;

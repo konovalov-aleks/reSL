@@ -18,7 +18,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
-#include <filesystem>
 #include <functional>
 #include <iostream>
 #include <iterator>
@@ -55,14 +54,6 @@ void drawTextDemo(int, const char*[])
 
 void startGame()
 {
-    if (!std::filesystem::is_regular_file("PLAY.7")) {
-        std::cerr
-            << "!!!WARNING!!! The PLAY.7 file was not found!\n"
-               "Please, copy PLAY.7 file from the original game folder to the application folder. "
-               "Otherwise you will see a mess in the game header area"
-            << std::endl;
-    }
-
     initGameData();
 
     Driver::instance().setMouseHandler(&handleMouseInput);

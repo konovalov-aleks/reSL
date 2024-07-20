@@ -1,5 +1,7 @@
 #include "filesystem.h"
 
+#include "buffer.h"
+
 // IWYU pragma: no_include <sys/fcntl.h>
 
 #include <fcntl.h> // IWYU pragma: keep
@@ -20,12 +22,23 @@ namespace resl {
 static char g_lastFileName[14];
 
 /* 1abc:0005 */
-ssize_t readFromFile(const char* fileName, void* pagePtr)
+ssize_t readBinaryFile(const char* fileName, void* pagePtr)
 {
     int fd = open(fileName, O_BINARY | O_RDONLY);
+    assert(fd != -1); // the original game has no check if open was successfull :')
     ssize_t nBytes = read(fd, pagePtr, 0xFFFA);
     close(fd);
     std::strcpy(g_lastFileName, fileName);
+    return nBytes;
+}
+
+/* 1400:067f */
+ssize_t readTextFile(const char* fileName)
+{
+    int fd = open(fileName, O_TEXT | O_RDONLY);
+    assert(fd != -1); // the original game has no check if open was successfull :')
+    ssize_t nBytes = read(fd, g_pageBuffer, 0xFFDC);
+    close(fd);
     return nBytes;
 }
 
@@ -33,7 +46,7 @@ ssize_t readFromFile(const char* fileName, void* pagePtr)
 void readIfNotLoaded(const char* fileName, void* pagePtr)
 {
     if (std::strcmp(fileName, g_lastFileName)) {
-        readFromFile(fileName, pagePtr);
+        readBinaryFile(fileName, pagePtr);
         std::strcpy(g_lastFileName, fileName);
     }
 }

@@ -33,12 +33,7 @@ void drawHeaderFieldFontTexture()
 /* 132d:0086 */
 void drawHeaderBackground(std::int16_t yOffset)
 {
-    // The file name in the original game is lowercase:
-    //  1d7d:0192 "play.7"
-    // But DOS filesystem is case-insensitive => the fact that the file name on disk
-    // and name in the code are in different case is not a problem there.
-    // For portability, I use a name identical to the file name on disk.
-    readIfNotLoaded("PLAY.7", g_pageBuffer);
+    readIfNotLoaded("play.7", g_pageBuffer);
     graphics::imageDot7(0, yOffset, 640, g_headerHeight, g_pageBuffer);
 }
 

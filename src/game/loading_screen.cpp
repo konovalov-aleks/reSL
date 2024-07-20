@@ -31,10 +31,10 @@ void showLoadingScreen()
 {
     g_lastKeyPressed = 0;
 
-    readFromFile("poster.7", g_pageBuffer);
+    readBinaryFile("poster.7", g_pageBuffer);
     graphics::imageDot7(0, 0, 640, 350, g_pageBuffer);
 
-    readFromFile("captions.7", g_pageBuffer);
+    readBinaryFile("captions.7", g_pageBuffer);
     graphics::imageDot7(0, 350, 400, 350, g_pageBuffer);
 
     drawLoadingScreenTitle(0);

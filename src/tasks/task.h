@@ -39,7 +39,7 @@ struct TaskPromise {
     Task m_inner;
     Context* m_context = nullptr;
 
-    friend class Task;
+    friend struct Task;
 };
 
 void Task::await_suspend(std::coroutine_handle<TaskPromise> outher)

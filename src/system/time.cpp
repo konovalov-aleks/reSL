@@ -51,7 +51,7 @@ public:
         ClockT::time_point now = ClockT::now();
         const auto ms =
             std::chrono::duration_cast<std::chrono::milliseconds>(now - m_startTime);
-        return m_startValue + ms.count() / MsPerTick;
+        return static_cast<std::uint16_t>(m_startValue + ms.count() / MsPerTick);
     }
 
     void start()

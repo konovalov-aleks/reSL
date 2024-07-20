@@ -112,6 +112,25 @@ cmake --build . -j4
 ./resl
 ```
 
+### Windows
+
+1. Install [Microsoft Visual Studio](https://visualstudio.microsoft.com/ru/downloads/) 2022 or newer.
+2. Download and unpack the [SDL2 development package for VC](https://github.com/libsdl-org/SDL/releases) (the name should be something like "SDL2-devel-2.30.5-VC.zip")
+3. Open the "X64 Native Tools Comand Prompt for VS 2022" terminal:
+```
+# prepare the build folder
+mkdir -p build && cd build
+# set the path to the folder where you unpacked the SDL2 library (replace the path with yours)
+set SDL2_DIR=c:\projects\SDL2-2.30.5
+# run cmake
+cmake -DCMAKE_BUILD_TYPE=Release -GNinja ..
+# build the project
+cmake --build . -j4
+# copy the SDL2.dll file (replace the path with yours)
+xcopy c:\projects\SDL2-2.30.5\lib\x64\SDL2.dll .
+# enjoy!
+resl.exe
+
 ### WebAssembly (emscripten)
 
 1. install emscripten

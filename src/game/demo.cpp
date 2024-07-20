@@ -109,7 +109,6 @@ Task taskDemoAI()
             co_return;
         }
         std::int16_t time = getTime() & 7;
-        MouseAction mouseAction;
         if (mouse::g_state.mode == &mouse::g_modeManagement) {
             switch (time) {
             case 0:

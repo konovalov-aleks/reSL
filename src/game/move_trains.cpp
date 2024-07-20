@@ -234,7 +234,7 @@ bool moveTrain(Train& train, std::int16_t dTime)
 {
     const std::int16_t speed = train.speed * dTime * 10 + train.x_speed;
     const std::int16_t maxDistance = speed >> 8;
-    train.x_speed = speed;
+    train.x_speed = static_cast<std::uint8_t>(speed);
 
     std::int16_t distance = 0;
     for (; distance < maxDistance; ++distance) {

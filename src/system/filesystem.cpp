@@ -2,19 +2,19 @@
 
 #include "buffer.h"
 
-// IWYU pragma: no_include <sys/fcntl.h>
-
-#include <fcntl.h> // IWYU pragma: keep
-#include <glob.h>
-#include <unistd.h>
-
 #include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <filesystem>
 #include <system_error>
+
+#ifdef WIN32
+#else
+#   include <glob.h>
+#endif
 
 namespace resl {
 
@@ -22,23 +22,22 @@ namespace resl {
 static char g_lastFileName[14];
 
 /* 1abc:0005 */
-ssize_t readBinaryFile(const char* fileName, void* pagePtr)
+std::size_t readBinaryFile(const char* fileName, void* pagePtr)
 {
-    int fd = open(fileName, O_BINARY | O_RDONLY);
-    assert(fd != -1); // the original game has no check if open was successfull :')
-    ssize_t nBytes = read(fd, pagePtr, 0xFFFA);
-    close(fd);
+    std::FILE* file = std::fopen(fileName, "rb");
+    std::size_t nBytes = std::fread(pagePtr, 0xFFFA, 1, file);
+    std::fclose(file);
     std::strcpy(g_lastFileName, fileName);
     return nBytes;
 }
 
 /* 1400:067f */
-ssize_t readTextFile(const char* fileName)
+std::size_t readTextFile(const char* fileName)
 {
-    int fd = open(fileName, O_TEXT | O_RDONLY);
-    assert(fd != -1); // the original game has no check if open was successfull :')
-    ssize_t nBytes = read(fd, g_pageBuffer, 0xFFDC);
-    close(fd);
+    std::FILE* file = std::fopen(fileName, "r");
+    assert(file); // the original game has no check if open was successfull :')
+    std::size_t nBytes = std::fread(g_pageBuffer, 0xFFDC, 1, file);
+    std::fclose(file);
     return nBytes;
 }
 
@@ -52,6 +51,31 @@ void readIfNotLoaded(const char* fileName, void* pagePtr)
 }
 
 namespace {
+
+#ifdef WIN32
+
+    class FileSearch {
+    public:
+        int findFirst(const char*)
+        {
+            // TODO implement
+            return 1;
+        }
+
+        int findNext()
+        {
+            // TODO implement
+            return 1;
+        }
+
+        FileInfo lastSearchResult()
+        {
+            // TODO implement
+            return {};
+        }
+    };
+
+#else // WIN32
 
     class FileSearch {
     public:
@@ -123,6 +147,8 @@ namespace {
         glob_t m_glob;
         std::size_t m_curPath;
     };
+
+#endif // platform specific
 
     FileSearch g_search;
 

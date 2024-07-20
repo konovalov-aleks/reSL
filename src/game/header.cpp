@@ -34,7 +34,7 @@ Headers g_headers = {
 void startHeaderFieldAnimation(HeaderFieldId fieldId, std::int16_t delta)
 {
     HeaderValueChangeRequest request;
-    request.delta = delta;
+    request.delta = static_cast<std::int8_t>(delta);
     request.fieldId = fieldId;
     g_headerAnimationTaskQueue.push(request);
 }

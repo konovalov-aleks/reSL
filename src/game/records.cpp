@@ -1,6 +1,5 @@
 #include "records.h"
 
-// IWYU pragma: no_include <sys/fcntl.h>
 // IWYU pragma: no_include <sys/_types/_seek_set.h>
 
 #include "game_data.h"
@@ -9,10 +8,6 @@
 #include <graphics/text.h>
 #include <system/buffer.h>
 #include <system/filesystem.h>
-
-#include <fcntl.h> // IWYU pragma: keep
-#include <sys/types.h>
-#include <unistd.h>
 
 #include <cassert>
 #include <cstdint>
@@ -78,7 +73,7 @@ static int recordCompareByLevelAndYear(const void* a, const void* b)
 /* 174e:0266 */
 void showRecordsScreen()
 {
-    ssize_t bytesRead = readBinaryFile(g_recordsFileName, g_pageBuffer);
+    std::size_t bytesRead = readBinaryFile(g_recordsFileName, g_pageBuffer);
     if (bytesRead != 0 && bytesRead != -1) {
         // The data can contain an empty records
         // Normalize the representation - move all non-empty records to the head
@@ -157,13 +152,13 @@ std::int16_t readLevel()
     std::int16_t data[18];
     static_assert(sizeof(data) >= recordSize);
 
-    int fd = open(g_recordsFileName, O_BINARY | O_RDONLY);
-    if (fd == -1) [[unlikely]]
+    std::FILE* file = std::fopen(g_recordsFileName, "rb");
+    if (!file) [[unlikely]]
         data[levelFieldOffset] = 1;
     else {
-        lseek(fd, playerNameHash() * recordSize, SEEK_SET);
-        read(fd, data, recordSize);
-        close(fd);
+        std::fseek(file, playerNameHash() * recordSize, SEEK_SET);
+        std::fread(data, recordSize, 1, file);
+        std::fclose(file);
         if (data[levelFieldOffset] == 0)
             data[levelFieldOffset] = 1;
     }

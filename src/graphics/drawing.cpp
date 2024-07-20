@@ -210,7 +210,7 @@ void line(std::int16_t x1, std::int16_t y1, std::int16_t x2, std::int16_t y2, Co
         };
 
         bool isNegative = err < 0;
-        switch (mode | isNegative) {
+        switch (mode | static_cast<int>(isNegative)) {
         case 0:
             moveAlongX();
             [[fallthrough]];

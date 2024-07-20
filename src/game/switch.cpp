@@ -102,8 +102,8 @@ void createSwitches(const RailInfo& r)
                 // Handle X-shaped crossings.
                 // In this case, we switches are connected each other directly.
                 if (s2->entry.rail == &rail2 && s2->entry.slot == ri.slot2) {
-                    s.adjucentSwitchIdx = s2 - g_switches;
-                    s2->adjucentSwitchIdx = &s - g_switches;
+                    s.adjucentSwitchIdx = static_cast<std::int16_t>(s2 - g_switches);
+                    s2->adjucentSwitchIdx = static_cast<std::int16_t>(&s - g_switches);
                     break;
                 }
             }

@@ -36,7 +36,6 @@ void recordsScreenDemo(int, const char*[])
 
 void drawTextDemo(int, const char*[])
 {
-    char buf[148];
     unsigned c = 0;
     for (int y = 0; y < 10; ++y) {
         char buf[20];

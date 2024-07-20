@@ -1,7 +1,6 @@
 #include "load_game.h"
 
-// IWYU pragma: no_include <sys/_types/_seek_set.h>
-// IWYU pragma: no_include <sys/fcntl.h>
+// IWYU pragma: no_include <cwchar>
 
 #include "common.h"
 #include <game/entrance.h>
@@ -23,14 +22,11 @@
 #include <system/time.h>
 #include <utility/endianness.h>
 
-#include <fcntl.h> // IWYU pragma: keep
-#include <sys/types.h>
-#include <unistd.h>
-
 #include <array>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <type_traits>
 
 #ifndef NDEBUG
@@ -112,8 +108,8 @@ namespace {
 
     class Reader {
     public:
-        Reader(int fd)
-            : m_fd(fd)
+        Reader(std::FILE* f)
+            : m_file(f)
         {
         }
 
@@ -125,7 +121,7 @@ namespace {
 
         void readBytes(char* dst, std::size_t n)
         {
-            [[maybe_unused]] ssize_t cnt = ::read(m_fd, dst, n);
+            [[maybe_unused]] std::size_t cnt = std::fread(dst, n, 1, m_file);
             // the original game also has no check if data was succesfully read
             assert(cnt == n);
         }
@@ -156,39 +152,39 @@ namespace {
         // debug helper to make sure we have read the correct number of bytes
         class [[nodiscard]] ExpectedBlockSize {
         public:
-            ExpectedBlockSize(int fd, std::size_t expected)
+            ExpectedBlockSize(std::FILE* f, long expected)
                 : m_expected(expected)
-                , m_fd(fd)
+                , m_file(f)
             {
-                m_startOffset = lseek(m_fd, 0, SEEK_CUR);
+                m_startOffset = std::ftell(m_file);
             }
 
             ~ExpectedBlockSize()
             {
-                off_t offset = lseek(m_fd, 0, SEEK_CUR);
-                assert(static_cast<std::size_t>(offset - m_startOffset) == m_expected);
+                long offset = std::ftell(m_file);
+                assert(offset - m_startOffset == m_expected);
             }
 
         private:
-            std::size_t m_expected;
-            off_t m_startOffset;
-            int m_fd;
+            long m_expected;
+            long m_startOffset;
+            std::FILE* m_file;
         };
 
-        ExpectedBlockSize expectedSize(std::size_t expected)
+        ExpectedBlockSize expectedSize(long expected)
         {
-            return ExpectedBlockSize(m_fd, expected);
+            return ExpectedBlockSize(m_file, expected);
         }
 
 #else // NDEBUG
 
         class ExpectedBlockSize { };
-        ExpectedBlockSize expectedSize(std::size_t) { return {}; }
+        ExpectedBlockSize expectedSize(long) { return {}; }
 
 #endif // !NDEBUG
 
     private:
-        int m_fd;
+        std::FILE* m_file;
     };
 
     template <typename T>
@@ -243,9 +239,9 @@ namespace {
 static Rail* fixLoadedRailPtr(Rail* p)
 {
     assert(
-        reinterpret_cast<std::intptr_t>(p) >= g_railsLoadedOffset &&
-        reinterpret_cast<std::intptr_t>(p) <= g_railsLoadedOffset + fileRailArraySize);
-    std::ptrdiff_t offset = reinterpret_cast<std::intptr_t>(p) - g_railsLoadedOffset;
+        reinterpret_cast<std::uintptr_t>(p) >= g_railsLoadedOffset &&
+        reinterpret_cast<std::uintptr_t>(p) <= g_railsLoadedOffset + fileRailArraySize);
+    std::ptrdiff_t offset = reinterpret_cast<std::uintptr_t>(p) - g_railsLoadedOffset;
     assert(offset % fileRailSize == 0);
     return &g_rails[0][0][0] + (offset / fileRailSize);
 }
@@ -256,7 +252,7 @@ static void fixLoadedLocation(Location& l)
     if (!l.rail)
         return;
 
-    const std::intptr_t c = reinterpret_cast<std::intptr_t>(l.rail);
+    const std::uintptr_t c = reinterpret_cast<std::uintptr_t>(l.rail);
     if (c >= g_entrancesLoadedOffset + fileEntranceRailOffset &&
         c <= g_entrancesLoadedOffset + fileEntranceRailOffset + fileEntranceInfoSize * 5) {
         // obj is inside entrances array
@@ -303,11 +299,11 @@ static void loadGameState(const char* fileName, char* switchStates, char* semaph
        field and convert the byte order from little endian to native
        representation.
     */
-    int fd = open(fileName, O_BINARY | O_RDONLY);
-    if (fd == -1) [[unlikely]]
+    std::FILE* file = std::fopen(fileName, "rb");
+    if (!file) [[unlikely]]
         g_ioStatus = IOStatus::OpenError;
     else {
-        Reader r(fd);
+        Reader r(file);
 
         {
             auto hdrSize = r.expectedSize(3830);
@@ -429,11 +425,10 @@ static void loadGameState(const char* fileName, char* switchStates, char* semaph
 #ifndef NDEBUG
         // make sure we have read entire file
         char c;
-        assert(read(fd, &c, 1) == 0);
+        assert(std::fread(&c, 1, 1, file) == 0);
 #endif // !NDEBUG
 
-        fd = close(fd);
-        if (fd) [[unlikely]]
+        if (std::fclose(file) != 0) [[unlikely]]
             g_ioStatus = IOStatus::CloseError;
     }
 }

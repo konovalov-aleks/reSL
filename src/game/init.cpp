@@ -140,8 +140,9 @@ static void generateEntrances()
 
         bool suits = false;
         while (!suits) {
-            const std::int16_t rIdx = genRandomNumber(std::size(g_entranceRails));
-            entrance.entranceRailInfoIdx = rIdx;
+            const std::int16_t rIdx =
+                genRandomNumber(static_cast<std::int16_t>(std::size(g_entranceRails)));
+            entrance.entranceRailInfoIdx = static_cast<std::uint8_t>(rIdx);
             const RailInfo& ri = g_entranceRails[entrance.entranceRailInfoIdx];
 
             suits = true;
@@ -213,7 +214,7 @@ static void generateForest()
     for (std::size_t i = 30; i < std::size(g_staticObjects); ++i) {
         StaticObject& obj = g_staticObjects[i];
         obj.kind = StaticObjectKind::Tree;
-        obj.type = genRandomNumber(4);
+        obj.type = static_cast<std::uint8_t>(genRandomNumber(4));
         obj.x = x;
         obj.y = y;
         obj.color = rand() & 1 ? Color::Brown : Color::DarkGreen;

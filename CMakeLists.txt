@@ -144,7 +144,12 @@ else()
     )
 endif()
 
-target_compile_options(resl PRIVATE "-fno-exceptions" "-fno-rtti")
+if (MSVC)
+    target_compile_options(resl PRIVATE "/D_CRT_SECURE_NO_WARNINGS" "/GR-" "/EHsc" "/D_HAS_EXCEPTIONS=0")
+else()
+    target_compile_options(resl PRIVATE "-fno-exceptions" "-fno-rtti")
+endif()
+
 target_include_directories(resl PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
 find_program(iwyu_path NAMES include-what-you-use iwyu)

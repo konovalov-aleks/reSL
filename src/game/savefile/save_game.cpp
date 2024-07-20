@@ -1,7 +1,6 @@
 #include "save_game.h"
 
-// IWYU pragma: no_include <sys/_types/_seek_set.h>
-// IWYU pragma: no_include <sys/fcntl.h>
+// IWYU pragma: no_include <cwchar>
 
 #include "common.h"
 #include <game/entrance.h>
@@ -20,10 +19,6 @@
 #include <game/types/rectangle.h>
 #include <system/random.h>
 #include <utility/endianness.h>
-
-#include <fcntl.h> // IWYU pragma: keep
-#include <sys/types.h>
-#include <unistd.h>
 
 #include <array>
 #include <cassert>
@@ -59,39 +54,39 @@ namespace {
         // debug helper to make sure we have written the correct number of bytes
         class [[nodiscard]] ExpectedBlockSize {
         public:
-            ExpectedBlockSize(int fd, std::size_t expected)
+            ExpectedBlockSize(std::FILE* f, long expected)
                 : m_expected(expected)
-                , m_fd(fd)
+                , m_file(f)
             {
-                m_startOffset = lseek(m_fd, 0, SEEK_CUR);
+                m_startOffset = std::ftell(m_file);
             }
 
             ~ExpectedBlockSize()
             {
-                off_t offset = lseek(m_fd, 0, SEEK_CUR);
-                assert(static_cast<std::size_t>(offset - m_startOffset) == m_expected);
+                long offset = std::ftell(m_file);
+                assert(offset - m_startOffset == m_expected);
             }
 
         private:
-            std::size_t m_expected;
-            off_t m_startOffset;
-            int m_fd;
+            long m_expected;
+            long m_startOffset;
+            std::FILE* m_file;
         };
 
-        ExpectedBlockSize expectedSize(std::size_t expected)
+        ExpectedBlockSize expectedSize(long expected)
         {
-            return ExpectedBlockSize(m_fd, expected);
+            return ExpectedBlockSize(m_file, expected);
         }
 
 #else // NDEBUG
 
         class ExpectedBlockSize { };
-        ExpectedBlockSize expectedSize(std::size_t) { return {}; }
+        ExpectedBlockSize expectedSize(long) { return {}; }
 
 #endif // !NDEBUG
 
-        Writer(int fd)
-            : m_fd(fd)
+        Writer(std::FILE* f)
+            : m_file(f)
         {
         }
 
@@ -103,13 +98,13 @@ namespace {
 
         void writeBytes(const char* buf, std::size_t len)
         {
-            [[maybe_unused]] ssize_t res = ::write(m_fd, buf, len);
+            [[maybe_unused]] std::size_t res = std::fwrite(buf, len, 1, m_file);
             // the original game also has no check if data was successfully written
             assert(res == len);
         }
 
     private:
-        int m_fd;
+        std::FILE* m_file;
     };
 
     template <typename T>
@@ -196,8 +191,8 @@ static void generateFileName(char* buf, std::size_t bufSize)
 /* 1400:0245 */
 static void saveGameState(const char* fileName)
 {
-    int fd = creat(fileName, 0644);
-    if (fd == -1) [[unlikely]] {
+    std::FILE* file = std::fopen(fileName, "wb");
+    if (!file) [[unlikely]] {
         g_ioStatus = IOStatus::OpenError;
         return;
     }
@@ -241,7 +236,7 @@ static void saveGameState(const char* fileName)
             write(fd, data, g_semaphoreCount);
     */
 
-    Writer w(fd);
+    Writer w(file);
 
     {
         auto hdrSize = w.expectedSize(3830);
@@ -362,7 +357,7 @@ static void saveGameState(const char* fileName)
     w.write<std::uint16_t>(g_semaphoreCount);
     w.writeBytes(data, g_semaphoreCount);
 
-    if (close(fd) != 0)
+    if (std::fclose(file) != 0)
         g_ioStatus = IOStatus::CloseError;
 }
 

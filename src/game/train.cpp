@@ -314,7 +314,7 @@ static Train* spawnTrain(std::int16_t entranceIdx)
         loc.forwardDirection = !loc.forwardDirection;
         for (std::uint8_t i = 0; i < t->carriageCnt; ++i) {
             Carriage& c = t->carriages[i];
-            c.dstEntranceIdx = dstEntranceIdx;
+            c.dstEntranceIdx = static_cast<std::uint8_t>(dstEntranceIdx);
 
             const std::int16_t moveStep = g_trainGlyphs[c.type][0][0].width / 2 + 4;
             moveAlongPath(loc, moveStep);

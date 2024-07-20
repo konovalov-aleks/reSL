@@ -33,7 +33,8 @@ void showStatusMessage(const char* msg)
 {
     g_footerMessageTimeout = 7;
     graphics::filledRectangle(0, 335, 80, 15, 0xFF, Color::White);
-    drawTextSmall((80 - std::strlen(msg)) * 4, 336, msg, Color::Black);
+    const std::int16_t msgLen = static_cast<std::int16_t>(std::strlen(msg));
+    drawTextSmall((80 - msgLen) * 4, 336, msg, Color::Black);
 }
 
 /* 12ba:005c */

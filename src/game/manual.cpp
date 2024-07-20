@@ -9,8 +9,6 @@
 #include <system/buffer.h>
 #include <system/filesystem.h>
 
-#include <sys/types.h>
-
 #include <cassert>
 #include <cstdint>
 #include <cstring>
@@ -22,7 +20,7 @@ void showManual()
 {
     constexpr int maxPages = 20;
 
-    ssize_t nBytes = readTextFile("RULES.TXT");
+    std::size_t nBytes = readTextFile("RULES.TXT");
 
     // split the text with pages 25 lines each
     std::int16_t pageCnt = 0;

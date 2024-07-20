@@ -59,7 +59,8 @@ static void createSemaphore(Rail& r, SemaphoreType type)
     sem.rail = &r;
     sem.isRed = false;
     sem.isRightDirection = bias.dx > 0;
-    r.semSlotIdByDirection[static_cast<int>(type)] = g_semaphoreCount;
+    r.semSlotIdByDirection[static_cast<int>(type)] =
+        static_cast<std::int8_t>(g_semaphoreCount);
     ++g_semaphoreCount;
 }
 
@@ -68,7 +69,7 @@ static void removeSemaphore(Rail& r, SemaphoreType type)
 {
     Semaphore& s = g_semaphores[r.semSlotIdByDirection[static_cast<int>(type)]];
     Semaphore& lastSem = g_semaphores[--g_semaphoreCount];
-    const std::int8_t semIdx = &s - g_semaphores;
+    const std::int8_t semIdx = static_cast<std::int8_t>(&s - g_semaphores);
     lastSem.rail->semSlotIdByDirection[static_cast<int>(lastSem.type)] = semIdx;
     r.semSlotIdByDirection[static_cast<int>(type)] = -1;
     s = lastSem;

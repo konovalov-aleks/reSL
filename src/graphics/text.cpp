@@ -46,7 +46,7 @@ void drawText(std::int16_t x, std::int16_t y, const char* s, Color color)
     for (; *s; ++s) {
         std::uint8_t shiftedChar = *s - 0x20;
         const TextGlyph& g = g_textGlyphs[shiftedChar];
-        g_glyphHeight = g.height;
+        g_glyphHeight = static_cast<std::uint8_t>(g.height);
         std::int16_t tileY = g.yOffset + y;
         if (g.width <= 8)
             drawGlyphW8(g.glyph, x, tileY, color);

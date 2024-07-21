@@ -3,11 +3,13 @@
 // IWYU pragma: no_include <sys/_types/_seek_set.h>
 
 #include "game_data.h"
+#include "header.h"
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/text.h>
 #include <system/buffer.h>
 #include <system/filesystem.h>
+#include <utility/endianness.h>
 
 #include <cassert>
 #include <cstdint>
@@ -48,6 +50,39 @@ struct Record {
 
 static constexpr char g_recordsFileName[] = "results.tbl";
 static constexpr unsigned g_recordsTableCapacity = 833;
+static constexpr std::size_t g_recordSize = 36;
+
+static_assert(sizeof(Record) == g_recordSize);
+
+// The original game is not portable - it works only on LE systems.
+// reSL have to perform a byte order conversion to be able to work on BE systems.
+static void convertByteOrderFileToNative(RecordItem& ri)
+{
+    ri.trains = littleEndianToNative(ri.trains);
+    ri.money = littleEndianToNative(ri.money);
+    ri.year = littleEndianToNative(ri.year);
+    ri.level = littleEndianToNative(ri.level);
+}
+
+static void convertByteOrderFileToNative(Record& r)
+{
+    convertByteOrderFileToNative(r.byTrains);
+    convertByteOrderFileToNative(r.byYears);
+}
+
+static void convertByteOrderNativeToFile(RecordItem& ri)
+{
+    ri.trains = nativeToLittleEndian(ri.trains);
+    ri.money = nativeToLittleEndian(ri.money);
+    ri.year = nativeToLittleEndian(ri.year);
+    ri.level = nativeToLittleEndian(ri.level);
+}
+
+static void convertByteOrderNativeToFile(Record& r)
+{
+    convertByteOrderNativeToFile(r.byTrains);
+    convertByteOrderNativeToFile(r.byYears);
+}
 
 /* 174e:000c */
 static int recordCompareByTrains(const void* a, const void* b)
@@ -84,8 +119,10 @@ void showRecordsScreen()
 
         std::size_t i = nRecords;
         while (++i < g_recordsTableCapacity) {
-            if (*records[i].playerName)
+            if (*records[i].playerName) {
                 std::memcpy(&records[nRecords++], &records[i], sizeof(Record));
+                convertByteOrderFileToNative(records[i]);
+            }
         }
 
         /* fill entire area with red color */
@@ -137,28 +174,97 @@ static std::uint16_t playerNameHash()
     return hash % g_recordsTableCapacity;
 }
 
+/* 174e:0243 */
+void fillRecordItem(RecordItem& ri)
+{
+    ri.trains = g_headers[static_cast<int>(HeaderFieldId::Trains)].value;
+    ri.money = g_headers[static_cast<int>(HeaderFieldId::Money)].value;
+    ri.year = g_headers[static_cast<int>(HeaderFieldId::Year)].value;
+    ri.level = g_headers[static_cast<int>(HeaderFieldId::Level)].value;
+}
+
 /* 174e:00cc */
 void writeRecords()
 {
-    // TODO implement
+    /* 262d:6f52 : 8 bytes */
+    static const RecordItem g_emptyRecordItem = {};
+
+    std::FILE* file = fopen(g_recordsFileName, "r+");
+    if (!file) {
+        // initialize a new empty hash table
+        file = fopen(g_recordsFileName, "w+");
+        if (!file) [[unlikely]]
+            return;
+
+        Record r;
+        r.byTrains = g_emptyRecordItem;
+        r.byYears = g_emptyRecordItem;
+        r.playerName[0] = '\0';
+
+        for (std::int16_t i = 0; i < g_recordsTableCapacity; ++i)
+            std::memcpy(&g_pageBuffer[i * g_recordSize], &r, g_recordSize);
+
+        std::fwrite(g_pageBuffer, g_recordSize, g_recordsTableCapacity, file);
+    }
+
+    const std::uint16_t hash = playerNameHash();
+    std::fseek(file, hash * g_recordSize, SEEK_SET);
+
+    Record r;
+    [[maybe_unused]] std::size_t nRecords = std::fread(&r, g_recordSize, 1, file);
+    assert(nRecords == 1);
+    convertByteOrderFileToNative(r);
+
+    const std::int16_t curTrains =
+        g_headers[static_cast<int>(HeaderFieldId::Trains)].value;
+
+    bool needUpdate = r.byTrains.trains < curTrains;
+    if (needUpdate)
+        fillRecordItem(r.byTrains);
+
+    const std::int16_t curLevel =
+        g_headers[static_cast<int>(HeaderFieldId::Level)].value;
+    const std::int16_t curYear =
+        g_headers[static_cast<int>(HeaderFieldId::Year)].value;
+
+    if (r.byYears.level < curLevel ||
+        (r.byYears.level == curLevel && r.byYears.year < curYear)) {
+
+        needUpdate = true;
+        fillRecordItem(r.byYears);
+    }
+
+    if (needUpdate) {
+        std::strcpy(r.playerName, g_playerName);
+        std::fseek(file, -g_recordSize, SEEK_CUR);
+
+        convertByteOrderNativeToFile(r.byTrains);
+        std::fwrite(&r, g_recordSize, 1, file);
+    }
+
+    std::fclose(file);
 }
 
 /* 174e:052b */
 std::int16_t readLevel()
 {
     constexpr std::size_t levelFieldOffset = 7;
-    constexpr std::size_t recordSize = 36;
 
     std::int16_t data[18];
-    static_assert(sizeof(data) >= recordSize);
+    static_assert(sizeof(data) >= g_recordSize);
 
     std::FILE* file = std::fopen(g_recordsFileName, "rb");
     if (!file) [[unlikely]]
         data[levelFieldOffset] = 1;
     else {
-        std::fseek(file, playerNameHash() * recordSize, SEEK_SET);
-        std::fread(data, recordSize, 1, file);
+        std::fseek(file, playerNameHash() * g_recordSize, SEEK_SET);
+        std::fread(data, g_recordSize, 1, file);
         std::fclose(file);
+
+        // The original game is not portable - it works only on LE systems.
+        // reSL have to perform a byte order conversion to be able to work on BE systems.
+        data[levelFieldOffset] = littleEndianToNative(data[levelFieldOffset]);
+
         if (data[levelFieldOffset] == 0)
             data[levelFieldOffset] = 1;
     }

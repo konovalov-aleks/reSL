@@ -11,16 +11,14 @@ https://www.old-games.ru/game/download/1232.html
 <img width="640" alt="reSL" src="https://github.com/konovalov-aleks/reSL/assets/11459433/35f3f24b-b513-44ed-a5a8-17c03803bbab">
 
 ### Progress:
-~99% done
+~99.9% done
 
 **You can try the live demo here: https://konovalov-aleks.github.io/**
-
-(but it doesn't work as smoothly as the native version)
 
 TODO
 1. ~~Consctruction mode~~
 2. ~~Main menu~~
-3. Records [WIP]
+3. ~~Records~~
 4. ~~Archive~~
 5. ~~Demo~~
 6. ~~"Game over" screen~~

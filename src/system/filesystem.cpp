@@ -26,8 +26,11 @@ static char g_lastFileName[14];
 std::size_t readBinaryFile(const char* fileName, void* pagePtr)
 {
     std::FILE* file = std::fopen(fileName, "rb");
-    std::size_t nBytes = std::fread(pagePtr, 0xFFFA, 1, file);
-    std::fclose(file);
+    std::size_t nBytes = 0;
+    if (file) {
+        nBytes = std::fread(pagePtr, 1, 0xFFFA, file);
+        std::fclose(file);
+    }
     std::strcpy(g_lastFileName, fileName);
     return nBytes;
 }
@@ -36,9 +39,11 @@ std::size_t readBinaryFile(const char* fileName, void* pagePtr)
 std::size_t readTextFile(const char* fileName)
 {
     std::FILE* file = std::fopen(fileName, "r");
-    assert(file); // the original game has no check if open was successfull :')
-    std::size_t nBytes = std::fread(g_pageBuffer, 0xFFDC, 1, file);
-    std::fclose(file);
+    std::size_t nBytes = 0;
+    if (file) {
+        nBytes = std::fread(g_pageBuffer, 1, 0xFFDC, file);
+        std::fclose(file);
+    }
     return nBytes;
 }
 

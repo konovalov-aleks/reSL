@@ -32,7 +32,7 @@ namespace {
     };
 
     /* 14af:000e */
-    void updateCursorPos(std::int16_t dx, std::int16_t dy)
+    void updateCursorPos(std::int16_t x, std::int16_t y)
     {
         // The original game doesn't use g_modeManagement directly for some reason,
         // it uses a pointer inside g_mouseState instead.
@@ -40,8 +40,8 @@ namespace {
         MouseMode& mode = *g_state.mode;
 
         mode.clearFn();
-        mode.x = std::min(std::max<std::int16_t>(mode.x + dx, mode.minX), mode.maxX);
-        mode.y = std::min(std::max<std::int16_t>(mode.y + dy, mode.minY), mode.maxY);
+        mode.x = std::min(std::max<std::int16_t>(x, mode.minX), mode.maxX);
+        mode.y = std::min(std::max<std::int16_t>(y, mode.minY), mode.maxY);
         mode.drawFn();
     }
 

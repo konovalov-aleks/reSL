@@ -9,12 +9,10 @@
 #include "audio.h" // IWYU pragma: export
 #include "video.h" // IWYU pragma: export
 
-#include <graphics/vga.h>
 #include <system/keyboard.h>
 #include <system/mouse.h>
 
 #include <SDL_events.h>
-#include <SDL_stdinc.h>
 
 #include <cstdint>
 
@@ -64,8 +62,6 @@ private:
     KeyboardHandler m_keyboardHandler = nullptr;
 
     MouseHandler m_mouseHandler = nullptr;
-    Sint32 m_lastCursorX = SCREEN_WIDTH / 2;
-    Sint32 m_lastCursorY = SCREEN_HEIGHT / 2;
     std::uint16_t m_mouseButtonState;
 
     bool m_quit = false;

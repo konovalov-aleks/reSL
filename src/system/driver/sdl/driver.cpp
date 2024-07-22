@@ -11,6 +11,7 @@
 #include <SDL_events.h>
 #include <SDL_mouse.h>
 #include <SDL_scancode.h>
+#include <SDL_stdinc.h>
 
 #include <algorithm>
 #include <cassert>
@@ -180,7 +181,7 @@ void Driver::onMouseButtonEvent(const SDL_MouseButtonEvent& e)
     else
         m_mouseButtonState &= (~btn);
 
-    m_mouseHandler(mouseEventFlags, m_mouseButtonState, 0, 0);
+    m_mouseHandler(mouseEventFlags, m_mouseButtonState, e.x, e.y);
 }
 
 void Driver::onMouseMove(const SDL_MouseMotionEvent& e)
@@ -193,17 +194,12 @@ void Driver::onMouseMove(const SDL_MouseMotionEvent& e)
     const Sint32 y = std::min(e.y, SCREEN_HEIGHT);
 
     // window is small => coordinates can't be large
-    assert(x - m_lastCursorX <= std::numeric_limits<std::int16_t>::max());
-    assert(x - m_lastCursorX >= std::numeric_limits<std::int16_t>::min());
-    assert(y - m_lastCursorY <= std::numeric_limits<std::int16_t>::max());
-    assert(y - m_lastCursorY >= std::numeric_limits<std::int16_t>::min());
+    assert(x <= std::numeric_limits<std::int16_t>::max());
+    assert(x >= std::numeric_limits<std::int16_t>::min());
+    assert(y <= std::numeric_limits<std::int16_t>::max());
+    assert(y >= std::numeric_limits<std::int16_t>::min());
 
-    std::int16_t dx = static_cast<std::int16_t>(x - m_lastCursorX);
-    std::int16_t dy = static_cast<std::int16_t>(y - m_lastCursorY);
-    m_lastCursorX = x;
-    m_lastCursorY = y;
-
-    m_mouseHandler(0, m_mouseButtonState, dx, dy);
+    m_mouseHandler(0, m_mouseButtonState, x, y);
 }
 
 inline std::uint8_t scancodeToKeyCode(SDL_Scancode sc)
@@ -305,6 +301,18 @@ void Driver::onKeyboardEvent(const SDL_KeyboardEvent& e)
 {
     if (!m_keyboardHandler) [[unlikely]]
         return;
+
+    if (e.keysym.scancode == SDL_SCANCODE_SPACE) {
+        if (e.type == SDL_KEYUP) {
+            int x, y;
+            SDL_GetMouseState(&x, &y);
+            m_mouseHandler(MouseEvent::ME_LEFTPRESSED | MouseEvent::ME_RIGHTPRESSED,
+                           MouseButton::MB_LEFT | MouseButton::MB_RIGHT, x, y);
+            m_mouseHandler(MouseEvent::ME_LEFTRELEASED | MouseEvent::ME_RIGHTRELEASED,
+                           0, x, y);
+        }
+        return;
+    }
 
     std::uint8_t keycode = scancodeToKeyCode(e.keysym.scancode);
     if (!keycode)

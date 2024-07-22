@@ -18,8 +18,8 @@ enum MouseAction : std::uint8_t {
 
 struct MsgMouseEvent {
     MouseAction action;
-    std::int16_t cursorDX;
-    std::int16_t cursorDY;
+    std::int16_t x;
+    std::int16_t y;
 };
 
 //-----------------------------------------------------------------------------

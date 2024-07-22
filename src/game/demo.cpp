@@ -69,8 +69,8 @@ static void moveCursorTowardsPoint(std::int16_t x, std::int16_t y)
 {
     const mouse::MouseMode& m = *mouse::g_state.mode;
     g_demoMouseMsg.action = MouseAction::None;
-    g_demoMouseMsg.cursorDX = (x - m.x) / 4;
-    g_demoMouseMsg.cursorDY = (y - m.y) / 4;
+    g_demoMouseMsg.x = m.x + (x - m.x) / 4;
+    g_demoMouseMsg.y = m.y + (y - m.y) / 4;
     g_mouseMsgQueue.push(g_demoMouseMsg);
 }
 

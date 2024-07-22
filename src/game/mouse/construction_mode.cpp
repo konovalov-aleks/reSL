@@ -59,44 +59,37 @@ namespace {
     }
 
     /* 14af:0264 */
-    void updateCursorPos(std::int16_t dx, std::int16_t dy)
+    void updateCursorPos(std::int16_t x, std::int16_t y)
     {
         MouseMode& mode = *g_state.mode;
-        mode.x += dx;
-        mode.y += dy;
-        const std::int8_t dTileX = (mode.y * 88 + mode.x * 21) / 1848;
-        const std::int8_t dTileY = (mode.y * 88 - mode.x * 21) / 1848;
+        /*
+          The projection is:
 
-        if (!(dTileX || dTileY))
-            return;
+            x = (tileX - tileY) * 88 + 320
+            y = (tileX + tileY) * 21 + - 22
 
-        mode.x = 0;
-        mode.y = 0;
+            => tileY = (y + 22 - 21 * tileX) / 21
+                     = y / 21 + 22/21 - tileX
+                    ~= y / 21 - tileX + 1
 
-        const std::int8_t dstTileX = g_railCursorState.tileX + dTileX;
-        const std::int8_t dstTileY = g_railCursorState.tileY + dTileY;
+            => tileX = x + 88 * (y / 21 + 22/21 - tileX) - 320
+                     = (x * 21 + 88 * y) / 3696 + 1936 / 3696 - 320 / 176
+                    ~= (x * 21 + 88 * y) / 3696 - 1
 
-        /* The initial value of x and y members of g_modeConstruction are:
-                x = 320 (1d7d:1cde)
-                y = 200 (1d7d:1ce0)
-           Thus, at the first call of this function we have dTileX = 13 and dTileY = 5.
-
-           This causes access outside the g_railCursorState array bounds:
-                g_railCursorState[13 + 5][5 + 5] (1d3b:0093)
-
-           This looks like a bug, but they were lucky and this value contains 0 =>
-           this condition evaluates to false => nothing bad happens.
-
-           I changed the initial values to fix the error, and added an extra check bellow
-           for better reliability (not to crash if the handler called with large delta values)
         */
-        if (dstTileX < 0 || dstTileX > 10 || dstTileY < 0 || dstTileY > 10)
+        const std::int8_t tileX = (x * 21 + 88 * y) / 3696 - 1;
+        const std::int8_t tileY = y / 21 - tileX + 1;
+
+        if (tileX == mode.x && tileY == mode.y)
             return;
 
-        if (g_allowedRailCursorTypes[dstTileX][dstTileY] & (1 << g_railCursorState.railType)) {
+        if (tileX < 0 || tileX > 10 || tileY < 0 || tileY > 10)
+            return;
+
+        if (g_allowedRailCursorTypes[tileX][tileY] & (1 << g_railCursorState.railType)) {
             mode.clearFn();
-            g_railCursorState.tileX = dstTileX;
-            g_railCursorState.tileY = dstTileY;
+            g_railCursorState.tileX = tileX;
+            g_railCursorState.tileY = tileY;
             mode.drawFn();
         }
     }

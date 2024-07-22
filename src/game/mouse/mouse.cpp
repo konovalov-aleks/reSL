@@ -38,14 +38,14 @@ MessageQueue<MsgMouseEvent> g_mouseMsgQueue;
 /* 14af:0761 */
 void handleMouseInput(std::uint16_t mouseEventFlags,
                       std::uint16_t mouseButtonState,
-                      std::int16_t dx, std::int16_t dy)
+                      std::int16_t x, std::int16_t y)
 {
     static std::int16_t lastX = 0;
     static std::int16_t lastY = 0;
 
     // the original game uses a global vairable here but we have a different
     // coroutines implementation, and it makes sense to use local variable instead.
-    MsgMouseEvent msg = { MouseAction::None, dx, dy };
+    MsgMouseEvent msg = { MouseAction::None, x, y };
 
     if (g_previousMouseButtonState)
         g_previousMouseButtonState = static_cast<std::uint8_t>(mouseButtonState);
@@ -85,7 +85,7 @@ Task taskMouseEventHandling()
 
         assert(g_state.mode);
         MouseMode& mode = *g_state.mode;
-        mode.updatePosFn(e.cursorDX, e.cursorDY);
+        mode.updatePosFn(e.x, e.y);
 
         switch (e.action) {
         case MouseAction::CallServer:

@@ -9,7 +9,6 @@
 #include <graphics/text.h>
 #include <graphics/vga.h>
 
-#include <cassert>
 #include <cstdint>
 
 namespace resl {
@@ -179,8 +178,9 @@ std::int16_t handleDialog(DialogType type)
 
     std::int16_t i = 0;
     for (; i < itemsCount; ++i) {
-        assert(dlg.itemNames[i][0] >= 'A');
-        if (g_asciiToKeycodeTable[dlg.itemNames[i][0] - 'A'] == g_lastKeyPressed) {
+        if (dlg.itemNames[i][0] >= 'A' &&
+            g_asciiToKeycodeTable[dlg.itemNames[i][0] - 'A'] == g_lastKeyPressed) {
+
             highlightFirstDlgItemSymbol(dlg.x, dlg.itemY[i]);
             playEntitySwitchedSound(false);
             vga::waitForNRetraces(8);

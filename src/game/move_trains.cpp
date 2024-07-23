@@ -112,7 +112,6 @@ static std::int16_t countPassengerCarriages(const Train& train)
     std::int16_t res = 0;
     for (std::uint8_t i = 0; i < train.carriageCnt; ++i) {
         switch (train.carriages[i].type) {
-        // TODO use enum values instead of magic values
         case CarriageType::HighSpeedLocomotive:
         case CarriageType::AncientPassengerCarriage:
         case CarriageType::PassengerCarriage:

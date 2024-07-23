@@ -1,9 +1,11 @@
 #include "records.h"
 
+// IWYU pragma: no_include <cwchar>
 // IWYU pragma: no_include <sys/_types/_seek_set.h>
 
 #include "game_data.h"
 #include "header.h"
+#include "types/header_field.h"
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/text.h>
@@ -236,7 +238,7 @@ void writeRecords()
 
     if (needUpdate) {
         std::strcpy(r.playerName, g_playerName);
-        std::fseek(file, -g_recordSize, SEEK_CUR);
+        std::fseek(file, -static_cast<long>(g_recordSize), SEEK_CUR);
 
         convertByteOrderNativeToFile(r.byTrains);
         std::fwrite(&r, g_recordSize, 1, file);

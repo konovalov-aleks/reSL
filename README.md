@@ -124,8 +124,6 @@ set SDL2_DIR=c:\projects\SDL2-2.30.5
 cmake -DCMAKE_BUILD_TYPE=Release -GNinja ..
 # build the project
 cmake --build . -j4
-# copy the SDL2.dll file (replace the path with yours)
-xcopy c:\projects\SDL2-2.30.5\lib\x64\SDL2.dll .
 # enjoy!
 resl.exe
 ```

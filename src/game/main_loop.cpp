@@ -81,10 +81,16 @@ enum class PauseMenuAction {
 inline PauseMenuAction showPauseMenu()
 {
     pauseMenuShowSaveItem();
-    Rectangle dialogRect = drawDialog(DialogType::Pause, 0);
-    writeRecords();
 
+    Rectangle dialogRect;
+    bool needInit = true;
     for (;;) {
+        if (needInit) {
+            dialogRect = drawDialog(DialogType::Pause, 0);
+            writeRecords();
+            needInit = false;
+        }
+
         /* 16a6:016f */
         g_lastKeyPressed = 0;
         std::int16_t item = handleDialog(DialogType::Pause);
@@ -112,6 +118,7 @@ inline PauseMenuAction showPauseMenu()
                 pauseMenuShowOkItem();
             else
                 alert("Error");
+            needInit = true;
             break;
 
         case 2:

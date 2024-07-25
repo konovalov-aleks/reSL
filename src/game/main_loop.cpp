@@ -85,6 +85,7 @@ inline PauseMenuAction showPauseMenu()
     Rectangle dialogRect;
     bool needInit = true;
     for (;;) {
+        mouse::g_state.mode->clearFn();
         if (needInit) {
             dialogRect = drawDialog(DialogType::Pause, 0);
             writeRecords();
@@ -107,6 +108,7 @@ inline PauseMenuAction showPauseMenu()
             graphics::copyFromShadowBuffer(dialogRect);
             vga::setVideoModeR0W2();
             scheduleAllTrainsRedrawing();
+            mouse::g_state.mode->drawFn();
             enableTimer();
             spawnNewTrain();
             return PauseMenuAction::ContinueGame;
@@ -128,9 +130,8 @@ inline PauseMenuAction showPauseMenu()
             return PauseMenuAction::ReturnToMainMenu;
 
         default:
-            // wrong choice
-            /* 16a6:01e0 */
-            playErrorMelody();
+            // unreachable
+            std::abort();
         }
     }
 }

@@ -33,7 +33,7 @@ public:
 
     void sleep(unsigned ms);
 
-    void setMouseHandler(MouseHandler hdl) { m_mouseHandler = hdl; }
+    MouseHandler setMouseHandler(MouseHandler hdl);
     void setKeyboardHandler(KeyboardHandler hdl) { m_keyboardHandler = hdl; }
 
     void pollEvent();

@@ -3,6 +3,7 @@
 #include "types/rectangle.h"
 
 #include <cstdint>
+#include <optional>
 
 namespace resl {
 
@@ -19,6 +20,7 @@ struct Dialog {
     const char* itemNames[7];
     std::int16_t x = 0;
     std::int16_t itemY[7] = {};
+    std::int16_t itemWidth = 0;
 };
 
 //-----------------------------------------------------------------------------
@@ -35,7 +37,7 @@ void highlightFirstDlgItemSymbol(std::int16_t x, std::int16_t y);
 Rectangle& drawDialog(DialogType, std::int16_t yOffset);
 
 /* 15e8:03b7 */
-std::int16_t handleDialog(DialogType);
+std::int16_t handleDialog(DialogType, std::optional<std::int16_t> defaultChoice = std::nullopt);
 
 /* 15e8:0947 */
 void alert(const char*);

@@ -2,14 +2,21 @@
 
 #include "keyboard.h"
 #include "melody.h"
+#include "mouse/management_mode.h"
+#include "mouse/mouse_mode.h"
 #include "types/rectangle.h"
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/glyph.h>
 #include <graphics/text.h>
 #include <graphics/vga.h>
+#include <system/driver/driver.h>
+#include <system/mouse.h>
 
+#include <cassert>
 #include <cstdint>
+#include <iterator>
+#include <optional>
 
 namespace resl {
 
@@ -67,6 +74,69 @@ namespace {
         0x7D, 0x1D, 0x5E, 0x20, 0x7D, 0x1D, 0x62, 0x20, 0x7D, 0x1D, 0x66, 0x20,
         0x7D, 0x1D, 0x6A, 0x20, 0x7D, 0x1D, 0x6E, 0x20, 0x7D, 0x1D, 0x72, 0x20,
         0x7D, 0x1D
+    };
+
+    class DialogMouseHandler {
+    public:
+        DialogMouseHandler(DialogType dt)
+            : m_type(dt)
+        {
+            mouse::drawArrowCursor();
+            m_oldHandler = Driver::instance().setMouseHandler(
+                [this](std::uint16_t flags, std::uint16_t buttonState,
+                       std::int16_t x, std::int16_t y) {
+                    handle(flags, buttonState, x, y);
+                });
+        }
+
+        ~DialogMouseHandler()
+        {
+            mouse::eraseArrowCursor();
+            Driver::instance().setMouseHandler(m_oldHandler);
+        }
+
+        bool newClicks()
+        {
+            bool res = m_clicked;
+            m_clicked = false;
+            return res;
+        }
+
+        std::optional<std::int16_t> selectedItem() const { return m_selectedItem; }
+
+        DialogMouseHandler(const DialogMouseHandler&) = delete;
+        DialogMouseHandler& operator=(const DialogMouseHandler&) = delete;
+
+    private:
+        void handle(std::uint16_t flags, std::uint16_t buttonState,
+                    std::int16_t x, std::int16_t y)
+        {
+            mouse::g_modeManagement.updatePosFn(x, y);
+
+            if (!(flags & ME_LEFTRELEASED))
+                return;
+
+            m_clicked = true;
+            const Dialog& dlg = g_dialogs[static_cast<int>(m_type)];
+            if (x < dlg.x || x > dlg.x + dlg.itemWidth)
+                return;
+
+            const int itemHeight = g_menuItemGlyph1.height;
+            for (std::int16_t i = 0; dlg.itemNames[i]; ++i) {
+                std::int16_t dlgY = dlg.itemY[i];
+                if (dlgY > 350)
+                    dlgY -= 350; // in the shadow buffer
+                if (y >= dlgY && y <= dlgY + itemHeight) {
+                    m_selectedItem = i;
+                    return;
+                }
+            }
+        }
+
+        MouseHandler m_oldHandler;
+        DialogType m_type;
+        std::optional<std::int16_t> m_selectedItem;
+        bool m_clicked = false;
     };
 
 } // namespace
@@ -128,6 +198,7 @@ Rectangle& drawDialog(DialogType type, std::int16_t yOffset)
         firstSymbols[itemsCount][0] = dlg.itemNames[itemsCount][0];
         firstSymbols[itemsCount][1] = '\0';
     }
+    dlg.itemWidth = maxWidth;
 
     const std::int16_t widthBytes = (maxWidth + 56) / 8;
     const std::int16_t height = (itemsCount + 1) * 30 + 18;
@@ -163,32 +234,50 @@ Rectangle& drawDialog(DialogType type, std::int16_t yOffset)
 }
 
 /* 15e8:03b7 */
-std::int16_t handleDialog(DialogType type)
+std::int16_t handleDialog(DialogType type, std::optional<std::int16_t> defaultChoice)
 {
     const Dialog& dlg = g_dialogs[static_cast<int>(type)];
     std::int16_t timeout = 700;
     std::int16_t itemsCount = 0;
-    while (itemsCount < 7 && dlg.itemNames[itemsCount])
+    while (itemsCount < std::size(dlg.itemNames) && dlg.itemNames[itemsCount])
         ++itemsCount;
-    while (!g_lastKeyPressed) {
-        if (timeout-- == 0)
-            return -1;
-        vga::waitVerticalRetrace();
-    }
 
-    std::int16_t i = 0;
-    for (; i < itemsCount; ++i) {
-        if (dlg.itemNames[i][0] >= 'A' &&
-            g_asciiToKeycodeTable[dlg.itemNames[i][0] - 'A'] == g_lastKeyPressed) {
+    std::optional<std::int16_t> selectedItem;
+    {
+        DialogMouseHandler mouseHandler(type);
+        for (;;) {
+            while (!g_lastKeyPressed && !mouseHandler.newClicks()) {
+                if (timeout-- == 0)
+                    return -1;
+                vga::waitVerticalRetrace();
+            }
 
-            highlightFirstDlgItemSymbol(dlg.x, dlg.itemY[i]);
-            playEntitySwitchedSound(false);
-            vga::waitForNRetraces(8);
-            break;
+            if (g_lastKeyPressed) {
+                for (std::int16_t i = 0; !selectedItem && i < itemsCount; ++i) {
+                    if (dlg.itemNames[i][0] >= 'A' &&
+                        g_asciiToKeycodeTable[dlg.itemNames[i][0] - 'A'] == g_lastKeyPressed) {
+
+                        selectedItem = i;
+                    }
+                }
+            } else
+                selectedItem = mouseHandler.selectedItem();
+
+            g_lastKeyPressed = 0;
+            if (selectedItem || defaultChoice)
+                break;
+
+            playErrorMelody();
         }
     }
-    g_lastKeyPressed = 0;
-    return i;
+    if (selectedItem) {
+        highlightFirstDlgItemSymbol(dlg.x, dlg.itemY[*selectedItem]);
+        playEntitySwitchedSound(false);
+        vga::waitForNRetraces(8);
+        return *selectedItem;
+    }
+    assert(defaultChoice);
+    return *defaultChoice;
 }
 
 /* 15e8:0947 */
@@ -197,7 +286,7 @@ void alert(const char* message)
     g_dialogs[static_cast<int>(DialogType::Alert)].title = message;
     vga::waitForLine(200);
     drawDialog(DialogType::Alert, 0);
-    handleDialog(DialogType::Alert);
+    handleDialog(DialogType::Alert, 0);
 }
 
 } // namespace resl

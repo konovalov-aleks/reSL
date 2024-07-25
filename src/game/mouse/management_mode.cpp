@@ -1,14 +1,12 @@
 #include "management_mode.h"
 
 #include "mouse_mode.h"
-#include "mouse_state.h"
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/glyph.h>
 #include <graphics/vga.h>
 
 #include <algorithm>
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
@@ -34,11 +32,7 @@ namespace {
     /* 14af:000e */
     void updateCursorPos(std::int16_t x, std::int16_t y)
     {
-        // The original game doesn't use g_modeManagement directly for some reason,
-        // it uses a pointer inside g_mouseState instead.
-        assert(g_state.mode && g_state.mode == &g_modeManagement);
-        MouseMode& mode = *g_state.mode;
-
+        MouseMode& mode = g_modeManagement;
         mode.clearFn();
         mode.x = std::min(std::max<std::int16_t>(x, mode.minX), mode.maxX);
         mode.y = std::min(std::max<std::int16_t>(y, mode.minY), mode.maxY);
@@ -52,9 +46,7 @@ namespace {
 /* 14af:0089 */
 void drawArrowCursor()
 {
-    assert(g_state.mode && g_state.mode == &g_modeManagement);
-    MouseMode& mode = *g_state.mode;
-
+    const MouseMode& mode = g_modeManagement;
     graphics::saveVideoMemRegion24x16(mode.x, mode.y, g_cursorAreaBackup);
     vga::setVideoModeR0W2();
 
@@ -67,8 +59,7 @@ void drawArrowCursor()
 /* 14af:00e6 */
 void eraseArrowCursor()
 {
-    assert(g_state.mode && g_state.mode == &g_modeManagement);
-    MouseMode& mode = *g_state.mode;
+    const MouseMode& mode = g_modeManagement;
     graphics::restoreVideoMemRegion24x16(mode.x, mode.y, g_cursorAreaBackup);
     vga::setVideoModeR0W2();
 }

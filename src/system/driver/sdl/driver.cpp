@@ -18,6 +18,7 @@
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
+#include <functional>
 #include <iostream>
 #include <thread>
 
@@ -95,6 +96,12 @@ void Driver::sleep(unsigned ms)
     vga().flush();
 
 #endif // __EMSCRIPTEN__
+}
+
+MouseHandler Driver::setMouseHandler(MouseHandler hdl)
+{
+    std::swap(hdl, m_mouseHandler);
+    return hdl;
 }
 
 void Driver::pollEvent()

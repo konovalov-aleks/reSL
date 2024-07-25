@@ -31,6 +31,8 @@
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
+#include <optional>
 
 namespace resl {
 
@@ -154,7 +156,7 @@ inline ArchiveMenuAction showArchiveMenu()
                     // [D]elete
                     drawDialog(DialogType::Confirmation, 0);
                     g_lastKeyPressed = 0;
-                    if (handleDialog(DialogType::Confirmation) == 0) {
+                    if (handleDialog(DialogType::Confirmation, 1) == 0) {
                         // Yes
                         std::remove(file.fileName);
                         showNextFile = true;
@@ -177,9 +179,8 @@ inline ArchiveMenuAction showArchiveMenu()
                     return ArchiveMenuAction::ReturnToMainMenu;
 
                 default:
-                    /* 15e8:08bf */
-                    // wrong choice
-                    playErrorMelody();
+                    // unreachable
+                    std::abort();
                 }
             }
         }
@@ -277,8 +278,8 @@ void mainMenu()
             exitWithMessage("Bye\n");
 
         default:
-            playErrorMelody();
-            break;
+            // unreachable
+            std::abort();
         };
     }
 }

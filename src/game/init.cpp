@@ -23,6 +23,10 @@
 #include <cstdlib>
 #include <iterator>
 
+#ifndef NDEBUG
+#   include <algorithm>
+#endif // !NDEBUG
+
 namespace resl {
 
 /* 146b:000c */
@@ -140,24 +144,25 @@ static void generateEntrances()
 
         bool suits = false;
         while (!suits) {
-            const std::int16_t rIdx =
+            const std::int16_t r1Idx =
                 genRandomNumber(static_cast<std::int16_t>(std::size(g_entranceRails)));
-            entrance.entranceRailInfoIdx = static_cast<std::uint8_t>(rIdx);
-            const RailInfo& ri = g_entranceRails[entrance.entranceRailInfoIdx];
+            entrance.entranceRailInfoIdx = static_cast<std::uint8_t>(r1Idx);
+            const RailInfo& ri1 = g_entranceRails[entrance.entranceRailInfoIdx];
 
             suits = true;
             for (std::int16_t j = 0; j < i; ++j) {
                 const std::int16_t r2Idx = g_entrances[j].entranceRailInfoIdx;
                 const RailInfo& ri2 = g_entranceRails[r2Idx];
                 if (i == 1) {
-                    if (std::abs(rIdx - r2Idx) < 23) {
+                    if (std::abs(r1Idx - r2Idx) < 23) {
                         suits = false;
                         break;
                     }
                 } else {
-                    std::int16_t distX =
-                        std::abs((ri.tileX - ri.tileY) * 88 + 320 - (ri2.tileX - ri2.tileY) * 88 + 320);
-                    if (distX < 320 && std::abs(rIdx - r2Idx) < 10) {
+                    const std::int16_t y1 = (ri1.tileX - ri1.tileY) * 88 + 320;
+                    const std::int16_t y2 = (ri2.tileX - ri2.tileY) * 88 + 320;
+                    const std::int16_t distY = std::abs(y1 - y2);
+                    if (distY < 320 && std::abs(r1Idx - r2Idx) < 10) {
                         suits = false;
                         break;
                     }
@@ -237,6 +242,14 @@ void createNewWorld()
     resetGameData();
     generateEntrances();
     generateForest();
+
+#ifndef NDEBUG
+    std::uint8_t data[NormalEntranceCount];
+    for (std::int16_t i = g_entranceCount; i < NormalEntranceCount; ++i)
+        data[i] = g_entrances[i].entranceRailInfoIdx;
+    std::ranges::sort(data);
+    assert(std::ranges::adjacent_find(data) == std::end(data));
+#endif
 }
 
 /* 16a6:0973 */

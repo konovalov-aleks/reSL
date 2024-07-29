@@ -959,43 +959,55 @@ const RailTexture railBackgrounds[6] = {
         reinterpret_cast<RailGlyph*>(&RailGlyph_262d_000c),
         reinterpret_cast<RailGlyph*>(&RailGlyph_262d_0756),
         reinterpret_cast<RailGlyph*>(&RailGlyph_262d_091c),
-        reinterpret_cast<RailGlyph*>(&RailGlyph_262d_1de5),
-        reinterpret_cast<RailGlyph*>(&RailGlyph_262d_1e38)
+        {
+            reinterpret_cast<RailGlyph*>(&RailGlyph_262d_1de5),
+            reinterpret_cast<RailGlyph*>(&RailGlyph_262d_1e38)
+        }
     },
     {
         reinterpret_cast<RailGlyph*>(&RailGlyph_262d_014a),
         reinterpret_cast<RailGlyph*>(&RailGlyph_262d_0b02),
         reinterpret_cast<RailGlyph*>(&RailGlyph_262d_0cf7),
-        reinterpret_cast<RailGlyph*>(&RailGlyph_262d_1e92),
-        reinterpret_cast<RailGlyph*>(&RailGlyph_262d_1ee5)
+        {
+            reinterpret_cast<RailGlyph*>(&RailGlyph_262d_1e92),
+            reinterpret_cast<RailGlyph*>(&RailGlyph_262d_1ee5)
+        }
     },
     {
         reinterpret_cast<RailGlyph*>(&RailGlyph_262d_0288),
         reinterpret_cast<RailGlyph*>(&RailGlyph_262d_0eaf),
         reinterpret_cast<RailGlyph*>(&RailGlyph_262d_1092),
-        reinterpret_cast<RailGlyph*>(&RailGlyph_262d_1f38),
-        reinterpret_cast<RailGlyph*>(&RailGlyph_262d_1f8c)
+        {
+            reinterpret_cast<RailGlyph*>(&RailGlyph_262d_1f38),
+            reinterpret_cast<RailGlyph*>(&RailGlyph_262d_1f8c)
+        }
     },
     {
         reinterpret_cast<RailGlyph*>(&RailGlyph_262d_03c9),
         reinterpret_cast<RailGlyph*>(&RailGlyph_262d_1240),
         reinterpret_cast<RailGlyph*>(&RailGlyph_262d_1468),
-        reinterpret_cast<RailGlyph*>(&RailGlyph_262d_1fe0),
-        reinterpret_cast<RailGlyph*>(&RailGlyph_262d_202e)
+        {
+            reinterpret_cast<RailGlyph*>(&RailGlyph_262d_1fe0),
+            reinterpret_cast<RailGlyph*>(&RailGlyph_262d_202e)
+        }
     },
     {
         reinterpret_cast<RailGlyph*>(&RailGlyph_262d_04ef),
         reinterpret_cast<RailGlyph*>(&RailGlyph_262d_1666),
         reinterpret_cast<RailGlyph*>(&RailGlyph_262d_180c),
-        reinterpret_cast<RailGlyph*>(&RailGlyph_262d_207c),
-        reinterpret_cast<RailGlyph*>(&RailGlyph_262d_20d0)
+        {
+            reinterpret_cast<RailGlyph*>(&RailGlyph_262d_207c),
+            reinterpret_cast<RailGlyph*>(&RailGlyph_262d_20d0)
+        }
     },
     {
         reinterpret_cast<RailGlyph*>(&RailGlyph_262d_0630),
         reinterpret_cast<RailGlyph*>(&RailGlyph_262d_19aa),
         reinterpret_cast<RailGlyph*>(&RailGlyph_262d_1bd2),
-        reinterpret_cast<RailGlyph*>(&RailGlyph_262d_2124),
-        reinterpret_cast<RailGlyph*>(&RailGlyph_262d_2172)
+        {
+            reinterpret_cast<RailGlyph*>(&RailGlyph_262d_2124),
+            reinterpret_cast<RailGlyph*>(&RailGlyph_262d_2172)
+        }
     }
 };
 

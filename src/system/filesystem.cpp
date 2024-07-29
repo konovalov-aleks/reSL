@@ -198,7 +198,7 @@ namespace {
 } // namespace
 
 /* 12b1:0006 */
-int findFirst(const char* pattern, std::uint8_t attrs)
+int findFirst(const char* pattern, [[maybe_unused]] std::uint8_t attrs)
 {
     // The original implementation is based on DOS 21h (4E) API call:
     //      https://www.stanislavs.org/helppc/int_21-4e.html

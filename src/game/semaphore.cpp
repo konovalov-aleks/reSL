@@ -17,13 +17,13 @@
 namespace resl {
 
 /* 262d:6f9c : 48 bytes */
-Semaphore x_newSemaphores[4];
+Semaphore g_newSemaphores[4];
 
 /* 262d:6f60 : 48 bytes */
 Semaphore g_erasedSemaphores[4];
 
 /* 262d:6f90 : 2 bytes */
-std::int16_t x_newSemaphoreCount;
+std::int16_t g_newSemaphoreCount;
 
 /* 262d:6f92 : 2 bytes */
 std::int16_t g_erasedSemaphoreCount;
@@ -76,11 +76,11 @@ static void removeSemaphore(Rail& r, SemaphoreType type)
 }
 
 /* 17bf:07dd */
-void createSemaphores(const RailInfo& ri)
+void updateSemaphores(const RailInfo& ri)
 {
     Rail& rail = g_rails[ri.tileX][ri.tileY][ri.railType];
     g_erasedSemaphoreCount = 0;
-    x_newSemaphoreCount = 0;
+    g_newSemaphoreCount = 0;
     for (int i = 0; i < 2; ++i) {
         const RailConnectionBias& rc = g_railConnectionBiases[rail.type][i];
         std::int16_t tileX = ri.tileX + rc.tileOffsetX;
@@ -131,7 +131,7 @@ void createSemaphores(const RailInfo& ri)
                 Rail& rail2 = g_rails[x][y][rtm.railType];
                 if (rail2.type > 1 && ((1 << rail2.type) & g_railroadTypeMasks[x][y])) {
                     createSemaphore(rail2, rtm.semaphoreType);
-                    x_newSemaphores[x_newSemaphoreCount++] =
+                    g_newSemaphores[g_newSemaphoreCount++] =
                         g_semaphores[rail2.semSlotIdByDirection[static_cast<int>(rtm.semaphoreType)]];
                 }
             }

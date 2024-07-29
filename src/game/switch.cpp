@@ -3,11 +3,9 @@
 #include "rail.h"
 #include "resources/movement_paths.h"
 #include "resources/rail_connection_bias.h"
-#include "resources/rail_connection_rule.h"
 #include "resources/rail_glyph.h"
 #include "resources/semaphore_glyph_bias.h"
 #include "train.h"
-#include "types/rail_info.h"
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/glyph.h>
@@ -16,7 +14,6 @@
 #include <utility/sar.h>
 
 #include <array>
-#include <cassert>
 #include <cstdint>
 #include <cstdlib>
 #include <utility>
@@ -32,7 +29,7 @@ Switch g_switches[80];
 //-----------------------------------------------------------------------------
 
 /* 19de:02ee */
-static void updateSwitchPosition(Switch& s)
+void updateSwitchPosition(Switch& s)
 {
     const RailConnectionBias& rc = g_railConnectionBiases[s.exit.rail->type][s.exit.slot];
     const SemaphoreGlyphBias& sb = g_semaphoreGlyphBiases[s.exit.rail->type][s.exit.slot];
@@ -41,74 +38,13 @@ static void updateSwitchPosition(Switch& s)
 }
 
 /* 19de:00b6 */
-static void configChunkStepsForSwitch(RailConnection r)
+void configChunkStepsForSwitch(RailConnection r)
 {
     r.rail->connections[r.slot].rail = g_disabledSwitchPath;
     if (r.slot == 0)
         r.rail->minPathStep = 82;
     else
         r.rail->maxPathStep = g_movementPaths[r.rail->type].size - 83;
-}
-
-/* 1ad3:000c */
-void createSwitches(const RailInfo& r)
-{
-    assert(r.tileX < 11);
-    assert(r.tileY < 11);
-    assert(r.railType < 6);
-    Rail& rail = g_rails[r.tileX][r.tileY][r.railType];
-    g_railroadTypeMasks[r.tileX][r.tileY] |= (1 << r.railType);
-
-    for (std::uint16_t i = 0; i < 6; ++i) {
-        const RailConnectionRule& ri = g_railConnectionRules[r.railType][i];
-        const std::int16_t tileX = r.tileX + ri.tileDX;
-        const std::int16_t tileY = r.tileY + ri.tileDY;
-        if (!(g_railroadTypeMasks[tileX][tileY] & (1 << ri.railType)))
-            continue;
-
-        Rail& rail2 = g_rails[tileX][tileY][ri.railType];
-        RailConnection& rc1 = rail.connections[ri.slot1];
-        RailConnection& rc2 = rail2.connections[ri.slot2];
-        if (!rc2.rail) {
-            if (!rc1.rail) {
-                // no adjacent roads
-                rc1.rail = &rail2;
-                rc1.slot = ri.slot2;
-                rc2.rail = &rail;
-                rc2.slot = ri.slot1;
-            } else if (rc1.rail != g_disabledSwitchPath) {
-                Switch& s = g_switches[g_nSwitches++];
-                s.adjucentSwitchIdx = -1;
-                s.exit.rail = &rail;
-                s.exit.slot = ri.slot1;
-                s.disabledPath.rail = &rail2;
-                s.disabledPath.slot = ri.slot2;
-                s.entry = rc1;
-                updateSwitchPosition(s);
-                configChunkStepsForSwitch(s.disabledPath);
-            }
-        } else if (rc2.rail != g_disabledSwitchPath) {
-            Switch& s = g_switches[g_nSwitches++];
-            s.adjucentSwitchIdx = -1;
-            s.exit.rail = &rail2;
-            s.exit.slot = ri.slot2;
-            s.disabledPath.rail = &rail;
-            s.disabledPath.slot = ri.slot1;
-            s.entry = rc2;
-            updateSwitchPosition(s);
-            configChunkStepsForSwitch(s.disabledPath);
-
-            for (Switch* s2 = g_switches; s2 < &s; ++s2) {
-                // Handle X-shaped crossings.
-                // In this case, we switches are connected each other directly.
-                if (s2->entry.rail == &rail2 && s2->entry.slot == ri.slot2) {
-                    s.adjucentSwitchIdx = static_cast<std::int16_t>(s2 - g_switches);
-                    s2->adjucentSwitchIdx = static_cast<std::int16_t>(&s - g_switches);
-                    break;
-                }
-            }
-        }
-    }
 }
 
 /* 19de:00ec */

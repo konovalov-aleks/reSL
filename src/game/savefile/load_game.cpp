@@ -61,6 +61,8 @@ namespace {
             return;
         }
         assert(false);
+#else
+        (void)c;
 #endif
     }
 
@@ -75,6 +77,8 @@ namespace {
             return;
         }
         assert(false);
+#else
+        (void)s;
 #endif
     }
 
@@ -100,6 +104,8 @@ namespace {
             return;
         }
         assert(false);
+#else
+        (void)c;
 #endif
     }
 
@@ -178,7 +184,7 @@ namespace {
 
 #else // NDEBUG
 
-        class ExpectedBlockSize { };
+        class [[maybe_unused]] ExpectedBlockSize { };
         ExpectedBlockSize expectedSize(long) { return {}; }
 
 #endif // !NDEBUG
@@ -367,11 +373,11 @@ static void loadGameState(const char* fileName, char* switchStates, char* semaph
                     t.carriageCnt = r.read<std::uint8_t>();
                     t.drawingChainIdx = r.read<std::uint8_t>();
                     t.needToRedraw = r.read<bool>();
-                    t.x_needToMove = r.read<bool>();
+                    t.isActualPosition = r.read<bool>();
                     t.speed = r.read<std::uint8_t>();
                     t.maxSpeed = r.read<std::uint8_t>();
                     t.headCarriageIdx = r.read<std::uint8_t>();
-                    t.x_speed = r.read<std::uint8_t>();
+                    t.movementDebt = r.read<std::uint8_t>();
                     r.skipPadding<1>();
                     t.year = r.read<std::int16_t>();
                     t.lastMovementTime = r.read<std::int16_t>();
@@ -460,16 +466,16 @@ IOStatus loadSavedGame(const char* fileName)
             Rail& r = *g_entrances[i].rail.connections[0].rail;
             r.connections[isVisible(r)].rail = &g_entrances[i].rail;
         }
-        for (RailInfo* road = g_railRoad; road < g_railRoad + g_railRoadCount; ++road) {
-            createSwitches(*road);
-            createSemaphores(*road);
+        for (RailInfo* r = g_railRoad; r < g_railRoad + g_railRoadCount; ++r) {
+            connectRail(*r);
+            updateSemaphores(*r);
         }
-        for (int i = 0; i < g_nSwitches; ++i) {
+        for (std::uint16_t i = 0; i < g_nSwitches; ++i) {
             Switch& s = g_switches[i];
             if ((s.entry.rail < s.disabledPath.rail) != switchStatesBuf[i])
                 toggleSwitch(s);
         }
-        for (int i = 0; i < g_semaphoreCount; ++i)
+        for (std::uint16_t i = 0; i < g_semaphoreCount; ++i)
             g_semaphores[i].isRed = semaphoresIsRed[i];
     }
     updateKeyboardLeds(static_cast<std::int16_t>(g_ioStatus));

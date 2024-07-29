@@ -9,8 +9,7 @@ namespace resl::mouse {
 
 struct MouseState {
     MouseMode* mode;
-    std::uint8_t unknown1;
-    std::uint8_t unknown2;
+    // std::uint16_t padding;
     const Glyph* glyph;
     std::uint16_t videoMemOffset;
 };

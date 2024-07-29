@@ -4,7 +4,6 @@
 #include "rail.h"
 #include "types/rail_info.h"
 
-#include <cstddef>
 #include <cstdint>
 
 namespace resl {
@@ -22,7 +21,7 @@ struct Entrance {
  Last 3 are for service needs (e.g. as a destination entrance for a server train)
  Thus, they write only 6 first entrances to the game save file.
  */
-static inline constexpr std::size_t NormalEntranceCount = 6;
+static inline constexpr std::int16_t NormalEntranceCount = 6;
 
 // the special pseudo-entrance for servers
 inline constexpr std::uint8_t serverEntranceIdx = 6;

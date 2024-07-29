@@ -145,7 +145,7 @@ Task sdlLoop()
     }
 }
 
-int usage(int argc, const char* argv[], int unknownArg = -1)
+int usage(int /* argc */, const char* argv[], int unknownArg = -1)
 {
     if (unknownArg != -1)
         std::cerr << "Unknown command line argument \"" << argv[unknownArg] << "\"\n"

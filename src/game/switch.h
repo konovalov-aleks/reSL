@@ -1,7 +1,6 @@
 #pragma once
 
 #include "rail.h"
-#include "types/rail_info.h"
 
 #include <cstdint>
 
@@ -28,8 +27,11 @@ extern Switch g_switches[80];
 
 //-----------------------------------------------------------------------------
 
-/* 1ad3:000c */
-void createSwitches(const RailInfo&);
+/* 19de:02ee */
+void updateSwitchPosition(Switch&);
+
+/* 19de:00b6 */
+void configChunkStepsForSwitch(RailConnection);
 
 /* 19de:00ec */
 void toggleSwitch(Switch&);

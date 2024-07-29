@@ -12,7 +12,6 @@
 #include "semaphore.h"
 #include "static_object.h"
 #include "status_bar.h"
-#include "switch.h"
 #include "types/header_field.h"
 #include "types/rail_info.h"
 #include "types/rectangle.h"
@@ -140,9 +139,9 @@ Task taskRoadConstruction()
 
         co_await sleep(100);
         beepSound(4);
-        createSwitches(ri);
+        connectRail(ri);
         g_railRoad[g_railRoadCount++] = ri;
-        createSemaphores(ri);
+        updateSemaphores(ri);
         for (std::int16_t i = 0; i < g_erasedSemaphoreCount; ++i)
             eraseSemaphore(g_erasedSemaphores[i], 350);
         drawFieldBackground(0x15e);

@@ -135,7 +135,7 @@ void scheduleTrainsDrawing()
         if (t.isFreeSlot)
             continue;
 
-        t.x_needToMove = false;
+        t.isActualPosition = false;
         for (int i = 0;; ++i) {
             if (i < g_trainDrawingChainLen) {
                 if (!trainOverlaps(t, i)) {

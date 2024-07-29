@@ -51,7 +51,7 @@ struct Record {
 };
 
 static constexpr char g_recordsFileName[] = "results.tbl";
-static constexpr unsigned g_recordsTableCapacity = 833;
+static constexpr std::int16_t g_recordsTableCapacity = 833;
 static constexpr std::size_t g_recordSize = 36;
 
 static_assert(sizeof(Record) == g_recordSize);
@@ -111,7 +111,7 @@ static int recordCompareByLevelAndYear(const void* a, const void* b)
 void showRecordsScreen()
 {
     std::size_t bytesRead = readBinaryFile(g_recordsFileName, g_pageBuffer);
-    if (bytesRead != 0 && bytesRead != -1) {
+    if (bytesRead) {
         // The data can contain an empty records
         // Normalize the representation - move all non-empty records to the head
         Record* records = (Record*)g_pageBuffer;
@@ -171,7 +171,9 @@ static std::uint16_t playerNameHash()
 {
     std::uint16_t hash = 0;
     const char* c = g_playerName;
-    for (std::int16_t i = 0; i < std::size(g_playerName) && *c; ++i, ++c)
+    constexpr std::int16_t playerNameLen =
+        static_cast<std::int16_t>(std::size(g_playerName));
+    for (std::int16_t i = 0; i < playerNameLen && *c; ++i, ++c)
         hash += *c << (i << 1);
     return hash % g_recordsTableCapacity;
 }
@@ -240,7 +242,7 @@ void writeRecords()
         std::strcpy(r.playerName, g_playerName);
         std::fseek(file, -static_cast<long>(g_recordSize), SEEK_CUR);
 
-        convertByteOrderNativeToFile(r.byTrains);
+        convertByteOrderNativeToFile(r);
         std::fwrite(&r, g_recordSize, 1, file);
     }
 

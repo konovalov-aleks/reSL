@@ -80,7 +80,7 @@ namespace {
 
 #else // NDEBUG
 
-        class ExpectedBlockSize { };
+        class [[maybe_unused]] ExpectedBlockSize { };
         ExpectedBlockSize expectedSize(long) { return {}; }
 
 #endif // !NDEBUG
@@ -301,11 +301,11 @@ static void saveGameState(const char* fileName)
                 w.write(t.carriageCnt);
                 w.write(t.drawingChainIdx);
                 w.write(t.needToRedraw);
-                w.write(t.x_needToMove);
+                w.write(t.isActualPosition);
                 w.write(t.speed);
                 w.write(t.maxSpeed);
                 w.write(t.headCarriageIdx);
-                w.write(t.x_speed);
+                w.write(t.movementDebt);
                 w.write<std::uint8_t>(0); // padding
                 w.write(t.year);
                 w.write(t.lastMovementTime);

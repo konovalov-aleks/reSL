@@ -67,8 +67,6 @@ private:
     Sint32 m_lastCursorX = SCREEN_WIDTH / 2;
     Sint32 m_lastCursorY = SCREEN_HEIGHT / 2;
     std::uint16_t m_mouseButtonState;
-
-    bool m_quit = false;
 };
 
 } // namespace resl

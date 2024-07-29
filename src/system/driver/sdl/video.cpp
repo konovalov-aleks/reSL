@@ -219,7 +219,6 @@ Uint32 VGAEmulation::choosePixelFormat()
         return g_supportedPixelFormats[0];
     }
 
-    Uint32 res = 0;
     std::cout << "Renderer: " << rInfo.name << "\nSupported pixel formats:\n";
     for (Uint32 i = 0; i < rInfo.num_texture_formats; ++i) {
         std::cout << '\t'
@@ -443,7 +442,7 @@ void VGAEmulation::setLineCompareRegister(std::uint16_t y)
     }
 }
 
-void VGAEmulation::setFrameOrigin(std::int16_t x, std::int16_t y)
+void VGAEmulation::setFrameOrigin([[maybe_unused]] std::int16_t x, std::int16_t y)
 {
     assert(x == 0); // not supported
     if (m_vgaState.yOrigin != y) {
@@ -478,7 +477,7 @@ void VGAEmulation::setPaletteItem(std::uint8_t idx, std::uint32_t rgb)
     int y2 = std::numeric_limits<int>::min();
 
     std::size_t srcByte = 0;
-    for (int y = 0; y < vga::VIDEO_MEM_N_ROWS; ++y) {
+    for (int y = 0; y < static_cast<int>(vga::VIDEO_MEM_N_ROWS); ++y) {
         const std::size_t s = srcByte;
         for (int x = 0; x <= m_wndWidth; x += 8) {
             for (int bit = 0; bit < 8; ++bit) {

@@ -231,9 +231,9 @@ static void reverseTrain(Train& train)
 /* 18a5:0145 */
 bool moveTrain(Train& train, std::int16_t dTime)
 {
-    const std::int16_t speed = train.speed * dTime * 10 + train.x_speed;
-    const std::int16_t maxDistance = speed >> 8;
-    train.x_speed = static_cast<std::uint8_t>(speed);
+    const std::int16_t totalDistance = train.speed * dTime * 10 + train.movementDebt;
+    const std::int16_t maxDistance = totalDistance >> 8;
+    train.movementDebt = static_cast<std::uint8_t>(totalDistance);
 
     std::int16_t distance = 0;
     for (; distance < maxDistance; ++distance) {
@@ -482,8 +482,8 @@ Task taskMoveAndRedrawTrains()
                     g_needToRedrawTrains = true;
                     carriage->train->needToRedraw = false;
                 }
-                if (!carriage->train->x_needToMove) {
-                    carriage->train->x_needToMove = true;
+                if (!carriage->train->isActualPosition) {
+                    carriage->train->isActualPosition = true;
                     const TimeT curTime = getTime();
                     const TimeT dTime = curTime - carriage->train->lastMovementTime;
                     carriage->train->lastMovementTime = curTime;

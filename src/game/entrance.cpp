@@ -7,7 +7,6 @@
 #include "rail.h"
 #include "semaphore.h"
 #include "static_object.h"
-#include "switch.h"
 #include "train.h"
 #include "types/rail_info.h"
 
@@ -38,11 +37,11 @@ void spawnNewEntrance(RailInfo ri)
     clampRectToGameFieldBoundaries(g_areaToRedraw);
 
     eraseImpasse(r, 350);
-    createSwitches(ri);
+    connectRail(ri);
 
     g_railRoad[g_railRoadCount++] = ri;
 
-    createSemaphores(ri);
+    updateSemaphores(ri);
     for (std::int16_t i = 0; i < g_erasedSemaphoreCount; ++i)
         eraseSemaphore(g_erasedSemaphores[i], 350);
 

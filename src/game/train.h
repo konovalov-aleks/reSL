@@ -54,15 +54,23 @@ struct Carriage {
 
 struct Train {
     bool isFreeSlot;
+
     std::uint8_t carriageCnt;
     std::uint8_t drawingChainIdx;
     bool needToRedraw;
-    bool x_needToMove;
+    bool isActualPosition;
     std::uint8_t speed;
     std::uint8_t maxSpeed;
     std::uint8_t headCarriageIdx;
-    std::uint8_t x_speed;
-    char _padding;
+
+    // The movement step is rounded when processing the train movement.
+    // To compensate for the accumulated error, the debt from the previous
+    // iteration is saveda nd taken into account when calculating the distance
+    // of movement in the next iteration.
+    std::uint8_t movementDebt;
+
+    // std::uint8_t padding;
+
     std::int16_t year;
     std::int16_t lastMovementTime;
 

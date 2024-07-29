@@ -1,6 +1,5 @@
 #include "mouse_state.h"
 
-#include "management_mode.h"
 #include "mouse_mode.h"
 
 #include <cassert>
@@ -8,9 +7,7 @@
 namespace resl::mouse {
 
 /* 262d:6f02 : 12 bytes */
-MouseState g_state = {
-    &g_modeManagement
-};
+MouseState g_state = {};
 
 //-----------------------------------------------------------------------------
 

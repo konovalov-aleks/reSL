@@ -9,10 +9,10 @@ struct HeaderField {
     std::int16_t y;
     std::int16_t valueLimit;
     std::int8_t nDigits;
-    std::int8_t curAnimatingDigit;
-    std::int16_t value;
-    std::int16_t yScroll;
-    std::uint8_t digitValues[6];
+    std::int8_t curAnimatingDigit = 0;
+    std::int16_t value = 0;
+    std::int16_t yScroll = 0;
+    std::uint8_t digitValues[6] = {};
 };
 static_assert(sizeof(HeaderField) == 0x12);
 

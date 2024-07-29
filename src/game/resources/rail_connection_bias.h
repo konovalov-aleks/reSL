@@ -9,7 +9,7 @@ struct RailConnectionBias {
     std::int8_t tileOffsetX;
     std::int8_t tileOffsetY;
     std::uint8_t unknown1;
-    std::uint8_t _padding;
+    // std::uint8_t padding;
 };
 
 /* 1d60:0000 - 48 bytes */

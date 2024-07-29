@@ -63,8 +63,6 @@ private:
 
     MouseHandler m_mouseHandler = nullptr;
     std::uint16_t m_mouseButtonState;
-
-    bool m_quit = false;
 };
 
 } // namespace resl

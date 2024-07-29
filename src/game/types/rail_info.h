@@ -11,9 +11,8 @@ struct RailInfo {
     std::uint8_t railType;
     /* cur year - 8 */
     std::uint8_t year_8;
-    std::uint8_t _padding;
-};
 
-static_assert(sizeof(RailInfo) == 0x6);
+    // std::uint8_t padding
+};
 
 } // namespace resl

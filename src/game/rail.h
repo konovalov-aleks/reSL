@@ -47,6 +47,9 @@ extern std::uint8_t g_railroadTypeMasks[11][11];
 
 //-----------------------------------------------------------------------------
 
+/* 1ad3:000c */
+void connectRail(const RailInfo&);
+
 /* 19de:0426 */
 std::uint16_t roadMaskInTile(std::int16_t tileX, std::int16_t tileY);
 

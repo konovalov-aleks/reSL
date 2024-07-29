@@ -155,7 +155,7 @@ endif()
 if (MSVC)
     target_compile_options(resl PRIVATE "/D_CRT_SECURE_NO_WARNINGS" "/GR-" "/EHsc" "/D_HAS_EXCEPTIONS=0")
 else()
-    target_compile_options(resl PRIVATE "-fno-exceptions" "-fno-rtti")
+    target_compile_options(resl PRIVATE "-fno-exceptions" "-fno-rtti" "-Wextra" "-Wall")
 endif()
 
 target_include_directories(resl PRIVATE ${CMAKE_SOURCE_DIR}/src)

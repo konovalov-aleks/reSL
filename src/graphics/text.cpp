@@ -8,6 +8,8 @@
 #include <system/driver/driver.h>
 #include <utility/sar.h>
 
+#include <cstddef>
+
 namespace resl {
 
 /* 1d7d:2969 : 256 bytes */
@@ -96,7 +98,7 @@ std::int16_t measureText(const char* s)
     std::int16_t width = 0;
     for (; *s; ++s) {
         width += g_textSpacing + 9;
-        if (g_charTraits[*s] & (4 | 2))
+        if (g_charTraits[static_cast<std::size_t>(*s)] & (4 | 2))
             width += 4;
     }
     return width;

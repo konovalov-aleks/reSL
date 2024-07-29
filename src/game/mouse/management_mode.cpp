@@ -1,6 +1,6 @@
 #include "management_mode.h"
 
-#include "mouse_mode.h"
+#include "mode.h"
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/glyph.h>
@@ -32,7 +32,7 @@ namespace {
     /* 14af:000e */
     void updateCursorPos(std::int16_t x, std::int16_t y)
     {
-        MouseMode& mode = g_modeManagement;
+        Mode& mode = g_modeManagement;
         mode.clearFn();
         mode.x = std::min(std::max<std::int16_t>(x, mode.minX), mode.maxX);
         mode.y = std::min(std::max<std::int16_t>(y, mode.minY), mode.maxY);
@@ -46,11 +46,11 @@ namespace {
 /* 14af:0089 */
 void drawArrowCursor()
 {
-    const MouseMode& mode = g_modeManagement;
+    const Mode& mode = g_modeManagement;
     graphics::saveVideoMemRegion24x16(mode.x, mode.y, g_cursorAreaBackup);
     vga::setVideoModeR0W2();
 
-    static_assert(std::size(MouseMode {}.glyphs) == std::size(MouseMode {}.colors));
+    static_assert(std::size(Mode {}.glyphs) == std::size(Mode {}.colors));
     g_glyphHeight = 16;
     for (std::size_t i = 0; i < std::size(mode.glyphs); ++i)
         drawGlyphW16(mode.glyphs[i], mode.x, mode.y, mode.colors[i]);
@@ -59,7 +59,7 @@ void drawArrowCursor()
 /* 14af:00e6 */
 void eraseArrowCursor()
 {
-    const MouseMode& mode = g_modeManagement;
+    const Mode& mode = g_modeManagement;
     graphics::restoreVideoMemRegion24x16(mode.x, mode.y, g_cursorAreaBackup);
     vga::setVideoModeR0W2();
 }
@@ -67,7 +67,7 @@ void eraseArrowCursor()
 //-----------------------------------------------------------------------------
 
 /* 1d7d:1cae : 32 bytes */
-MouseMode g_modeManagement = {
+Mode g_modeManagement = {
     { g_cursorGlyph1, g_cursorGlyph2 },
     { Color::Black,   Color::White   },
     0, // min X

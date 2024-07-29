@@ -42,4 +42,7 @@ void playRailDamagedMelody();
 /* 19b2:027a */
 void playHappy2000YearMelody();
 
+/* 1ca8:0033 */
+void playSingleClickSound();
+
 } // namespace resl

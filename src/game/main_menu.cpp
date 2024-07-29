@@ -1,5 +1,6 @@
 #include "main_menu.h"
 
+#include "constants.h"
 #include "demo.h"
 #include "dialog.h"
 #include "draw_header.h"
@@ -13,7 +14,7 @@
 #include "melody.h"
 #include "mouse/construction_mode.h"
 #include "mouse/management_mode.h"
-#include "mouse/mouse_state.h"
+#include "mouse/state.h"
 #include "records.h"
 #include "savefile/load_game.h"
 #include "static_object.h"
@@ -51,7 +52,7 @@ static void eraseArchiveMenu(std::int16_t yOffset)
         dstY = 397;
         srcY = 47;
     }
-    graphics::copyRectangle(0, dstY, 0, srcY, 80, 287);
+    graphics::copyRectangle(0, dstY, 0, srcY, 80, GAME_FIELD_HEIGHT);
     vga::setVideoModeR0W2();
 }
 

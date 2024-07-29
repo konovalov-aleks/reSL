@@ -1,7 +1,7 @@
 #include "construction_mode.h"
 
-#include "mouse_mode.h"
-#include "mouse_state.h"
+#include "mode.h"
+#include "state.h"
 #include <game/resources/allowed_cursor_rail_types.h>
 #include <game/resources/rail_glyph.h>
 #include <game/status_bar.h>
@@ -61,7 +61,7 @@ namespace {
     /* 14af:0264 */
     void updateCursorPos(std::int16_t x, std::int16_t y)
     {
-        MouseMode& mode = *g_state.mode;
+        Mode& mode = *g_state.mode;
         /*
           The projection is:
 
@@ -106,7 +106,7 @@ RailInfo g_railCursorState = {
 };
 
 /* 1d7d:1cce : 32 bytes */
-MouseMode g_modeConstruction = {
+Mode g_modeConstruction = {
     { nullptr,      nullptr      },
     { Color::Black, Color::White },
 

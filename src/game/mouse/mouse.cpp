@@ -2,8 +2,8 @@
 
 #include "construction_mode.h"
 #include "management_mode.h"
-#include "mouse_mode.h"
-#include "mouse_state.h"
+#include "mode.h"
+#include "state.h"
 #include <game/drawing.h>
 #include <game/entrance.h>
 #include <game/header.h>
@@ -19,6 +19,7 @@
 #include <game/types/rail_info.h>
 #include <graphics/color.h>
 #include <system/mouse.h>
+#include <system/sound.h>
 #include <tasks/message_queue.h>
 #include <tasks/task.h>
 
@@ -26,8 +27,6 @@
 #include <cstdint>
 
 namespace resl {
-
-using namespace mouse; // FIXME
 
 /* 262d:6ef8 : 1 byte */
 static std::uint8_t g_previousMouseButtonState = 0;
@@ -47,7 +46,6 @@ void handleMouseInput(std::uint16_t mouseEventFlags,
     if (g_previousMouseButtonState)
         g_previousMouseButtonState = static_cast<std::uint8_t>(mouseButtonState);
     else {
-        // TODO make an enum for mouseButtonState
         if ((mouseEventFlags & (ME_LEFTPRESSED | ME_RIGHTPRESSED)) &&
             mouseButtonState == (MouseButton::MB_LEFT | MouseButton::MB_RIGHT)) {
 
@@ -56,14 +54,14 @@ void handleMouseInput(std::uint16_t mouseEventFlags,
         } else {
             if (mouseEventFlags & ME_LEFTRELEASED) {
                 // left button clicked
-                if (g_state.mode == &g_modeManagement)
+                if (mouse::g_state.mode == &mouse::g_modeManagement)
                     msg.action = MouseAction::MouseClick;
                 else
                     msg.action = MouseAction::ToggleNextRailType;
             } else {
                 if (mouseEventFlags & ME_RIGHTRELEASED) {
                     // right button clicked
-                    if (g_state.mode == &g_modeManagement)
+                    if (mouse::g_state.mode == &mouse::g_modeManagement)
                         msg.action = MouseAction::CallServer;
                     else
                         msg.action = MouseAction::BuildRails;
@@ -80,8 +78,8 @@ Task taskMouseEventHandling()
     for (;;) {
         MsgMouseEvent e = co_await g_mouseMsgQueue.pop();
 
-        assert(g_state.mode);
-        MouseMode& mode = *g_state.mode;
+        assert(mouse::g_state.mode);
+        mouse::Mode& mode = *mouse::g_state.mode;
         mode.updatePosFn(e.x, e.y);
 
         switch (e.action) {
@@ -121,21 +119,21 @@ Task taskMouseEventHandling()
                         showStatusMessage("Switch is locked by train");
                         playErrorMelody();
                     } else {
-                        eraseArrowCursor();
+                        mouse::eraseArrowCursor();
                         const std::int16_t switchIdx = static_cast<std::int16_t>(sw - g_switches);
                         eraseSwitch(switchIdx);
                         toggleSwitch(*sw);
                         drawSwitch(switchIdx, true);
-                        drawArrowCursor();
+                        mouse::drawArrowCursor();
                         scheduleAllTrainsRedrawing();
                         playSwitchSwitchedMelody();
                     }
                 } else if (Semaphore* sem = findClosestSemaphore(mode.x, mode.y)) {
-                    eraseArrowCursor();
+                    mouse::eraseArrowCursor();
                     toggleSemaphore(*sem);
                     drawSemaphore(*sem, 0);
                     drawSemaphore(*sem, 350);
-                    drawArrowCursor();
+                    mouse::drawArrowCursor();
                     scheduleAllTrainsRedrawing();
                     playEntitySwitchedSound(sem->isRed);
                 } else
@@ -146,9 +144,9 @@ Task taskMouseEventHandling()
         case MouseAction::ToggleMouseMode:
             /* 14af:0477 */
             if (mouse::g_state.mode == &mouse::g_modeManagement)
-                setMouseMode(mouse::g_modeConstruction);
+                setMode(mouse::g_modeConstruction);
             else
-                setMouseMode(mouse::g_modeManagement);
+                setMode(mouse::g_modeManagement);
             break;
 
         case MouseAction::ToggleNextRailType:
@@ -156,9 +154,11 @@ Task taskMouseEventHandling()
             assert(mouse::g_state.mode);
             mouse::g_state.mode->clearFn();
             for (;;) {
-                g_railCursorState.railType = (g_railCursorState.railType + 1) % 6;
-                const std::uint8_t curRailMask = 1 << g_railCursorState.railType;
-                const std::uint8_t allowedMask = g_allowedRailCursorTypes[g_railCursorState.tileX][g_railCursorState.tileY];
+                RailInfo& rcs = mouse::g_railCursorState;
+                rcs.railType = (rcs.railType + 1) % 6;
+                const std::uint8_t curRailMask = 1 << rcs.railType;
+                const std::uint8_t allowedMask =
+                    g_allowedRailCursorTypes[rcs.tileX][rcs.tileY];
                 if (curRailMask & allowedMask)
                     break;
             }
@@ -168,20 +168,18 @@ Task taskMouseEventHandling()
         case MouseAction::BuildRails:
             /* 14af:04a5 */
             {
-                const std::uint8_t newRail = 1 << g_railCursorState.railType;
-                const std::uint8_t existing = g_railroadTypeMasks[g_railCursorState.tileX][g_railCursorState.tileY];
+                RailInfo& rcs = mouse::g_railCursorState;
+                const std::uint8_t newRail = 1 << rcs.railType;
+                const std::uint8_t existing = g_railroadTypeMasks[rcs.tileX][rcs.tileY];
                 if (newRail & existing) {
                     showStatusMessage("Track\'s already built over here");
                     playErrorMelody();
                 } else {
-                    if (checkRailWouldConflict(g_railCursorState.tileX, g_railCursorState.tileY,
-                                               g_railCursorState.railType)) {
+                    if (checkRailWouldConflict(rcs.tileX, rcs.tileY, rcs.railType)) {
                         // the rail may conflict with both existing roads and rails of
                         // entrances that have not yet built
-                        bool isTripleSwitch =
-                            checkRailWouldConflictWithExistingRoad(
-                                g_railCursorState.tileX, g_railCursorState.tileY,
-                                g_railCursorState.railType);
+                        bool isTripleSwitch = checkRailWouldConflictWithExistingRoad(
+                            rcs.tileX, rcs.tileY, rcs.railType);
                         const char* msg = isTripleSwitch
                             ? "No triple switch allowed"
                             : "Can't build for contradiction to General Construction Plan";
@@ -190,21 +188,32 @@ Task taskMouseEventHandling()
                     } else {
                         beepSound(0);
 
-                        g_railCursorState.year_8 = g_headers[static_cast<int>(HeaderFieldId::Year)].value - 8;
-                        g_railConstructionMsgQueue.push(g_railCursorState);
+                        rcs.year_8 = g_headers[static_cast<int>(HeaderFieldId::Year)].value - 8;
+                        g_railConstructionMsgQueue.push(rcs);
 
                         mouse::g_state.mode->clearFn();
-                        drawRail(g_railCursorState.tileX, g_railCursorState.tileY, g_railCursorState.railType,
-                                 Color::White, 350);
+                        drawRail(rcs.tileX, rcs.tileY, rcs.railType, Color::White, 350);
                         mouse::g_state.mode->drawFn();
                     }
                 }
             }
             break;
 
-        case MouseAction::None:
-            // TODO implement
+        case MouseAction::ToggleSound:
             /* 14af:0695 */
+            // This branch looks unreachable in the original game because
+            // the mouse handler (14af:0761) never sets this value.
+            g_soundEnabled = !g_soundEnabled;
+            if (!g_soundEnabled)
+                playSingleClickSound();
+            else {
+                sound(2000);
+                co_await sleep(20);
+                nosound();
+            }
+            break;
+
+        case MouseAction::None:
             break;
         }
 

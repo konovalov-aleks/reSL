@@ -1,11 +1,11 @@
 #pragma once
 
-#include "mouse_mode.h"
+#include "mode.h"
 
 namespace resl::mouse {
 
 /* 1d7d:1cae : 32 bytes */
-extern MouseMode g_modeManagement;
+extern Mode g_modeManagement;
 
 //-----------------------------------------------------------------------------
 

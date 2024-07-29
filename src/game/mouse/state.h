@@ -1,14 +1,14 @@
 #pragma once
 
-#include "mouse_mode.h"
+#include "mode.h"
 #include <graphics/glyph.h>
 
 #include <cstdint>
 
 namespace resl::mouse {
 
-struct MouseState {
-    MouseMode* mode;
+struct State {
+    Mode* mode;
     // std::uint16_t padding;
     const Glyph* glyph;
     std::uint16_t videoMemOffset;
@@ -17,11 +17,11 @@ struct MouseState {
 //-----------------------------------------------------------------------------
 
 /* 262d:6f02 : 12 bytes */
-extern MouseState g_state;
+extern State g_state;
 
 //-----------------------------------------------------------------------------
 
 /* 14af:0104 */
-void setMouseMode(MouseMode&);
+void setMode(Mode&);
 
 } // namespace resl::mouse

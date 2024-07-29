@@ -25,7 +25,7 @@ set(SOURCES
     src/game/mouse/construction_mode.cpp
     src/game/mouse/management_mode.cpp
     src/game/mouse/mouse.cpp
-    src/game/mouse/mouse_state.cpp
+    src/game/mouse/state.cpp
     src/game/move_trains.cpp
     src/game/rail.cpp
     src/game/records.cpp

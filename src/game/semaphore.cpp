@@ -78,7 +78,7 @@ static void removeSemaphore(Rail& r, SemaphoreType type)
 /* 17bf:07dd */
 void updateSemaphores(const RailInfo& ri)
 {
-    Rail& rail = g_rails[ri.tileX][ri.tileY][ri.railType];
+    const Rail& rail = g_rails[ri.tileX][ri.tileY][ri.railType];
     g_erasedSemaphoreCount = 0;
     g_newSemaphoreCount = 0;
     for (int i = 0; i < 2; ++i) {

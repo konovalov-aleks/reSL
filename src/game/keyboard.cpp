@@ -28,7 +28,9 @@ void keyboardInteruptionHandler(std::uint8_t keycode)
 /* 1c71:000f */
 void updateKeyboardLeds(std::int16_t)
 {
-    // TODO implement
+    // In the original game, this function updates the state of keyboard LEDs.
+    // This feature is non-portable and is not important at all
+    // => reSL doesn't implement this
 }
 
 } // namespace resl

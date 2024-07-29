@@ -9,6 +9,7 @@ namespace resl {
 
 enum MouseAction : std::uint8_t {
     None = 0,
+    ToggleSound = 3,
     BuildRails = 5,
     ToggleNextRailType = 6,
     ToggleMouseMode = 7,

@@ -5,8 +5,8 @@
 #include "header.h"
 #include "impasse.h"
 #include "mouse/management_mode.h"
-#include "mouse/mouse_mode.h"
-#include "mouse/mouse_state.h"
+#include "mouse/mode.h"
+#include "mouse/state.h"
 #include "rail.h"
 #include "resources/chunk_bounding_boxes.h"
 #include "resources/rail_glyph.h"
@@ -207,7 +207,7 @@ void drawEraseTrainFinishedExclamation(std::int16_t entranceX, std::int16_t entr
 void drawGameField(std::int16_t yOffset)
 {
     readIfNotLoaded("play.7", g_pageBuffer);
-    graphics::imageDot7(0, yOffset, 640, 350, g_pageBuffer);
+    graphics::imageDot7(0, yOffset, SCREEN_WIDTH, SCREEN_HEIGHT, g_pageBuffer);
     drawStaticObjects(yOffset);
     drawCopyright(yOffset);
 }

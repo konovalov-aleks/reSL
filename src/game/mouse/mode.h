@@ -6,7 +6,7 @@
 
 namespace resl::mouse {
 
-struct MouseMode {
+struct Mode {
     using DrawCursorFn =
         void (*)();
     using UpdateCursorPosFn =

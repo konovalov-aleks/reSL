@@ -49,6 +49,10 @@ extern std::uint16_t g_semaphoreCount;
 
 //-----------------------------------------------------------------------------
 
+// Updates the playing field after creating a rail - sets the necessary or
+// removes unnecessary semaphores on the field.
+// Stores the list of created semaphores in (g_newSemaphores / g_newSemaphoreCount)
+// and the list of removed sempahores in (g_erasedSemaphores / g_erasedSemaphoreCount)
 /* 17bf:07dd */
 void updateSemaphores(const RailInfo&);
 

@@ -33,7 +33,6 @@ enum CarriageType : std::uint8_t {
 
 struct Location {
     std::uint8_t pathStep;
-    // TODO bool?
     std::uint8_t forwardDirection;
     Rail* rail;
 };

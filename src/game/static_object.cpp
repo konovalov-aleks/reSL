@@ -1,5 +1,6 @@
 #include "static_object.h"
 
+#include "constants.h"
 #include "draw_header.h"
 #include "drawing.h"
 #include "rail.h"
@@ -40,8 +41,8 @@ static void drawGrass(std::int16_t yOffset)
     const int seed = std::rand();
     std::srand(g_staticObjects[119].x);
     for (int i = 0; i < 25; ++i) {
-        int x = genRandomNumber(640);
-        int y = genRandomNumber(287) + g_headerHeight;
+        int x = genRandomNumber(GAME_FIELD_WIDTH);
+        int y = genRandomNumber(GAME_FIELD_HEIGHT) + g_headerHeight;
         for (int j = 0; j < 45; ++j) {
             if (isInsideGameField(x, y)) {
                 Color c = graphics::getPixel(x, y + yOffset);

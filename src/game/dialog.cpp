@@ -1,5 +1,6 @@
 #include "dialog.h"
 
+#include "constants.h"
 #include "keyboard.h"
 #include "melody.h"
 #include "types/rectangle.h"
@@ -135,7 +136,7 @@ Rectangle& drawDialog(DialogType type, std::int16_t yOffset)
     // the same in pixels is:
     //  x = (640 - width) / 2
     const std::int16_t x = (80 - widthBytes) * 4;
-    const std::int16_t y0 = yOffset + (287 - height) / 2;
+    const std::int16_t y0 = yOffset + (GAME_FIELD_HEIGHT - height) / 2;
     const std::int16_t y = y0 + 47;
 
     const Color bgColor = itemsCount ? Color::Gray : Color::Red;

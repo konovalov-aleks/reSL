@@ -1,16 +1,16 @@
 #include "demo.h"
 
+#include "constants.h"
 #include "game_data.h"
 #include "io_status.h"
 #include "main_menu.h"
 #include "mouse/management_mode.h"
+#include "mouse/mode.h"
 #include "mouse/mouse.h"
-#include "mouse/mouse_mode.h"
-#include "mouse/mouse_state.h"
+#include "mouse/state.h"
 #include "savefile/load_game.h"
 #include "semaphore.h"
 #include "switch.h"
-#include <graphics/vga.h>
 #include <system/random.h>
 #include <system/time.h>
 #include <tasks/message_queue.h>
@@ -67,7 +67,7 @@ static MsgMouseEvent g_demoMouseMsg;
 /* 1300:0273 */
 static void moveCursorTowardsPoint(std::int16_t x, std::int16_t y)
 {
-    const mouse::MouseMode& m = *mouse::g_state.mode;
+    const mouse::Mode& m = *mouse::g_state.mode;
     g_demoMouseMsg.action = MouseAction::None;
     g_demoMouseMsg.cursorDX = (x - m.x) / 4;
     g_demoMouseMsg.cursorDY = (y - m.y) / 4;
@@ -79,7 +79,7 @@ static Task moveMouseCursor(std::int16_t x, std::int16_t y)
 {
     for (std::int16_t i = 0; i <= 50; ++i) {
         assert(mouse::g_state.mode);
-        const mouse::MouseMode& m = *mouse::g_state.mode;
+        const mouse::Mode& m = *mouse::g_state.mode;
         std::int16_t dx = std::abs(x - m.x);
         std::int16_t dy = std::abs(y - m.y);
         if (dx + dy <= 10) {
@@ -138,9 +138,8 @@ Task taskDemoAI()
             switch (time) {
             case 0:
             case 1: {
-                std::int16_t x = genRandomNumber(SCREEN_WIDTH);
-                // TODO make a constant for 287 (game field height)
-                std::int16_t y = genRandomNumber(287);
+                std::int16_t x = genRandomNumber(GAME_FIELD_WIDTH);
+                std::int16_t y = genRandomNumber(GAME_FIELD_HEIGHT);
                 for (std::int16_t i = 0; i < 10; ++i) {
                     moveCursorTowardsPoint(x, y);
                     co_await sleep(15);
@@ -155,8 +154,8 @@ Task taskDemoAI()
             case 4:
             case 5: {
                 performMouseAction(MouseAction::BuildRails);
-                std::int16_t x = genRandomNumber(SCREEN_WIDTH);
-                std::int16_t y = genRandomNumber(287) + 47;
+                std::int16_t x = genRandomNumber(GAME_FIELD_WIDTH);
+                std::int16_t y = genRandomNumber(GAME_FIELD_HEIGHT) + 47;
                 moveCursorTowardsPoint(x, y);
             } break;
 

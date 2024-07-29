@@ -145,4 +145,11 @@ void playHappy2000YearMelody()
     playScheduledTrainMelody(400, 420, 20);
 }
 
+/* 1ca8:0033 */
+void playSingleClickSound()
+{
+    // In the original game, this function produces a single click sound
+    // with PC speaker
+}
+
 } // namespace resl

@@ -14,6 +14,7 @@
 #include <system/mouse.h>
 
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <iterator>
 #include <optional>
@@ -108,7 +109,7 @@ namespace {
         DialogMouseHandler& operator=(const DialogMouseHandler&) = delete;
 
     private:
-        void handle(std::uint16_t flags, std::uint16_t buttonState,
+        void handle(std::uint16_t flags, std::uint16_t /* buttonState */,
                     std::int16_t x, std::int16_t y)
         {
             mouse::g_modeManagement.updatePosFn(x, y);
@@ -238,7 +239,7 @@ std::int16_t handleDialog(DialogType type, std::optional<std::int16_t> defaultCh
 {
     const Dialog& dlg = g_dialogs[static_cast<int>(type)];
     std::int16_t timeout = 700;
-    std::int16_t itemsCount = 0;
+    std::size_t itemsCount = 0;
     while (itemsCount < std::size(dlg.itemNames) && dlg.itemNames[itemsCount])
         ++itemsCount;
 
@@ -253,7 +254,7 @@ std::int16_t handleDialog(DialogType type, std::optional<std::int16_t> defaultCh
             }
 
             if (g_lastKeyPressed) {
-                for (std::int16_t i = 0; !selectedItem && i < itemsCount; ++i) {
+                for (std::size_t i = 0; !selectedItem && i < itemsCount; ++i) {
                     if (dlg.itemNames[i][0] >= 'A' &&
                         g_asciiToKeycodeTable[dlg.itemNames[i][0] - 'A'] == g_lastKeyPressed) {
 

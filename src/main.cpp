@@ -14,6 +14,10 @@
 #include "tasks/task.h"
 #include <system/driver/driver.h>
 
+#ifdef __IPHONEOS__
+#   include "SDL.h"
+#endif // __IPHONEOS__
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -29,12 +33,12 @@ using namespace resl;
 
 namespace {
 
-void recordsScreenDemo(int, const char*[])
+void recordsScreenDemo(int, char*[])
 {
     showRecordsScreen();
 }
 
-void drawTextDemo(int, const char*[])
+void drawTextDemo(int, char*[])
 {
     unsigned c = 0;
     for (int y = 0; y < 10; ++y) {
@@ -123,15 +127,14 @@ Task implDrawTrainsDemo()
             dFrame = -dFrame;
         co_await sleep(10);
     }
-    co_return;
 }
 
-void drawTrainsDemo(int, const char*[])
+void drawTrainsDemo(int, char*[])
 {
     addTask(implDrawTrainsDemo());
 }
 
-const std::map<std::string, std::function<void(int, const char*[])>> commands = {
+const std::map<std::string, std::function<void(int, char*[])>> commands = {
     { "records",     recordsScreenDemo },
     { "draw_text",   drawTextDemo      },
     { "draw_trains", drawTrainsDemo    }
@@ -145,7 +148,7 @@ Task sdlLoop()
     }
 }
 
-int usage(int /* argc */, const char* argv[], int unknownArg = -1)
+int usage(int /* argc */, char* argv[], int unknownArg = -1)
 {
     if (unknownArg != -1)
         std::cerr << "Unknown command line argument \"" << argv[unknownArg] << "\"\n"
@@ -175,7 +178,7 @@ int usage(int /* argc */, const char* argv[], int unknownArg = -1)
 extern "C" {
 #endif
 
-int main(int argc, const char* argv[])
+int main(int argc, char* argv[])
 {
     bool debugGraphics = false;
     const char* demo = nullptr;

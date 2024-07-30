@@ -171,6 +171,10 @@ int usage(int /* argc */, const char* argv[], int unknownArg = -1)
 
 } // namespace
 
+#ifdef __IPHONEOS__
+extern "C" {
+#endif
+
 int main(int argc, const char* argv[])
 {
     bool debugGraphics = false;
@@ -214,3 +218,7 @@ int main(int argc, const char* argv[])
 
     return EXIT_SUCCESS;
 }
+
+#ifdef __IPHONEOS__
+} // extern "C"
+#endif

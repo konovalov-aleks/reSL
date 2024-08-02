@@ -1,29 +1,29 @@
 #include "drawing.h"
 
-#include "draw_header.h"
 #include "graphics/drawing.h"
 #include "header.h"
+#include "header_field.h"
 #include "impasse.h"
 #include "mouse/management_mode.h"
 #include "mouse/mode.h"
 #include "mouse/state.h"
 #include "rail.h"
+#include "rail_info.h"
 #include "resources/chunk_bounding_boxes.h"
 #include "resources/rail_glyph.h"
 #include "resources/train_finished_exclamation_glyph.h"
 #include "semaphore.h"
 #include "static_object.h"
-#include "status_bar.h"
 #include "switch.h"
 #include "train.h"
-#include "types/header_field.h"
-#include "types/rail_info.h"
-#include "types/rectangle.h"
 #include <graphics/color.h>
 #include <graphics/glyph.h>
 #include <graphics/vga.h>
 #include <system/buffer.h>
 #include <system/filesystem.h>
+#include <types/rectangle.h>
+#include <ui/components/draw_header.h>
+#include <ui/components/status_bar.h>
 
 #include <cassert>
 #include <cstdint>

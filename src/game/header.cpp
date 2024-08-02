@@ -1,11 +1,11 @@
 #include "header.h"
 
-#include "draw_header.h"
-#include "game_over.h"
-#include "status_bar.h"
-#include "types/header_field.h"
+#include "header_field.h"
 #include <graphics/color.h>
 #include <graphics/drawing.h>
+#include <ui/components/draw_header.h>
+#include <ui/components/status_bar.h>
+#include <ui/game_over.h>
 
 #include <tasks/message_queue.h>
 #include <tasks/task.h>

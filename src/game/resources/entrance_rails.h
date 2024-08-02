@@ -1,6 +1,6 @@
 #pragma once
 
-#include <game/types/rail_info.h>
+#include <game/rail_info.h>
 
 namespace resl {
 

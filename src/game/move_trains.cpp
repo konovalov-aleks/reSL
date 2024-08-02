@@ -3,6 +3,7 @@
 #include "drawing.h"
 #include "entrance.h"
 #include "header.h"
+#include "header_field.h"
 #include "melody.h"
 #include "mouse/management_mode.h"
 #include "mouse/mode.h"
@@ -11,11 +12,7 @@
 #include "resources/movement_paths.h"
 #include "resources/train_glyph.h"
 #include "semaphore.h"
-#include "status_bar.h"
 #include "train.h"
-#include "types/header_field.h"
-#include "types/position.h"
-#include "types/rectangle.h"
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/vga.h>
@@ -24,6 +21,9 @@
 #include <system/sound.h>
 #include <system/time.h>
 #include <tasks/task.h>
+#include <types/position.h>
+#include <types/rectangle.h>
+#include <ui/components/status_bar.h>
 #include <utility/sar.h>
 
 #include <cstdlib>
@@ -384,8 +384,10 @@ static bool handleCollisions(Carriage& c1, Carriage& c2)
     const std::int16_t cos = g_cosArr[p1.angle];
     const std::int16_t sin = -g_sinArr[p1.angle];
 
-    const std::int16_t w1 = g_trainGlyphs[c1.type][0][0].width - 4;
-    const std::int16_t w2 = g_trainGlyphs[c2.type][0][0].width - 4;
+    const std::int16_t w1 =
+        g_trainGlyphs[static_cast<int>(c1.type)][0][0].width - 4;
+    const std::int16_t w2 =
+        g_trainGlyphs[static_cast<int>(c2.type)][0][0].width - 4;
 
     const std::int16_t a1 = (cos * w1) / 10;
     const std::int16_t b1 = (sin * w1) / 10;

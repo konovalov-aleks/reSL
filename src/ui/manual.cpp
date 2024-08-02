@@ -1,6 +1,5 @@
 #include "manual.h"
 
-#include "keyboard.h"
 #include <graphics/animation.h>
 #include <graphics/color.h>
 #include <graphics/drawing.h>
@@ -8,6 +7,7 @@
 #include <graphics/vga.h>
 #include <system/buffer.h>
 #include <system/filesystem.h>
+#include <system/keyboard.h>
 
 #include <cassert>
 #include <cstdint>

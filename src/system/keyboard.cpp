@@ -1,7 +1,5 @@
 #include "keyboard.h"
 
-#include <system/keyboard.h>
-
 #include <cstdint>
 
 namespace resl {

@@ -2,7 +2,7 @@
 
 #include "graphics/color.h"
 #include "rail.h"
-#include "types/rail_info.h"
+#include "rail_info.h"
 
 #include <cstdint>
 

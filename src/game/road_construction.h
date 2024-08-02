@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types/rail_info.h"
+#include "rail_info.h"
 #include <tasks/message_queue.h>
 #include <tasks/task.h>
 

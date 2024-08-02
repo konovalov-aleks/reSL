@@ -1,8 +1,8 @@
 #include "train.h"
 
-#include "draw_header.h"
 #include "entrance.h"
 #include "header.h"
+#include "header_field.h"
 #include "mouse/mode.h"
 #include "mouse/state.h"
 #include "move_trains.h"
@@ -11,9 +11,6 @@
 #include "resources/movement_paths.h"
 #include "resources/train_glyph.h"
 #include "resources/train_specification.h"
-#include "status_bar.h"
-#include "types/header_field.h"
-#include "types/rectangle.h"
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/glyph.h>
@@ -21,6 +18,9 @@
 #include <system/random.h>
 #include <system/time.h>
 #include <tasks/task.h>
+#include <types/rectangle.h>
+#include <ui/components/draw_header.h>
+#include <ui/components/status_bar.h>
 #include <utility/sar.h>
 
 #include <array>
@@ -176,14 +176,16 @@ void drawTrainList(Carriage* c)
             c->direction = c->direction ^ 1;
 
         c->x_direction = p.angle;
-        const TrainGlyph& glyph = g_trainGlyphs[c->type][p.angle][c->direction];
+        const TrainGlyph& glyph =
+            g_trainGlyphs[static_cast<int>(c->type)][p.angle][c->direction];
 
         *curBoundingBox = c->rect;
 
         c->rect.x1 = c->location.rail->x + p.dx - glyph.width / 2;
         c->rect.x2 = c->rect.x1 + glyph.width;
         c->drawingPriority = c->location.rail->y + p.dy;
-        c->rect.y1 = c->drawingPriority - glyph.height + g_carriageYBiases[c->type][p.angle];
+        c->rect.y1 = c->drawingPriority - glyph.height +
+            g_carriageYBiases[static_cast<int>(c->type)][p.angle];
         c->rect.y2 = c->rect.y1 + glyph.height;
 
         if (c->rect.x1 < curBoundingBox->x1)
@@ -266,7 +268,7 @@ static bool noTrainsExist()
 static bool isTrainAvailableInCurrentYear(CarriageType type)
 {
     std::int16_t year = g_headers[static_cast<int>(HeaderFieldId::Year)].value;
-    const TrainSpecification& spec = g_trainSpecifications[type];
+    const TrainSpecification& spec = g_trainSpecifications[static_cast<int>(type)];
     return year >= spec.minYear && year <= spec.maxYear;
 }
 
@@ -277,17 +279,18 @@ static void generateTrain(Train& t, std::int16_t entranceIdx)
     do {
         std::int16_t rnd = genRandomNumber(6);
         t.carriages[0].type =
-            static_cast<CarriageType>(rnd + CarriageType::AncientLocomotive);
+            static_cast<CarriageType>(rnd + static_cast<int>(CarriageType::AncientLocomotive));
     } while (!isTrainAvailableInCurrentYear(t.carriages[0].type));
 
-    t.maxSpeed = g_trainSpecifications[t.carriages[0].type].maxSpeed;
+    const TrainSpecification& spec =
+        g_trainSpecifications[static_cast<int>(t.carriages[0].type)];
+    t.maxSpeed = spec.maxSpeed;
     t.speed = t.maxSpeed;
     t.carriages[0].direction = g_entrances[entranceIdx].rail.x > 320;
     t.carriages[0].x_direction = 0;
     for (std::uint8_t i = 1; i < t.carriageCnt; ++i) {
         do {
-            t.carriages[i].type =
-                g_trainSpecifications[t.carriages[0].type].possibleCarriages[genRandomNumber(5)];
+            t.carriages[i].type = spec.possibleCarriages[genRandomNumber(5)];
         } while (!isTrainAvailableInCurrentYear(t.carriages[i].type));
     }
 }
@@ -316,7 +319,8 @@ static Train* spawnTrain(std::int16_t entranceIdx)
             Carriage& c = t->carriages[i];
             c.dstEntranceIdx = static_cast<std::uint8_t>(dstEntranceIdx);
 
-            const std::int16_t moveStep = g_trainGlyphs[c.type][0][0].width / 2 + 4;
+            const std::int16_t moveStep =
+                g_trainGlyphs[static_cast<int>(c.type)][0][0].width / 2 + 4;
             moveAlongPath(loc, moveStep);
             c.location = loc;
             c.location.forwardDirection = !c.location.forwardDirection;

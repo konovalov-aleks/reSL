@@ -1,10 +1,10 @@
 #include "draw_header.h"
 
-#include "entrance.h"
-#include "header.h"
-#include "resources/dispatcher_glyph.h"
-#include "resources/glyph_empty_background.h"
-#include "types/header_field.h"
+#include <game/entrance.h>
+#include <game/header.h>
+#include <game/header_field.h>
+#include <game/resources/dispatcher_glyph.h>
+#include <game/resources/glyph_empty_background.h>
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/glyph.h>

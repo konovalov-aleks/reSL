@@ -2,8 +2,8 @@
 
 #include "color.h"
 #include "vga.h"
-#include <game/types/rectangle.h>
 #include <system/driver/driver.h>
+#include <types/rectangle.h>
 #include <utility/ror.h>
 #include <utility/sar.h>
 

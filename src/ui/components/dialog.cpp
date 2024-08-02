@@ -1,14 +1,14 @@
 #include "dialog.h"
 
-#include "constants.h"
-#include "keyboard.h"
-#include "melody.h"
-#include "types/rectangle.h"
+#include <game/constants.h>
+#include <game/melody.h>
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/glyph.h>
 #include <graphics/text.h>
 #include <graphics/vga.h>
+#include <system/keyboard.h>
+#include <types/rectangle.h>
 
 #include <cstdint>
 
@@ -53,10 +53,10 @@ namespace {
 
     /* 1d74:0000 : 47 bytes */
     const GlyphData<3, 15> g_firstMenuItemTextArea = {
-        0XFF, 0XFF, 0XE0, 0XFF, 0XFF, 0XE0, 0XFF, 0XFF, 0XE0, 0XFF, 0XFF, 0XE0,
-        0XFF, 0XFF, 0XE0, 0XFF, 0XFF, 0XE0, 0XFF, 0XFF, 0XE0, 0XFF, 0XFF, 0XE0,
-        0XFF, 0XFF, 0XE0, 0XFF, 0XFF, 0XE0, 0XFF, 0XFF, 0XE0, 0XFF, 0XFF, 0XE0,
-        0XFF, 0XFF, 0XE0, 0XFF, 0XFF, 0XE0, 0XFF, 0XFF, 0XE0
+        0xFF, 0xFF, 0xE0, 0xFF, 0xFF, 0xE0, 0xFF, 0xFF, 0xE0, 0xFF, 0xFF, 0xE0,
+        0xFF, 0xFF, 0xE0, 0xFF, 0xFF, 0xE0, 0xFF, 0xFF, 0xE0, 0xFF, 0xFF, 0xE0,
+        0xFF, 0xFF, 0xE0, 0xFF, 0xFF, 0xE0, 0xFF, 0xFF, 0xE0, 0xFF, 0xFF, 0xE0,
+        0xFF, 0xFF, 0xE0, 0xFF, 0xFF, 0xE0, 0xFF, 0xFF, 0xE0
     };
 
     /* 1d7d:1f62 : 74 bytes */

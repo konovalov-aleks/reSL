@@ -1,11 +1,11 @@
 #include "semaphore.h"
 
 #include "rail.h"
+#include "rail_info.h"
 #include "resources/rail_connection_bias.h"
 #include "resources/rail_type_meta.h"
 #include "resources/semaphore_glyph.h"
 #include "resources/semaphore_glyph_bias.h"
-#include "types/rail_info.h"
 #include <graphics/color.h>
 #include <graphics/glyph.h>
 

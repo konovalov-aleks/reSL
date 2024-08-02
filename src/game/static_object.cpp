@@ -1,19 +1,19 @@
 #include "static_object.h"
 
 #include "constants.h"
-#include "draw_header.h"
 #include "drawing.h"
 #include "rail.h"
 #include "resources/glyph_empty_background.h"
 #include "resources/movement_paths.h"
 #include "resources/static_object_glyph.h"
-#include "status_bar.h"
-#include "types/rectangle.h"
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/glyph.h>
 #include <graphics/vga.h>
 #include <system/random.h>
+#include <types/rectangle.h>
+#include <ui/components/draw_header.h>
+#include <ui/components/status_bar.h>
 
 #include <algorithm>
 #include <cmath>

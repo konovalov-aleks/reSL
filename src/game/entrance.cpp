@@ -1,14 +1,14 @@
 #include "entrance.h"
 
-#include "draw_header.h"
 #include "drawing.h"
 #include "impasse.h"
 #include "melody.h"
 #include "rail.h"
+#include "rail_info.h"
 #include "semaphore.h"
 #include "static_object.h"
 #include "train.h"
-#include "types/rail_info.h"
+#include <ui/components/draw_header.h>
 
 #include <array>
 #include <cstdint>
@@ -30,7 +30,7 @@ std::int16_t g_entranceCount;
 /* 17bf:03ba */
 void spawnNewEntrance(RailInfo ri)
 {
-    Rail& r = g_rails[ri.tileX][ri.tileY][ri.railType];
+    const Rail& r = g_rails[ri.tileX][ri.tileY][ri.railType];
     scheduleRailRedrawing(r);
     destroyStaticObjectsForRailConstruction(r);
 

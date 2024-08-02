@@ -5,6 +5,9 @@
 
 namespace resl {
 
+/* 262d:5eff : 1 byte */
+extern bool g_isDemoMode;
+
 /* 1d7d:2114 : 14 bytes */
 extern Task g_taskDemoAI;
 

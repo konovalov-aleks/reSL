@@ -1,6 +1,5 @@
 #include "game/init.h"
 
-#include "game/keyboard.h"
 #include "game/main_loop.h"
 #include "game/mouse/mouse.h"
 #include "game/records.h"
@@ -10,6 +9,7 @@
 #include "graphics/drawing.h"
 #include "graphics/glyph.h"
 #include "graphics/text.h"
+#include "system/keyboard.h"
 #include "system/time.h"
 #include "tasks/task.h"
 #include <system/driver/driver.h>

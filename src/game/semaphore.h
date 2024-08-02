@@ -1,7 +1,7 @@
 #pragma once
 
 #include "rail.h"
-#include "types/rail_info.h"
+#include "rail_info.h"
 #include <game/resources/semaphore_glyph.h>
 
 #include <cstdint>

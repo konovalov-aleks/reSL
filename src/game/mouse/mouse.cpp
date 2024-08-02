@@ -7,21 +7,21 @@
 #include <game/drawing.h>
 #include <game/entrance.h>
 #include <game/header.h>
+#include <game/header_field.h>
 #include <game/melody.h>
 #include <game/rail.h>
+#include <game/rail_info.h>
 #include <game/resources/allowed_cursor_rail_types.h>
 #include <game/road_construction.h>
 #include <game/semaphore.h>
-#include <game/status_bar.h>
 #include <game/switch.h>
 #include <game/train.h>
-#include <game/types/header_field.h>
-#include <game/types/rail_info.h>
 #include <graphics/color.h>
 #include <system/mouse.h>
 #include <system/sound.h>
 #include <tasks/message_queue.h>
 #include <tasks/task.h>
+#include <ui/components/status_bar.h>
 
 #include <cassert>
 #include <cstdint>

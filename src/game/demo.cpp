@@ -1,13 +1,12 @@
 #include "demo.h"
 
 #include "constants.h"
-#include "game_data.h"
 #include "io_status.h"
-#include "main_menu.h"
 #include "mouse/management_mode.h"
 #include "mouse/mode.h"
 #include "mouse/mouse.h"
 #include "mouse/state.h"
+#include "player_name.h"
 #include "savefile/load_game.h"
 #include "semaphore.h"
 #include "switch.h"
@@ -15,6 +14,7 @@
 #include <system/time.h>
 #include <tasks/message_queue.h>
 #include <tasks/task.h>
+#include <ui/main_menu.h>
 
 #include <cassert>
 #include <cstdint>
@@ -23,6 +23,9 @@
 #include <iterator>
 
 namespace resl {
+
+/* 262d:5eff : 1 byte */
+bool g_isDemoMode = false;
 
 /* 1d7d:2114 : 14 bytes */
 Task g_taskDemoAI;

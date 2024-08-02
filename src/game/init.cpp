@@ -4,6 +4,7 @@
 #include "header.h"
 #include "move_trains.h"
 #include "rail.h"
+#include "rail_info.h"
 #include "resources/entrance_rails.h"
 #include "resources/movement_paths.h"
 #include "resources/rail_connection_bias.h"
@@ -12,7 +13,6 @@
 #include "static_object.h"
 #include "switch.h"
 #include "train.h"
-#include "types/rail_info.h"
 #include <graphics/color.h>
 #include <system/random.h>
 #include <tasks/message_queue.h>

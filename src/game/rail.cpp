@@ -2,7 +2,9 @@
 
 #include "entrance.h"
 #include "header.h"
+#include "header_field.h"
 #include "melody.h"
+#include "rail_info.h"
 #include "resources/entrance_rails.h"
 #include "resources/movement_paths.h"
 #include "resources/rail_connection_bias.h"
@@ -10,10 +12,8 @@
 #include "resources/rail_type_meta.h"
 #include "switch.h"
 #include "train.h"
-#include "types/header_field.h"
-#include "types/rail_info.h"
-#include "types/rectangle.h"
 #include <system/random.h>
+#include <types/rectangle.h>
 
 #include <array>
 #include <cassert>

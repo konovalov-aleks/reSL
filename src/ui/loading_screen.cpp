@@ -1,10 +1,10 @@
 #include "loading_screen.h"
 
-#include "keyboard.h"
 #include <graphics/drawing.h>
 #include <graphics/vga.h>
 #include <system/buffer.h>
 #include <system/filesystem.h>
+#include <system/keyboard.h>
 
 #include <cstdint>
 

@@ -3,9 +3,9 @@
 // IWYU pragma: no_include <cwchar>
 // IWYU pragma: no_include <sys/_types/_seek_set.h>
 
-#include "game_data.h"
 #include "header.h"
-#include "types/header_field.h"
+#include "header_field.h"
+#include "player_name.h"
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/text.h>

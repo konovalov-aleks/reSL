@@ -2,15 +2,15 @@
 
 #include "mode.h"
 #include "state.h"
+#include <game/rail_info.h>
 #include <game/resources/allowed_cursor_rail_types.h>
 #include <game/resources/rail_glyph.h>
-#include <game/status_bar.h>
-#include <game/types/rail_info.h>
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/glyph.h>
 #include <graphics/vga.h>
 #include <system/driver/driver.h>
+#include <ui/components/status_bar.h>
 
 #include <cassert>
 #include <cstdint>

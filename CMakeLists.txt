@@ -6,27 +6,20 @@ file(GLOB_RECURSE HEADERS "*.h")
 
 set(SOURCES
     src/game/demo.cpp
-    src/game/dialog.cpp
-    src/game/draw_header.cpp
     src/game/drawing.cpp
     src/game/entrance.cpp
-    src/game/game_data.cpp
-    src/game/game_over.cpp
     src/game/header.cpp
     src/game/impasse.cpp
     src/game/init.cpp
     src/game/io_status.cpp
-    src/game/keyboard.cpp
-    src/game/loading_screen.cpp
     src/game/main_loop.cpp
-    src/game/main_menu.cpp
-    src/game/manual.cpp
     src/game/melody.cpp
     src/game/mouse/construction_mode.cpp
     src/game/mouse/management_mode.cpp
     src/game/mouse/mouse.cpp
     src/game/mouse/state.cpp
     src/game/move_trains.cpp
+    src/game/player_name.cpp
     src/game/rail.cpp
     src/game/records.cpp
     src/game/resources/allowed_cursor_rail_types.cpp
@@ -55,7 +48,6 @@ set(SOURCES
     src/game/savefile/save_game.cpp
     src/game/semaphore.cpp
     src/game/static_object.cpp
-    src/game/status_bar.cpp
     src/game/switch.cpp
     src/game/train.cpp
     src/graphics/animation.cpp
@@ -71,11 +63,19 @@ set(SOURCES
     src/system/driver/sdl/video.cpp
     src/system/exit.cpp
     src/system/filesystem.cpp
+    src/system/keyboard.cpp
     src/system/random.cpp
     src/system/sound.cpp
     src/system/time.cpp
     src/tasks/scheduler.cpp
     src/tasks/task.cpp
+    src/ui/components/dialog.cpp
+    src/ui/components/draw_header.cpp
+    src/ui/components/status_bar.cpp
+    src/ui/game_over.cpp
+    src/ui/loading_screen.cpp
+    src/ui/main_menu.cpp
+    src/ui/manual.cpp
 )
 
 macro(GroupSources curdir)

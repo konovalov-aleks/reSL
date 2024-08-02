@@ -72,7 +72,7 @@ Mode g_modeManagement = {
     { Color::Black,   Color::White   },
     0, // min X
     628, // max X
-    47, // min Y
+    0, // min Y
     318, // max Y
     320, // x
     200, // y

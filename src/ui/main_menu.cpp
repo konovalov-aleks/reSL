@@ -27,6 +27,7 @@
 #include <system/filesystem.h>
 #include <system/keyboard.h>
 #include <tasks/task.h>
+#include <ui/components/button.h>
 
 #include <cassert>
 #include <cstdint>
@@ -118,7 +119,7 @@ inline ArchiveMenuAction showArchiveMenu()
                         std::int16_t itemY = dialog.itemY[0];
                         if (itemY > 350)
                             itemY -= 350;
-                        highlightFirstDlgItemSymbol(dialog.x, itemY);
+                        toggleButtonState(dialog.x, itemY);
                         // wait untill the button is released
                         while (!(g_lastKeyCode & g_keyReleasedFlag)) {
                             // The original game uses busy-loop here (without sleep)
@@ -212,8 +213,8 @@ void mainMenu()
             /* 15e8:0575 */
             // No item selected - dialog was closed due to timeout.
             // In this case, run the demo.
-            highlightFirstDlgItemSymbol(g_dialogs[static_cast<int>(DialogType::MainMenu)].x,
-                                        g_dialogs[static_cast<int>(DialogType::MainMenu)].itemY[1]);
+            toggleButtonState(g_dialogs[static_cast<int>(DialogType::MainMenu)].x,
+                              g_dialogs[static_cast<int>(DialogType::MainMenu)].itemY[1]);
             playEntitySwitchedSound(false);
             vga::waitForNRetraces(8);
             [[fallthrough]];
@@ -267,7 +268,7 @@ void mainMenu()
             std::int16_t itemY = mainMenu.itemY[4];
             if (itemY > 350)
                 itemY -= 350;
-            highlightFirstDlgItemSymbol(mainMenu.x, itemY);
+            toggleButtonState(mainMenu.x, itemY);
             graphics::setVideoFrameOrigin(0, 0);
             break;
         }

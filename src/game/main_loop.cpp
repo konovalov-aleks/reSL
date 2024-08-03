@@ -9,6 +9,7 @@
 #include "io_status.h"
 #include "melody.h"
 #include "mouse/construction_mode.h"
+#include "mouse/management_mode.h"
 #include "mouse/mode.h"
 #include "mouse/state.h"
 #include "rail.h"
@@ -22,6 +23,7 @@
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/vga.h>
+#include <system/driver/driver.h>
 #include <system/keyboard.h>
 #include <system/time.h>
 #include <tasks/task.h>
@@ -111,6 +113,8 @@ inline PauseMenuAction showPauseMenu()
             mouse::g_state.mode->drawFn();
             enableTimer();
             spawnNewTrain();
+            Driver::instance().mouse().setCursorVisibility(
+                mouse::g_state.mode == &mouse::g_modeManagement);
             return PauseMenuAction::ContinueGame;
 
         case 1:

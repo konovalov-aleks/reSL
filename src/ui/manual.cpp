@@ -2,8 +2,6 @@
 
 #include "components/button.h"
 #include <game/melody.h>
-#include <game/mouse/management_mode.h>
-#include <game/mouse/mode.h>
 #include <graphics/animation.h>
 #include <graphics/color.h>
 #include <graphics/drawing.h>
@@ -33,11 +31,6 @@ namespace {
             m_oldHandler = Driver::instance().setMouseHandler(
                 [this](std::uint16_t flags, std::uint16_t /* buttonState */,
                        std::int16_t x, std::int16_t y) {
-                    if (m_disabled)
-                        return;
-
-                    mouse::g_modeManagement.updatePosFn(x, y);
-
                     if (!(flags & ME_LEFTRELEASED))
                         return;
 
@@ -52,34 +45,20 @@ namespace {
 
         ~ManualScreenMouseHandler()
         {
-            disable();
             Driver::instance().setMouseHandler(m_oldHandler);
         }
 
         bool clicked() const noexcept { return m_clicked; }
         bool closePressed() const noexcept { return m_closeBtnPressed; }
 
-        void disable()
+        void reset()
         {
-            if (!m_disabled) {
-                m_disabled = true;
-                mouse::eraseArrowCursor();
-            }
-        }
-
-        void enable()
-        {
-            if (m_disabled)
-                mouse::drawArrowCursor();
-
-            m_disabled = false;
             m_clicked = false;
             m_closeBtnPressed = false;
         }
 
     private:
         MouseHandler m_oldHandler;
-        bool m_disabled = true;
         bool m_clicked = false;
         bool m_closeBtnPressed = false;
     };
@@ -124,11 +103,10 @@ void showManual()
         }
         drawButton(closeBtnX, closeBtnY, "X");
 
-        mouseHandler.disable();
         graphics::animateScreenShifting();
         graphics::copyScreenBufferTo(0);
         graphics::setVideoFrameOrigin(0, 0);
-        mouseHandler.enable();
+        mouseHandler.reset();
 
         g_lastKeyPressed = 0;
         do {
@@ -140,7 +118,6 @@ void showManual()
         curPage = (curPage + 1) % pageCnt;
     } while (g_lastKeyPressed != g_keyEscape && !mouseHandler.closePressed());
 
-    mouseHandler.disable();
     toggleButtonState(closeBtnX, closeBtnY);
     playEntitySwitchedSound(false);
 }

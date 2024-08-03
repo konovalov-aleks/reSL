@@ -3,8 +3,6 @@
 #include "button.h"
 #include <game/constants.h>
 #include <game/melody.h>
-#include <game/mouse/management_mode.h>
-#include <game/mouse/mode.h>
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/text.h>
@@ -43,7 +41,7 @@ namespace {
         DialogMouseHandler(DialogType dt)
             : m_type(dt)
         {
-            mouse::drawArrowCursor();
+            Driver::instance().mouse().setCursorVisibility(true);
             m_oldHandler = Driver::instance().setMouseHandler(
                 [this](std::uint16_t flags, std::uint16_t buttonState,
                        std::int16_t x, std::int16_t y) {
@@ -53,7 +51,6 @@ namespace {
 
         ~DialogMouseHandler()
         {
-            mouse::eraseArrowCursor();
             Driver::instance().setMouseHandler(m_oldHandler);
         }
 
@@ -73,8 +70,6 @@ namespace {
         void handle(std::uint16_t flags, std::uint16_t /* buttonState */,
                     std::int16_t x, std::int16_t y)
         {
-            mouse::g_modeManagement.updatePosFn(x, y);
-
             if (!(flags & ME_LEFTRELEASED))
                 return;
 

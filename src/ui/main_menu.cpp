@@ -148,7 +148,7 @@ inline ArchiveMenuAction showArchiveMenu()
                     graphics::setVideoFrameOrigin(0, 0);
                     fillGameFieldBackground(350);
                     drawFieldBackground(350);
-                    mouse::g_state.mode = &mouse::g_modeManagement;
+                    mouse::setMode(mouse::g_modeManagement);
                     spawnNewTrain();
                     return ArchiveMenuAction::StartGame;
 
@@ -230,7 +230,7 @@ void mainMenu()
                 graphics::setVideoFrameOrigin(0, 0);
                 fillGameFieldBackground(350);
                 drawFieldBackground(350);
-                mouse::g_state.mode = &mouse::g_modeManagement;
+                mouse::setMode(mouse::g_modeManagement);
                 return;
             }
             break;
@@ -243,7 +243,7 @@ void mainMenu()
             graphics::setVideoFrameOrigin(0, 350);
             graphics::copyScreenBufferTo(0);
             graphics::setVideoFrameOrigin(0, 0);
-            mouse::g_state.mode = &mouse::g_modeConstruction;
+            mouse::setMode(mouse::g_modeConstruction);
             return;
 
         case 3:

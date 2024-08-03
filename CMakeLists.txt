@@ -60,6 +60,7 @@ set(SOURCES
     src/system/buffer.cpp
     src/system/driver/sdl/audio.cpp
     src/system/driver/sdl/driver.cpp
+    src/system/driver/sdl/mouse.cpp
     src/system/driver/sdl/video.cpp
     src/system/exit.cpp
     src/system/filesystem.cpp

@@ -119,21 +119,17 @@ Task taskMouseEventHandling()
                         showStatusMessage("Switch is locked by train");
                         playErrorMelody();
                     } else {
-                        mouse::eraseArrowCursor();
                         const std::int16_t switchIdx = static_cast<std::int16_t>(sw - g_switches);
                         eraseSwitch(switchIdx);
                         toggleSwitch(*sw);
                         drawSwitch(switchIdx, true);
-                        mouse::drawArrowCursor();
                         scheduleAllTrainsRedrawing();
                         playSwitchSwitchedMelody();
                     }
                 } else if (Semaphore* sem = findClosestSemaphore(mode.x, mode.y)) {
-                    mouse::eraseArrowCursor();
                     toggleSemaphore(*sem);
                     drawSemaphore(*sem, 0);
                     drawSemaphore(*sem, 350);
-                    mouse::drawArrowCursor();
                     scheduleAllTrainsRedrawing();
                     playEntitySwitchedSound(sem->isRed);
                 } else

@@ -3,6 +3,7 @@
 // IWYU pragma: no_include "system/driver/sdl/driver.h"
 
 #include <graphics/vga.h>
+#include <system/driver/driver.h>
 #include <system/keyboard.h>
 #include <system/mouse.h>
 
@@ -195,6 +196,9 @@ void Driver::onMouseMove(const SDL_MouseMotionEvent& e)
 {
     if (!m_mouseHandler) [[unlikely]]
         return;
+
+    if (m_mouse.cursorVisible())
+        m_vga.requestScreenUpdate();
 
     // limit mouse movement if the debug graphics is active
     const Sint32 x = std::min(e.x, SCREEN_WIDTH);

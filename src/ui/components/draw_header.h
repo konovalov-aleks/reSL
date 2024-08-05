@@ -20,8 +20,8 @@ void drawHeaderBackground(std::int16_t yOffset);
 void drawHeaderField(const HeaderField&);
 
 /* 12c5:02d1 */
-void drawHeaderData(std::int16_t trains, std::int16_t money, std::int16_t year,
-                    std::int16_t level, std::int16_t yOffset);
+void setHeaderValues(std::int16_t trains, std::int16_t money, std::int16_t year,
+                     std::int16_t level, std::int16_t yOffset);
 
 /* 137c:0450 */
 void drawDispatcher(std::int16_t entranceIdx, bool signalling);

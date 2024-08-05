@@ -173,10 +173,10 @@ void drawWorld()
     }
 
     drawHeaderBackground(350);
-    drawHeaderData(g_headers[static_cast<std::size_t>(HeaderFieldId::Trains)].value,
-                   g_headers[static_cast<std::size_t>(HeaderFieldId::Money)].value,
-                   g_headers[static_cast<std::size_t>(HeaderFieldId::Year)].value,
-                   g_headers[static_cast<std::size_t>(HeaderFieldId::Level)].value, 350);
+    setHeaderValues(g_headers[static_cast<std::size_t>(HeaderFieldId::Trains)].value,
+                    g_headers[static_cast<std::size_t>(HeaderFieldId::Money)].value,
+                    g_headers[static_cast<std::size_t>(HeaderFieldId::Year)].value,
+                    g_headers[static_cast<std::size_t>(HeaderFieldId::Level)].value, 350);
     drawDispatchers(350);
 
     drawStatusBarWithCopyright(350);

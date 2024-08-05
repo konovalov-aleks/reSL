@@ -1,25 +1,24 @@
 #include "main_menu.h"
 
-#include "constants.h"
-#include "demo.h"
-#include "dialog.h"
-#include "draw_header.h"
-#include "drawing.h"
-#include "game/io_status.h"
-#include "game_data.h"
-#include "init.h"
-#include "keyboard.h"
-#include "main_loop.h"
+#include "components/dialog.h"
+#include "components/draw_header.h"
+#include "components/status_bar.h"
 #include "manual.h"
-#include "melody.h"
-#include "mouse/construction_mode.h"
-#include "mouse/management_mode.h"
-#include "mouse/state.h"
-#include "records.h"
-#include "savefile/load_game.h"
-#include "static_object.h"
-#include "status_bar.h"
-#include "train.h"
+#include <game/constants.h>
+#include <game/demo.h>
+#include <game/drawing.h>
+#include <game/init.h>
+#include <game/io_status.h>
+#include <game/main_loop.h>
+#include <game/melody.h>
+#include <game/mouse/construction_mode.h>
+#include <game/mouse/management_mode.h>
+#include <game/mouse/state.h>
+#include <game/player_name.h>
+#include <game/records.h>
+#include <game/savefile/load_game.h>
+#include <game/static_object.h>
+#include <game/train.h>
 #include <graphics/animation.h>
 #include <graphics/drawing.h>
 #include <graphics/vga.h>
@@ -28,6 +27,7 @@
 #include <system/filesystem.h>
 #include <system/keyboard.h>
 #include <tasks/task.h>
+#include <ui/components/button.h>
 
 #include <cassert>
 #include <cstdint>
@@ -119,7 +119,7 @@ inline ArchiveMenuAction showArchiveMenu()
                         std::int16_t itemY = dialog.itemY[0];
                         if (itemY > 350)
                             itemY -= 350;
-                        highlightFirstDlgItemSymbol(dialog.x, itemY);
+                        toggleButtonState(dialog.x, itemY);
                         // wait untill the button is released
                         while (!(g_lastKeyCode & g_keyReleasedFlag)) {
                             // The original game uses busy-loop here (without sleep)
@@ -148,7 +148,7 @@ inline ArchiveMenuAction showArchiveMenu()
                     graphics::setVideoFrameOrigin(0, 0);
                     fillGameFieldBackground(350);
                     drawFieldBackground(350);
-                    mouse::g_state.mode = &mouse::g_modeManagement;
+                    mouse::setMode(mouse::g_modeManagement);
                     spawnNewTrain();
                     return ArchiveMenuAction::StartGame;
 
@@ -213,8 +213,8 @@ void mainMenu()
             /* 15e8:0575 */
             // No item selected - dialog was closed due to timeout.
             // In this case, run the demo.
-            highlightFirstDlgItemSymbol(g_dialogs[static_cast<int>(DialogType::MainMenu)].x,
-                                        g_dialogs[static_cast<int>(DialogType::MainMenu)].itemY[1]);
+            toggleButtonState(g_dialogs[static_cast<int>(DialogType::MainMenu)].x,
+                              g_dialogs[static_cast<int>(DialogType::MainMenu)].itemY[1]);
             playEntitySwitchedSound(false);
             vga::waitForNRetraces(8);
             [[fallthrough]];
@@ -230,7 +230,7 @@ void mainMenu()
                 graphics::setVideoFrameOrigin(0, 0);
                 fillGameFieldBackground(350);
                 drawFieldBackground(350);
-                mouse::g_state.mode = &mouse::g_modeManagement;
+                mouse::setMode(mouse::g_modeManagement);
                 return;
             }
             break;
@@ -243,7 +243,7 @@ void mainMenu()
             graphics::setVideoFrameOrigin(0, 350);
             graphics::copyScreenBufferTo(0);
             graphics::setVideoFrameOrigin(0, 0);
-            mouse::g_state.mode = &mouse::g_modeConstruction;
+            mouse::setMode(mouse::g_modeConstruction);
             return;
 
         case 3:
@@ -268,7 +268,7 @@ void mainMenu()
             std::int16_t itemY = mainMenu.itemY[4];
             if (itemY > 350)
                 itemY -= 350;
-            highlightFirstDlgItemSymbol(mainMenu.x, itemY);
+            toggleButtonState(mainMenu.x, itemY);
             graphics::setVideoFrameOrigin(0, 0);
             break;
         }

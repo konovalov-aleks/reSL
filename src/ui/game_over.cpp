@@ -1,14 +1,19 @@
 #include "game_over.h"
 
-#include "game_data.h"
 #include "main_menu.h"
-#include "melody.h"
-#include "records.h"
+#include <game/demo.h>
+#include <game/melody.h>
+#include <game/records.h>
 #include <graphics/drawing.h>
 #include <system/buffer.h>
 #include <system/filesystem.h>
 
 namespace resl {
+
+/* 262d:6f4f : 1 byte */
+bool g_gameOver = false;
+
+//-----------------------------------------------------------------------------
 
 /* 16a6:0615 */
 void gameOver()

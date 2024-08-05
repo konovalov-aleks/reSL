@@ -10,7 +10,7 @@
 
 namespace resl {
 
-enum CarriageType : std::uint8_t {
+enum class CarriageType : std::uint8_t {
     Server = 0,
     AncientLocomotive = 1,
     SteamLocomotive = 2,

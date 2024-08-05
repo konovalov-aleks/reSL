@@ -2,7 +2,7 @@
 
 #include "color.h"
 #include "vga.h"
-#include <game/types/rectangle.h>
+#include <types/rectangle.h>
 
 #include <cstdint>
 

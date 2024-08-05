@@ -1,20 +1,21 @@
 #include "demo.h"
 
 #include "constants.h"
-#include "game_data.h"
 #include "io_status.h"
-#include "main_menu.h"
 #include "mouse/management_mode.h"
 #include "mouse/mode.h"
 #include "mouse/mouse.h"
 #include "mouse/state.h"
+#include "player_name.h"
 #include "savefile/load_game.h"
 #include "semaphore.h"
 #include "switch.h"
+#include <system/driver/driver.h>
 #include <system/random.h>
 #include <system/time.h>
 #include <tasks/message_queue.h>
 #include <tasks/task.h>
+#include <ui/main_menu.h>
 
 #include <cassert>
 #include <cstdint>
@@ -23,6 +24,9 @@
 #include <iterator>
 
 namespace resl {
+
+/* 262d:5eff : 1 byte */
+bool g_isDemoMode = false;
 
 /* 1d7d:2114 : 14 bytes */
 Task g_taskDemoAI;
@@ -71,7 +75,7 @@ static void moveCursorTowardsPoint(std::int16_t x, std::int16_t y)
     g_demoMouseMsg.action = MouseAction::None;
     g_demoMouseMsg.x = m.x + (x - m.x) / 4;
     g_demoMouseMsg.y = m.y + (y - m.y) / 4;
-    g_mouseMsgQueue.push(g_demoMouseMsg);
+    Driver::instance().mouse().setPosition(g_demoMouseMsg.x, g_demoMouseMsg.y);
 }
 
 /* 1300:0200 */

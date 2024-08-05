@@ -2,6 +2,7 @@
 
 #include "graphics/vga.h"
 #include "system/driver/sdl/driver.h"
+#include "system/driver/sdl/mouse.h"
 
 #include <SDL_blendmode.h>
 #include <SDL_error.h>
@@ -116,6 +117,9 @@ void VGAEmulation::flush()
                 SDL_RenderCopy(m_renderer, m_screen, &srcRect, nullptr);
             }
         }
+        for (Overlay& ov : m_overlays)
+            ov(m_renderer);
+        Driver::instance().mouse().drawCursor(m_renderer);
         SDL_RenderPresent(m_renderer);
 
         m_dirtyRect = {};

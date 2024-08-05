@@ -1,8 +1,9 @@
 #include "state.h"
 
+#include "management_mode.h"
 #include "mode.h"
 
-#include <cassert>
+#include <system/driver/driver.h>
 
 namespace resl::mouse {
 
@@ -14,9 +15,10 @@ State g_state = {};
 /* 14af:0104 */
 void setMode(Mode& newMode)
 {
-    assert(g_state.mode);
-    g_state.mode->clearFn();
+    if (g_state.mode)
+        g_state.mode->clearFn();
     g_state.mode = &newMode;
+    Driver::instance().mouse().setCursorVisibility(g_state.mode == &g_modeManagement);
     newMode.drawFn();
 }
 

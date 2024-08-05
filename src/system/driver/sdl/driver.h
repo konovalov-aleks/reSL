@@ -4,9 +4,11 @@
 // IWYU pragma: friend "system/driver/sdl/.*"
 
 // IWYU pragma: no_include "system/driver/sdl/audio.h"
+// IWYU pragma: no_include "system/driver/sdl/mouse.h"
 // IWYU pragma: no_include "system/driver/sdl/video.h"
 
 #include "audio.h" // IWYU pragma: export
+#include "mouse.h" // IWYU pragma: export
 #include "video.h" // IWYU pragma: export
 
 #include <system/keyboard.h>
@@ -30,6 +32,7 @@ public:
 
     VGAEmulation& vga() { return m_vga; }
     AudioDriver& audio() { return m_audio; }
+    MouseDriver& mouse() { return m_mouse; }
 
     void sleep(unsigned ms);
 
@@ -58,6 +61,7 @@ private:
 
     VGAEmulation m_vga;
     AudioDriver m_audio;
+    MouseDriver m_mouse;
 
     KeyboardHandler m_keyboardHandler = nullptr;
 

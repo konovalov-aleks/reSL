@@ -4,20 +4,20 @@
 
 #include "common.h"
 #include <game/entrance.h>
-#include <game/game_data.h>
 #include <game/header.h>
+#include <game/header_field.h>
 #include <game/io_status.h>
-#include <game/keyboard.h>
+#include <game/player_name.h>
 #include <game/rail.h>
+#include <game/rail_info.h>
 #include <game/semaphore.h>
 #include <game/static_object.h>
-#include <game/status_bar.h>
 #include <game/switch.h>
 #include <game/train.h>
-#include <game/types/header_field.h>
-#include <game/types/rail_info.h>
-#include <game/types/rectangle.h>
+#include <system/keyboard.h>
 #include <system/random.h>
+#include <types/rectangle.h>
+#include <ui/components/status_bar.h>
 #include <utility/endianness.h>
 
 #include <array>

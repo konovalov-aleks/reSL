@@ -5,7 +5,7 @@
 
 #include "entrance_rails.h"
 
-#include <game/types/rail_info.h>
+#include <game/rail_info.h>
 
 namespace resl {
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types/rectangle.h"
+#include <types/rectangle.h>
 
 #include <cstdint>
 #include <optional>
@@ -29,9 +29,6 @@ struct Dialog {
 extern Dialog g_dialogs[5];
 
 //-----------------------------------------------------------------------------
-
-/* 15e8:047b */
-void highlightFirstDlgItemSymbol(std::int16_t x, std::int16_t y);
 
 /* 15e8:0003 */
 Rectangle& drawDialog(DialogType, std::int16_t yOffset);

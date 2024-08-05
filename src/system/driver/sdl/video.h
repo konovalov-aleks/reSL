@@ -10,8 +10,13 @@
 #include <array>
 #include <chrono>
 #include <cstdint>
+#include <functional>
+#include <utility>
+#include <vector>
 
 namespace resl {
+
+using Overlay = std::function<void(SDL_Renderer*)>;
 
 class VGAEmulation {
 public:
@@ -20,6 +25,8 @@ public:
 
     VGAEmulation(const VGAEmulation&) = delete;
     VGAEmulation& operator=(const VGAEmulation&) = delete;
+
+    void requestScreenUpdate() { m_needRedraw = true; }
 
     void flush();
     void waitVerticalRetrace();
@@ -49,6 +56,11 @@ public:
     void setPaletteItem(std::uint8_t idx, std::uint32_t rgb);
 
     unsigned timeToNextFrameMS() const;
+
+    void addOverlay(Overlay ov)
+    {
+        m_overlays.push_back(std::move(ov));
+    }
 
 private:
     static constexpr int s_FPS = 60;
@@ -102,6 +114,8 @@ private:
     void updateVideoMemory(unsigned);
     bool updatePicture();
 
+    std::vector<Overlay> m_overlays;
+
     SDL_Window* m_window = nullptr;
     SDL_Renderer* m_renderer = nullptr;
     SDL_Texture* m_screen = nullptr;
@@ -115,6 +129,8 @@ private:
 
     SDL_Rect m_dirtyRect = {};
     bool m_needRedraw = false;
+
+    friend class MouseDriver;
 };
 
 } // namespace resl

@@ -5,7 +5,7 @@
 
 #include "chunk_bounding_boxes.h"
 
-#include <game/types/rectangle.h>
+#include <types/rectangle.h>
 
 namespace resl {
 

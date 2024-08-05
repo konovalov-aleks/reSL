@@ -2,24 +2,24 @@
 
 #include "drawing.h"
 #include "header.h"
+#include "header_field.h"
 #include "impasse.h"
 #include "melody.h"
 #include "mouse/mode.h"
 #include "mouse/state.h"
 #include "rail.h"
+#include "rail_info.h"
 #include "resources/rail_connection_bias.h"
 #include "resources/rail_type_meta.h"
 #include "semaphore.h"
 #include "static_object.h"
-#include "status_bar.h"
-#include "types/header_field.h"
-#include "types/rail_info.h"
-#include "types/rectangle.h"
 #include <graphics/color.h>
 #include <system/random.h>
 #include <system/sound.h>
 #include <tasks/message_queue.h>
 #include <tasks/task.h>
+#include <types/rectangle.h>
+#include <ui/components/status_bar.h>
 
 #include <cstdint>
 #include <cstdio>

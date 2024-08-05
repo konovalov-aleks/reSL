@@ -172,7 +172,7 @@ inline ArchiveMenuAction showArchiveMenu()
                     // [B]ye
                     createNewWorld();
                     drawGameField(350);
-                    drawHeaderData(0, 100, 1800, readLevel(), 350);
+                    setHeaderValues(0, 100, 1800, readLevel(), 350);
                     drawDialog(DialogType::MainMenu, 350);
                     graphics::setVideoFrameOrigin(0, 350);
                     graphics::copyScreenBufferTo(0);
@@ -201,7 +201,7 @@ void mainMenu()
             showManual();
             readBinaryFile("play.7", g_pageBuffer);
             drawGameField(350);
-            drawHeaderData(0, 100, 1800, readLevel(), 350);
+            setHeaderValues(0, 100, 1800, readLevel(), 350);
             drawDialog(DialogType::MainMenu, 350);
             graphics::animateScreenShifting();
             graphics::setVideoFrameOrigin(0, 350);
@@ -239,7 +239,7 @@ void mainMenu()
             /* 15e8:05e8 */
             // [G]o!
             drawGameField(350);
-            drawHeaderData(0, 100, 1800, readLevel(), 350);
+            setHeaderValues(0, 100, 1800, readLevel(), 350);
             graphics::setVideoFrameOrigin(0, 350);
             graphics::copyScreenBufferTo(0);
             graphics::setVideoFrameOrigin(0, 0);

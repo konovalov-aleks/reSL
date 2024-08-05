@@ -67,8 +67,12 @@ static void onHeaderFieldLimitValueReached(const HeaderField& fld)
     if (fieldId == HeaderFieldId::Money) {
         showStatusMessage("OUT OF MONEY");
         gameOver();
-    } else if (fieldId == HeaderFieldId::Year)
+    } else if (fieldId == HeaderFieldId::Year) {
+        // Fun fact: here the number is made to blink, but the animation of
+        // the header item immediately overwrites it. Therefore, even in
+        // the original game the year 2000 does not blink.
         makeYearFieldBlinking();
+    }
 }
 
 /* 12c5:0008 */

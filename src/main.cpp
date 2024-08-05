@@ -55,7 +55,7 @@ void startGame()
 {
     initGameData();
 
-    Driver::instance().setMouseHandler(&handleMouseInput);
+    Driver::instance().mouse().setHandler(&handleMouseInput);
     Driver::instance().setKeyboardHandler(&keyboardInteruptionHandler);
 
     addTask(taskMouseEventHandling());

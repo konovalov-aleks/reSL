@@ -205,19 +205,25 @@ Task taskGameMainLoop()
                 co_await sleep(50);
 
                 if (g_lastKeyPressed) {
-                    disableTimer();
-                    if (g_isDemoMode) {
-                        stopDemo();
-                        enableTimer();
-                        needReturnToMainMenu = true;
-                        break;
+                    // use <space> as a hot key to switch mouse modes
+                    if (g_lastKeyPressed == g_keySpace) {
+                        mouse::toggleMode();
+                        g_lastKeyPressed = 0;
                     } else {
-                        PauseMenuAction menuRes = showPauseMenu();
-                        if (menuRes == PauseMenuAction::ReturnToMainMenu) {
+                        disableTimer();
+                        if (g_isDemoMode) {
+                            stopDemo();
+                            enableTimer();
                             needReturnToMainMenu = true;
                             break;
+                        } else {
+                            PauseMenuAction menuRes = showPauseMenu();
+                            if (menuRes == PauseMenuAction::ReturnToMainMenu) {
+                                needReturnToMainMenu = true;
+                                break;
+                            }
+                            continue;
                         }
-                        continue;
                     }
                 }
 

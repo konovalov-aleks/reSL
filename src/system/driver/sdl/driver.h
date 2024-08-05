@@ -12,11 +12,8 @@
 #include "video.h" // IWYU pragma: export
 
 #include <system/keyboard.h>
-#include <system/mouse.h>
 
 #include <SDL_events.h>
-
-#include <cstdint>
 
 namespace resl {
 
@@ -36,18 +33,14 @@ public:
 
     void sleep(unsigned ms);
 
-    MouseHandler setMouseHandler(MouseHandler hdl);
     void setKeyboardHandler(KeyboardHandler hdl) { m_keyboardHandler = hdl; }
 
     void pollEvent();
 
 private:
-    Driver();
+    Driver() = default;
     Driver(const Driver&) = delete;
     Driver& operator=(const Driver&) = delete;
-
-    void onMouseButtonEvent(const SDL_MouseButtonEvent&);
-    void onMouseMove(const SDL_MouseMotionEvent&);
 
     void onKeyboardEvent(const SDL_KeyboardEvent&);
 
@@ -64,9 +57,6 @@ private:
     MouseDriver m_mouse;
 
     KeyboardHandler m_keyboardHandler = nullptr;
-
-    MouseHandler m_mouseHandler = nullptr;
-    std::uint16_t m_mouseButtonState;
 };
 
 } // namespace resl

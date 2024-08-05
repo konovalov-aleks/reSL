@@ -138,11 +138,7 @@ Task taskMouseEventHandling()
             break;
 
         case MouseAction::ToggleMouseMode:
-            /* 14af:0477 */
-            if (mouse::g_state.mode == &mouse::g_modeManagement)
-                setMode(mouse::g_modeConstruction);
-            else
-                setMode(mouse::g_modeManagement);
+            mouse::toggleMode();
             break;
 
         case MouseAction::ToggleNextRailType:

@@ -2,30 +2,20 @@
 
 // IWYU pragma: no_include "system/driver/sdl/driver.h"
 
-#include <graphics/vga.h>
 #include <system/driver/driver.h>
 #include <system/keyboard.h>
-#include <system/mouse.h>
 
 #include <SDL.h>
 #include <SDL_error.h>
 #include <SDL_events.h>
 #include <SDL_mouse.h>
 #include <SDL_scancode.h>
-#include <SDL_stdinc.h>
 
-#include <algorithm>
-#include <cassert>
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
-#include <functional>
 #include <iostream>
 #include <thread>
-
-#ifndef NDEBUG
-#   include <limits>
-#endif
 
 #ifdef __EMSCRIPTEN__
 #   include <emscripten.h>
@@ -45,25 +35,6 @@ Driver::SDLInit::SDLInit()
 Driver::SDLInit::~SDLInit()
 {
     SDL_Quit();
-}
-
-inline std::uint16_t mouseButtonState()
-{
-    Uint32 state = SDL_GetMouseState(nullptr, nullptr);
-    std::uint16_t res = 0;
-
-    if (state & SDL_BUTTON(SDL_BUTTON_LEFT))
-        res |= MouseButton::MB_LEFT;
-    if (state & SDL_BUTTON(SDL_BUTTON_RIGHT))
-        res |= MouseButton::MB_RIGHT;
-    if (state & SDL_BUTTON(SDL_BUTTON_MIDDLE))
-        res |= MouseButton::MB_MIDDLE;
-    return res;
-}
-
-Driver::Driver()
-    : m_mouseButtonState(mouseButtonState())
-{
 }
 
 void Driver::sleep(unsigned ms)
@@ -99,12 +70,6 @@ void Driver::sleep(unsigned ms)
 #endif // __EMSCRIPTEN__
 }
 
-MouseHandler Driver::setMouseHandler(MouseHandler hdl)
-{
-    std::swap(hdl, m_mouseHandler);
-    return hdl;
-}
-
 void Driver::pollEvent()
 {
     SDL_Event e;
@@ -115,10 +80,10 @@ void Driver::pollEvent()
             break;
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
-            onMouseButtonEvent(e.button);
+            mouse().onMouseButtonEvent(e.button);
             break;
         case SDL_MOUSEMOTION:
-            onMouseMove(e.motion);
+            mouse().onMouseMove(e.motion);
             break;
         case SDL_KEYDOWN:
         case SDL_KEYUP:
@@ -126,91 +91,6 @@ void Driver::pollEvent()
             break;
         }
     }
-}
-
-inline std::uint16_t mousePressedFlags(const SDL_MouseButtonEvent& e)
-{
-    assert(e.type == SDL_MOUSEBUTTONDOWN);
-    switch (e.button) {
-    case SDL_BUTTON_LEFT:
-        return MouseEvent::ME_LEFTPRESSED;
-    case SDL_BUTTON_RIGHT:
-        return MouseEvent::ME_RIGHTPRESSED;
-    case SDL_BUTTON_MIDDLE:
-        return MouseEvent::ME_CENTERPRESSED;
-    }
-    return 0;
-}
-
-inline std::uint16_t mouseReleasedFlags(const SDL_MouseButtonEvent& e)
-{
-    assert(e.type == SDL_MOUSEBUTTONUP);
-    switch (e.button) {
-    case SDL_BUTTON_LEFT:
-        return MouseEvent::ME_LEFTRELEASED;
-    case SDL_BUTTON_RIGHT:
-        return MouseEvent::ME_RIGHTRELEASED;
-    case SDL_BUTTON_MIDDLE:
-        return MouseEvent::ME_CENTERRELEASED;
-    }
-    return 0;
-}
-
-inline MouseButton mouseButton(const SDL_MouseButtonEvent& e)
-{
-    switch (e.button) {
-    case SDL_BUTTON_LEFT:
-        return MouseButton::MB_LEFT;
-    case SDL_BUTTON_RIGHT:
-        return MouseButton::MB_RIGHT;
-    case SDL_BUTTON_MIDDLE:
-        return MouseButton::MB_MIDDLE;
-    }
-    return MouseButton::MB_NONE;
-}
-
-void Driver::onMouseButtonEvent(const SDL_MouseButtonEvent& e)
-{
-    if (!m_mouseHandler) [[unlikely]]
-        return;
-
-    const std::uint16_t mouseEventFlags =
-        e.type == SDL_MOUSEBUTTONDOWN ? mousePressedFlags(e)
-                                      : mouseReleasedFlags(e);
-    if (!mouseEventFlags) [[unlikely]]
-        return;
-
-    const MouseButton btn = mouseButton(e);
-    if (btn == MouseButton::MB_NONE) [[unlikely]]
-        return;
-
-    if (e.type == SDL_MOUSEBUTTONDOWN)
-        m_mouseButtonState |= btn;
-    else
-        m_mouseButtonState &= (~btn);
-
-    m_mouseHandler(mouseEventFlags, m_mouseButtonState, e.x, e.y);
-}
-
-void Driver::onMouseMove(const SDL_MouseMotionEvent& e)
-{
-    if (!m_mouseHandler) [[unlikely]]
-        return;
-
-    if (m_mouse.cursorVisible())
-        m_vga.requestScreenUpdate();
-
-    // limit mouse movement if the debug graphics is active
-    const Sint32 x = std::min(e.x, SCREEN_WIDTH);
-    const Sint32 y = std::min(e.y, SCREEN_HEIGHT);
-
-    // window is small => coordinates can't be large
-    assert(x <= std::numeric_limits<std::int16_t>::max());
-    assert(x >= std::numeric_limits<std::int16_t>::min());
-    assert(y <= std::numeric_limits<std::int16_t>::max());
-    assert(y >= std::numeric_limits<std::int16_t>::min());
-
-    m_mouseHandler(0, m_mouseButtonState, x, y);
 }
 
 inline std::uint8_t scancodeToKeyCode(SDL_Scancode sc)
@@ -312,18 +192,6 @@ void Driver::onKeyboardEvent(const SDL_KeyboardEvent& e)
 {
     if (!m_keyboardHandler) [[unlikely]]
         return;
-
-    if (e.keysym.scancode == SDL_SCANCODE_SPACE) {
-        if (e.type == SDL_KEYUP) {
-            int x, y;
-            SDL_GetMouseState(&x, &y);
-            m_mouseHandler(MouseEvent::ME_LEFTPRESSED | MouseEvent::ME_RIGHTPRESSED,
-                           MouseButton::MB_LEFT | MouseButton::MB_RIGHT, x, y);
-            m_mouseHandler(MouseEvent::ME_LEFTRELEASED | MouseEvent::ME_RIGHTRELEASED,
-                           0, x, y);
-        }
-        return;
-    }
 
     std::uint8_t keycode = scancodeToKeyCode(e.keysym.scancode);
     if (!keycode)

@@ -1,5 +1,6 @@
 #include "state.h"
 
+#include "construction_mode.h"
 #include "management_mode.h"
 #include "mode.h"
 
@@ -20,6 +21,12 @@ void setMode(Mode& newMode)
     g_state.mode = &newMode;
     Driver::instance().mouse().setCursorVisibility(g_state.mode == &g_modeManagement);
     newMode.drawFn();
+}
+
+void toggleMode()
+{
+    setMode(g_state.mode == &g_modeManagement ? g_modeConstruction
+                                              : g_modeManagement);
 }
 
 } // namespace resl::mouse

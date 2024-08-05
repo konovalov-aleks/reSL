@@ -28,7 +28,7 @@ namespace {
     public:
         ManualScreenMouseHandler()
         {
-            m_oldHandler = Driver::instance().setMouseHandler(
+            m_oldHandler = Driver::instance().mouse().setHandler(
                 [this](std::uint16_t flags, std::uint16_t /* buttonState */,
                        std::int16_t x, std::int16_t y) {
                     if (!(flags & ME_LEFTRELEASED))
@@ -45,7 +45,7 @@ namespace {
 
         ~ManualScreenMouseHandler()
         {
-            Driver::instance().setMouseHandler(m_oldHandler);
+            Driver::instance().mouse().setHandler(m_oldHandler);
         }
 
         bool clicked() const noexcept { return m_clicked; }

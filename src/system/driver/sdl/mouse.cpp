@@ -2,17 +2,27 @@
 
 #include "system/driver/sdl/driver.h"
 #include "system/driver/sdl/video.h"
+#include <graphics/vga.h>
+#include <system/mouse.h>
 
 #include <SDL_error.h>
 #include <SDL_mouse.h>
 #include <SDL_pixels.h>
 #include <SDL_rect.h>
+#include <SDL_stdinc.h>
 #include <SDL_surface.h>
 
+#include <algorithm>
+#include <cassert>
 #include <cstdint>
 #include <cstdlib>
+#include <functional>
 #include <iostream>
 #include <iterator>
+
+#ifndef NDEBUG
+#   include <limits>
+#endif
 
 namespace resl {
 namespace {
@@ -82,10 +92,77 @@ namespace {
         return texture;
     }
 
+    std::uint16_t mouseButtonState()
+    {
+        Uint32 state = SDL_GetMouseState(nullptr, nullptr);
+        std::uint16_t res = 0;
+
+        if (state & SDL_BUTTON(SDL_BUTTON_LEFT))
+            res |= MouseButton::MB_LEFT;
+        if (state & SDL_BUTTON(SDL_BUTTON_RIGHT))
+            res |= MouseButton::MB_RIGHT;
+        if (state & SDL_BUTTON(SDL_BUTTON_MIDDLE))
+            res |= MouseButton::MB_MIDDLE;
+        return res;
+    }
+
+    bool hasMouse()
+    {
+        // https://discourse.libsdl.org/t/detect-if-the-mouse-is-available-on-the-current-platform/25081
+        SDL_Cursor* c = SDL_GetDefaultCursor();
+        if (c) {
+            SDL_FreeCursor(c);
+            return true;
+        }
+        return false;
+    }
+
+    inline MouseButton mouseButton(const SDL_MouseButtonEvent& e)
+    {
+        switch (e.button) {
+        case SDL_BUTTON_LEFT:
+            return MouseButton::MB_LEFT;
+        case SDL_BUTTON_RIGHT:
+            return MouseButton::MB_RIGHT;
+        case SDL_BUTTON_MIDDLE:
+            return MouseButton::MB_MIDDLE;
+        }
+        return MouseButton::MB_NONE;
+    }
+
+    std::uint16_t mousePressedFlags(const SDL_MouseButtonEvent& e)
+    {
+        assert(e.type == SDL_MOUSEBUTTONDOWN);
+        switch (e.button) {
+        case SDL_BUTTON_LEFT:
+            return MouseEvent::ME_LEFTPRESSED;
+        case SDL_BUTTON_RIGHT:
+            return MouseEvent::ME_RIGHTPRESSED;
+        case SDL_BUTTON_MIDDLE:
+            return MouseEvent::ME_CENTERPRESSED;
+        }
+        return 0;
+    }
+
+    std::uint16_t mouseReleasedFlags(const SDL_MouseButtonEvent& e)
+    {
+        assert(e.type == SDL_MOUSEBUTTONUP);
+        switch (e.button) {
+        case SDL_BUTTON_LEFT:
+            return MouseEvent::ME_LEFTRELEASED;
+        case SDL_BUTTON_RIGHT:
+            return MouseEvent::ME_RIGHTRELEASED;
+        case SDL_BUTTON_MIDDLE:
+            return MouseEvent::ME_CENTERRELEASED;
+        }
+        return 0;
+    }
+
 } // namespace
 
 MouseDriver::MouseDriver()
-    : m_mouseConnected(hasMouse())
+    : m_mouseButtonState(mouseButtonState())
+    , m_mouseConnected(hasMouse())
 {
 }
 
@@ -107,7 +184,19 @@ bool MouseDriver::cursorVisible() const noexcept
 
 void MouseDriver::setPosition(int x, int y)
 {
-    SDL_WarpMouseInWindow(Driver::instance().vga().m_window, x, y);
+    // SDL_WarpMouseInWindow returns void, but it may fail in some cases
+    // (e.g. this doesn't work in WASM environment).
+    // Thus, we manually issue a motion event (otherwise the demo mode might be broken).
+    SDL_MouseMotionEvent e = {};
+    e.x = x;
+    e.y = y;
+    onMouseMove(e);
+}
+
+MouseHandler MouseDriver::setHandler(MouseHandler hdl)
+{
+    std::swap(hdl, m_handler);
+    return hdl;
 }
 
 void MouseDriver::drawCursor(SDL_Renderer* renderer)
@@ -123,21 +212,55 @@ void MouseDriver::drawCursor(SDL_Renderer* renderer)
     if (!m_cursorTexture)
         m_cursorTexture = createTexture(renderer);
 
-    int x, y;
-    SDL_GetMouseState(&x, &y);
-    SDL_Rect dstRect = { x, y, cursorW, cursorH };
+    SDL_Rect dstRect = { m_cursorX, m_cursorY, cursorW, cursorH };
     SDL_RenderCopy(renderer, m_cursorTexture, nullptr, &dstRect);
 }
 
-bool MouseDriver::hasMouse() const
+void MouseDriver::onMouseButtonEvent(const SDL_MouseButtonEvent& e)
 {
-    // https://discourse.libsdl.org/t/detect-if-the-mouse-is-available-on-the-current-platform/25081
-    SDL_Cursor* c = SDL_GetDefaultCursor();
-    if (c) {
-        SDL_FreeCursor(c);
-        return true;
-    }
-    return false;
+    if (!m_handler) [[unlikely]]
+        return;
+
+    const std::uint16_t mouseEventFlags =
+        e.type == SDL_MOUSEBUTTONDOWN ? mousePressedFlags(e)
+                                      : mouseReleasedFlags(e);
+    if (!mouseEventFlags) [[unlikely]]
+        return;
+
+    const MouseButton btn = mouseButton(e);
+    if (btn == MouseButton::MB_NONE) [[unlikely]]
+        return;
+
+    if (e.type == SDL_MOUSEBUTTONDOWN)
+        m_mouseButtonState |= btn;
+    else
+        m_mouseButtonState &= (~btn);
+
+    m_handler(mouseEventFlags, m_mouseButtonState, e.x, e.y);
+}
+
+void MouseDriver::onMouseMove(const SDL_MouseMotionEvent& e)
+{
+    if (!m_handler) [[unlikely]]
+        return;
+
+    if (cursorVisible())
+        Driver::instance().vga().requestScreenUpdate();
+
+    // limit mouse movement if the debug graphics is active
+    const Sint32 x = std::min(e.x, SCREEN_WIDTH);
+    const Sint32 y = std::min(e.y, SCREEN_HEIGHT);
+
+    // window is small => coordinates can't be large
+    assert(x <= std::numeric_limits<std::int16_t>::max());
+    assert(x >= std::numeric_limits<std::int16_t>::min());
+    assert(y <= std::numeric_limits<std::int16_t>::max());
+    assert(y >= std::numeric_limits<std::int16_t>::min());
+
+    m_handler(0, m_mouseButtonState, x, y);
+
+    m_cursorX = static_cast<int>(x);
+    m_cursorY = static_cast<int>(y);
 }
 
 } // namespace resl

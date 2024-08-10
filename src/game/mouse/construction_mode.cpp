@@ -66,19 +66,20 @@ namespace {
           The projection is:
 
             x = (tileX - tileY) * 88 + 320
-            y = (tileX + tileY) * 21 + - 22
+            y = (tileX + tileY) * 21 - 22
 
             => tileY = (y + 22 - 21 * tileX) / 21
                      = y / 21 + 22/21 - tileX
-                    ~= y / 21 - tileX + 1
 
             => tileX = x + 88 * (y / 21 + 22/21 - tileX) - 320
                      = (x * 21 + 88 * y) / 3696 + 1936 / 3696 - 320 / 176
-                    ~= (x * 21 + 88 * y) / 3696 - 1
+                     = (x * 21 + 88 * y) / 3696 - 299 / 231
 
         */
-        const std::int8_t tileX = (x * 21 + 88 * y) / 3696 - 1;
-        const std::int8_t tileY = y / 21 - tileX + 1;
+        const double tx = (x * 21 + 88 * y) / 3696.0 - 299.0 / 231.0;
+        const std::int8_t tileX = static_cast<std::int8_t>(tx);
+        const std::int8_t tileY = static_cast<std::int8_t>(
+            y / 21.0 - tx + 22.0 / 21.0);
 
         if (tileX == mode.x && tileY == mode.y)
             return;

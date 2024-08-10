@@ -8,6 +8,7 @@ set(SOURCES
     src/game/demo.cpp
     src/game/drawing.cpp
     src/game/entrance.cpp
+    src/game/field_tile_grid_overlay.cpp
     src/game/header.cpp
     src/game/impasse.cpp
     src/game/init.cpp

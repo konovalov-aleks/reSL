@@ -87,7 +87,8 @@ inline PauseMenuAction showPauseMenu()
     Rectangle dialogRect;
     bool needInit = true;
     for (;;) {
-        mouse::g_state.mode->clearFn();
+        mouse::Mode* oldMode = mouse::g_state.mode;
+        mouse::setMode(mouse::g_modeManagement);
         if (needInit) {
             dialogRect = drawDialog(DialogType::Pause, 0);
             writeRecords();
@@ -110,11 +111,9 @@ inline PauseMenuAction showPauseMenu()
             graphics::copyFromShadowBuffer(dialogRect);
             vga::setVideoModeR0W2();
             scheduleAllTrainsRedrawing();
-            mouse::g_state.mode->drawFn();
+            mouse::setMode(*oldMode);
             enableTimer();
             spawnNewTrain();
-            Driver::instance().mouse().setCursorVisibility(
-                mouse::g_state.mode == &mouse::g_modeManagement);
             return PauseMenuAction::ContinueGame;
 
         case 1:
@@ -208,6 +207,7 @@ Task taskGameMainLoop()
                     // use <space> as a hot key to switch mouse modes
                     if (g_lastKeyPressed == g_keySpace) {
                         mouse::toggleMode();
+                        Driver::instance().vga().requestScreenUpdate();
                         g_lastKeyPressed = 0;
                     } else {
                         disableTimer();

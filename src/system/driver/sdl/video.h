@@ -62,6 +62,8 @@ public:
         m_overlays.push_back(std::move(ov));
     }
 
+    Uint32 preferredPixelFormat() const { return m_pixelFormat; }
+
 private:
     static constexpr int s_FPS = 60;
 
@@ -124,6 +126,7 @@ private:
     int m_wndHeight = SCREEN_HEIGHT;
 
     VGAState m_vgaState;
+    Uint32 m_pixelFormat = 0;
 
     ClockT::time_point m_nextFrameTime = {};
 

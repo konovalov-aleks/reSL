@@ -3,8 +3,7 @@
 #include "construction_mode.h"
 #include "management_mode.h"
 #include "mode.h"
-
-#include <system/driver/driver.h>
+#include <game/field_tile_grid_overlay.h>
 
 namespace resl::mouse {
 
@@ -19,7 +18,7 @@ void setMode(Mode& newMode)
     if (g_state.mode)
         g_state.mode->clearFn();
     g_state.mode = &newMode;
-    Driver::instance().mouse().setCursorVisibility(g_state.mode == &g_modeManagement);
+    GridOverlay::instance().setVisibility(g_state.mode == &g_modeConstruction);
     newMode.drawFn();
 }
 

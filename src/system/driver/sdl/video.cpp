@@ -20,6 +20,7 @@
 #include <iostream>
 #include <iterator>
 #include <limits>
+#include <ranges>
 
 #ifdef __APPLE__
 #   include <SDL_hints.h>
@@ -66,8 +67,13 @@ void VGAEmulation::flush()
     if (updatePicture() || m_needRedraw) {
         m_needRedraw = false;
 
-        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0xFF);
+        SDL_SetRenderDrawColor(m_renderer, 0x00, 0x00, 0x00, 0xFF);
         SDL_RenderClear(m_renderer);
+        SDL_SetRenderDrawColor(m_renderer, 0x55, 0xAA, 0x00, 0xFF);
+        const SDL_Rect screenRect = { 0, 0, m_wndWidth, m_wndHeight };
+        SDL_RenderFillRect(m_renderer, &screenRect);
+        for (Overlay& ov : m_overlays)
+            ov(m_renderer);
 
         const bool isDebugGraphicsMode = m_wndWidth != SCREEN_WIDTH;
         if (isDebugGraphicsMode) [[unlikely]] {
@@ -117,8 +123,7 @@ void VGAEmulation::flush()
                 SDL_RenderCopy(m_renderer, m_screen, &srcRect, nullptr);
             }
         }
-        for (Overlay& ov : m_overlays)
-            ov(m_renderer);
+
         Driver::instance().mouse().drawCursor(m_renderer);
         SDL_RenderPresent(m_renderer);
 
@@ -182,17 +187,18 @@ void VGAEmulation::init()
     SDL_SetWindowTitle(m_window, g_windowTitle);
     SDL_WarpMouseInWindow(m_window, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 
-    const Uint32 pixelFormat = choosePixelFormat();
-    std::cout << "Pixel format: " << SDL_GetPixelFormatName(pixelFormat)
+    m_pixelFormat = choosePixelFormat();
+    std::cout << "Pixel format: " << SDL_GetPixelFormatName(m_pixelFormat)
               << std::endl;
-    generatePalette(pixelFormat);
+    generatePalette(m_pixelFormat);
 
     // roundUp(memSize / vgaRowBytes)
     constexpr int nRows =
         1 + (sizeof(VGAState::mem) / sizeof(VGAState::mem[0]) - 1) / vga::VIDEO_MEM_ROW_BYTES;
     m_screen = SDL_CreateTexture(
-        m_renderer, pixelFormat, SDL_TEXTUREACCESS_STREAMING,
+        m_renderer, m_pixelFormat, SDL_TEXTUREACCESS_STREAMING,
         vga::VIDEO_MEM_ROW_BYTES * 8, nRows);
+    SDL_SetTextureBlendMode(m_screen, SDL_BLENDMODE_BLEND);
     if (!m_screen) [[unlikely]] {
         std::cerr << "Unable to create SDL texture! SDL_Error: " << SDL_GetError() << std::endl;
         close();
@@ -280,16 +286,17 @@ void VGAEmulation::generatePalette(Uint32 pixelFormat)
     }
 
     // add alpha value
+    // (keep the first item transparent)
     if (pixelFormat == SDL_PIXELFORMAT_ARGB8888 ||
         pixelFormat == SDL_PIXELFORMAT_ABGR8888) {
 
-        for (std::uint32_t& v : m_vgaState.palette)
+        for (std::uint32_t& v : m_vgaState.palette | std::ranges::views::drop(1))
             v = v | 0xFF000000;
 
     } else if (pixelFormat == SDL_PIXELFORMAT_RGBA8888 ||
                pixelFormat == SDL_PIXELFORMAT_BGRA8888) {
 
-        for (std::uint32_t& v : m_vgaState.palette)
+        for (std::uint32_t& v : m_vgaState.palette | std::ranges::views::drop(1))
             v = (v << 8) | 0xFF;
     }
 }
@@ -473,7 +480,7 @@ void VGAEmulation::setWriteOperation(vga::WriteOperation op)
 void VGAEmulation::setPaletteItem(std::uint8_t idx, std::uint32_t rgb)
 {
     assert(idx < m_vgaState.palette.size());
-    m_vgaState.palette[idx] = rgb;
+    m_vgaState.palette[idx] = 0xFF000000 | rgb; // FIXME
 
     int x1 = std::numeric_limits<int>::max();
     int x2 = std::numeric_limits<int>::min();

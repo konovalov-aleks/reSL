@@ -1,14 +1,10 @@
 #include "game/init.h"
-
 #include "game/main_loop.h"
 #include "game/mouse/mouse.h"
-#include "game/records.h"
-#include "game/resources/train_glyph.h"
+#include "game/player_name.h"
 #include "game/train.h"
-#include "graphics/color.h"
-#include "graphics/drawing.h"
-#include "graphics/glyph.h"
-#include "graphics/text.h"
+#include "graphics/vga.h"
+#include "system/active_sleep.h"
 #include "system/keyboard.h"
 #include "system/time.h"
 #include "tasks/task.h"
@@ -18,125 +14,13 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
-#include <functional>
 #include <iostream>
-#include <iterator>
-#include <map>
-#include <string>
-#include <utility>
 
 using namespace resl;
 
 namespace {
 
-void recordsScreenDemo(int, const char*[])
-{
-    showRecordsScreen();
-}
-
-void drawTextDemo(int, const char*[])
-{
-    unsigned c = 0;
-    for (int y = 0; y < 10; ++y) {
-        char buf[20];
-        int x = 0;
-        for (x = 0; x < 15 && c <= 146; ++x) {
-            buf[x] = c;
-            ++c;
-        }
-        drawText(10, 40 + y * 20, buf, Color::Red);
-
-        if (c > 146)
-            break;
-    }
-}
-
-void startGame()
-{
-    initGameData();
-
-    Driver::instance().mouse().setHandler(&handleMouseInput);
-    Driver::instance().setKeyboardHandler(&keyboardInteruptionHandler);
-
-    addTask(taskMouseEventHandling());
-    g_taskGameMainLoop = addTask(taskGameMainLoop());
-    addTask(taskSpawnTrains());
-}
-
-Task implDrawTrainsDemo()
-{
-    static Color colors[5][2] = {
-        { Color::Blue,       Color::DarkBlue  },
-        { Color::Red,        Color::DarkRed   },
-        { Color::White,      Color::Gray      },
-        { Color::Gray,       Color::DarkGray  },
-        { Color::LightGreen, Color::DarkGreen }
-    };
-
-    // angle - direction
-    std::pair<int, int> frames[] = {
-        { 0, 0 },
-        { 1, 0 },
-        { 2, 0 },
-        { 3, 0 },
-        { 4, 0 },
-        { 0, 1 },
-        { 1, 1 },
-        { 2, 1 },
-        { 3, 1 },
-        { 4, 1 },
-        { 0, 0 }
-    };
-
-    int curFrame = 0;
-    int dFrame = 1;
-    for (;;) {
-        const auto [currentAngle, currentDirection] = frames[curFrame];
-        graphics::filledRectangle(0, 0, 640, 480, 0xFF, DarkGreen);
-
-        int x = 80;
-        int y = 30;
-        for (int i = 0; i < 15; ++i) {
-            const TrainGlyph* g = &g_trainGlyphs[i][currentAngle][currentDirection];
-            Color* c = colors[i % std::size(colors)];
-            drawGlyph(g->glyph1, x - g->width / 2, y - g->height / 2, Color::Black);
-            drawGlyph(g->glyph2, x - g->width / 2, y - g->height / 2, c[0]);
-            drawGlyph(g->glyph3, x - g->width / 2, y - g->height / 2, c[1]);
-            char buf[100];
-            std::snprintf(buf, sizeof(buf), "%d", i);
-            drawText(x, y + 20, buf, Red);
-            x += 80;
-            if (x > 590) {
-                x = 80;
-                y += 60;
-            }
-        }
-
-        curFrame += dFrame;
-
-        if (curFrame < 4)
-            Driver::instance().audio().startSound(400 + 100 * (3 - curFrame));
-        else
-            Driver::instance().audio().stopSound();
-
-        if (curFrame == 0 || curFrame == std::size(frames) - 1)
-            dFrame = -dFrame;
-        co_await sleep(10);
-    }
-    co_return;
-}
-
-void drawTrainsDemo(int, const char*[])
-{
-    addTask(implDrawTrainsDemo());
-}
-
-const std::map<std::string, std::function<void(int, const char*[])>> commands = {
-    { "records",     recordsScreenDemo },
-    { "draw_text",   drawTextDemo      },
-    { "draw_trains", drawTrainsDemo    }
-};
-
+// Helper task for handling SDL events.
 Task sdlLoop()
 {
     for (;;) {
@@ -145,72 +29,117 @@ Task sdlLoop()
     }
 }
 
-int usage(int /* argc */, const char* argv[], int unknownArg = -1)
+int usage(int /* argc */, char* argv[], int unknownArg = -1)
 {
     if (unknownArg != -1)
         std::cerr << "Unknown command line argument \"" << argv[unknownArg] << "\"\n"
                   << std::endl;
-    std::cerr << "Usage: " << argv[0] << " <options>\n"
-                                         "\n"
-                                         "Available options:\n"
-                                         "  --demo <demoName> run the demo with a specified name. Available demos: ";
-    bool first = true;
-    for (const auto& [name, _] : commands) {
-        if (first)
-            first = false;
-        else
-            std::cerr << ", ";
-        std::cerr << name;
-    }
-    std::cerr << "\n"
-                 "  --debug-graphics enable debug video mode. In this mode, you will see the entire content of the video memory including invisible areas\n"
-                 "  --help show this help"
+    std::cerr << "Usage: " << argv[0]
+              << " [--debug-graphics] [--windowed] [playerName] [S<random seed>]\n"
+                 "\n"
+                 "The following options are available:\n"
+                 "  --debug-graphics  enable debug video mode. In this mode, you will see the entire content of the video memory including invisible areas\n"
+                 "  --windowed        run the game in windowed mode, do not expand to full screen\n"
+                 "  --help            show this help\n"
+                 "\n"
               << std::endl;
     return EXIT_FAILURE;
 }
 
 } // namespace
 
-int main(int argc, const char* argv[])
+namespace resl {
+
+/* 1c75:027c */
+static void initTasks(/* void* taskStacksMemory */)
+{
+    /*
+       The original game uses a platform-specific stack-based coroutine
+       implementation. But reSL uses a portable approach based on C++20 coroutines.
+       So, this implementation of the function is different (but logically the same).
+    */
+
+    g_taskGameMainLoop = addTask(taskGameMainLoop());
+    addTask(taskMouseEventHandling());
+    addTask(taskSpawnTrains());
+
+    runScheduler();
+}
+
+// main function of the original game
+/* 15ab:0018 */
+int main(int argc, char* argv[])
+{
+    const unsigned seed = static_cast<unsigned>(std::time(nullptr));
+    std::srand(seed);
+    if (argc == 3 && argv[2][0] == 'S') {
+        std::srand(static_cast<unsigned>(argv[2][1]));
+        std::printf("Seed = %d\n", static_cast<int>(argv[2][1]));
+    }
+    if (argc > 1)
+        std::strcpy(g_playerName, argv[1]);
+
+    /*
+        The original game performes initialization here:
+            15ab:0096 > mouse driver initialization
+            15ab:00b2 > allocates memory for task stacks
+            15ab:00d5 > allocates memory for g_pageBuffer (262d:21d8)
+            15ab:00f3 > sets the video mode (VGA 640x350, 16 colors)
+            15ab:00fe > sets the number of bytes in a VGA scanline
+    */
+
+    vga::setVideoModeR0W2();
+    initGameData();
+
+    /*
+        The original game sets interruption handlers here:
+            15ab:0136 > DIV/0 handler
+            15ab:015c > timer handler
+    */
+    initTimer();
+    calibrateActiveSleep();
+
+    Driver::instance().setKeyboardHandler(&keyboardInteruptionHandler);
+    Driver::instance().mouse().setHandler(&handleMouseInput);
+
+    initTasks(/* taskStacksMemory */);
+
+    return EXIT_SUCCESS;
+}
+
+} // namespace resl
+
+int main(int argc, char* argv[])
 {
     bool debugGraphics = false;
-    const char* demo = nullptr;
+#ifdef __EMSCRIPTEN__
+    bool fullscreen = false;
+#else
+    bool fullscreen = true;
+#endif
 
-    std::srand(static_cast<unsigned>(std::time(nullptr)));
+    char* origGameArgv[3];
+    origGameArgv[0] = argv[1];
+    int origGameArgc = 1;
 
     for (int i = 1; i < argc; ++i) {
         if (!std::strcmp(argv[i], "--debug-graphics"))
             debugGraphics = true;
-        else if (!std::strcmp(argv[i], "--demo")) {
-            if (i == argc - 1) {
-                std::cerr << "The '--demo' argument expects a value" << std::endl;
-                return EXIT_FAILURE;
-            }
-            demo = argv[++i];
-        } else if (!std::strcmp(argv[i], "--help"))
+        if (!std::strcmp(argv[i], "--windowed"))
+            fullscreen = false;
+        else if (!std::strcmp(argv[i], "--help"))
             return usage(argc, argv);
+        else if (argv[i][0] != '-' && origGameArgc < 3)
+            origGameArgv[origGameArgc++] = argv[i];
         else
             return usage(argc, argv, i);
     }
 
     if (debugGraphics)
         Driver::instance().vga().setDebugMode(true);
-
-    initTimer();
-
-    if (demo) {
-        auto iter = commands.find(demo);
-        if (iter == commands.end()) {
-            std::cerr << "Invalid demo name is specified \"" << demo << "\"\n"
-                      << std::endl;
-            return usage(argc, argv);
-        }
-        iter->second(argc, argv);
-    } else
-        startGame();
+    if (fullscreen)
+        Driver::instance().vga().setFullscreenMode(true);
 
     addTask(sdlLoop());
-    runScheduler();
-
-    return EXIT_SUCCESS;
+    return resl::main(origGameArgc, origGameArgv);
 }

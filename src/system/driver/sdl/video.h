@@ -32,6 +32,7 @@ public:
     void waitVerticalRetrace();
 
     void setDebugMode(bool debug);
+    void setFullscreenMode(bool fullscreen);
 
     [[nodiscard]] std::uint8_t read(vga::VideoMemPtr);
     void write(vga::VideoMemPtr, std::uint8_t color);

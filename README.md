@@ -1,7 +1,9 @@
-<img width="516" alt="banner" src="https://github.com/konovalov-aleks/reSL/assets/11459433/eea5c05c-8175-4417-9fed-990ca22190e5">
+[<img width="516" alt="banner" src="https://github.com/konovalov-aleks/reSL/assets/11459433/eea5c05c-8175-4417-9fed-990ca22190e5">](https://konovalov-aleks.github.io/)
 
 # reSL
 The reverse engineered DOS game [ShortLine v1.1. (DOKA 1992)](https://www.myabandonware.com/game/shortline-railroad-1i6)
+
+**You can try the live demo here: https://konovalov-aleks.github.io/**
 
 The original game can be downloaded from the link below (version 1.1): 
 https://www.old-games.ru/game/download/1232.html
@@ -10,23 +12,7 @@ https://www.old-games.ru/game/download/1232.html
 
 <img width="640" alt="reSL" src="https://github.com/konovalov-aleks/reSL/assets/11459433/35f3f24b-b513-44ed-a5a8-17c03803bbab">
 
-### Progress:
-~99.9% done
-
-**You can try the live demo here: https://konovalov-aleks.github.io/**
-
-TODO
-1. ~~Consctruction mode~~
-2. ~~Main menu~~
-3. ~~Records~~
-4. ~~Archive~~
-5. ~~Demo~~
-6. ~~"Game over" screen~~
-7. ~~"Happy 2000 year" screen~~
-8. ~~Loading screen~~
-9. ~~Pause menu~~
-10. ~~Small font rendering~~
-11. ~~"Manual" screen~~
+The code has been fully restored. The game is now being adapted to work on touch-controlled devices.
 
 ## Idea and goals of the project:
 

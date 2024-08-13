@@ -542,7 +542,6 @@ Task taskMoveAndRedrawTrains()
             vga::setVideoModeR0W2();
         }
     }
-    co_return;
 }
 
 } // namespace resl

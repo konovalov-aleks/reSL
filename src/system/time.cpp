@@ -83,14 +83,14 @@ private:
 /* 1c61:000e */
 std::uint16_t getTime()
 {
-    // the original game just reads the timer value here from the memory
+    // The original game just reads the timer value here from the memory.
     return Timer::instance().time();
 }
 
 /* 1594:000e */
 void initTimer()
 {
-    // the original game configures the timer frequency here
+    // The original game configures the timer frequency here.
     Timer::instance().start();
 }
 

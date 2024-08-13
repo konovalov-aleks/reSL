@@ -219,7 +219,6 @@ Task taskMouseEventHandling()
 
         co_await sleep(1);
     }
-    co_return;
 }
 
 } // namespace resl

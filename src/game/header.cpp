@@ -144,7 +144,6 @@ Task taskHeaderFieldAnimation()
             }
         }
     }
-    co_return;
 }
 
 } // namespace resl

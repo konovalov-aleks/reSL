@@ -156,6 +156,11 @@ void VGAEmulation::setDebugMode(bool debug)
     }
 }
 
+void VGAEmulation::setFullscreenMode(bool fullscreen)
+{
+    SDL_SetWindowFullscreen(m_window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+}
+
 void VGAEmulation::init()
 {
 #ifdef __APPLE__

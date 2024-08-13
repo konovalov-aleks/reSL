@@ -35,11 +35,12 @@ int usage(int /* argc */, char* argv[], int unknownArg = -1)
         std::cerr << "Unknown command line argument \"" << argv[unknownArg] << "\"\n"
                   << std::endl;
     std::cerr << "Usage: " << argv[0]
-              << " [--debug-graphics] [playerName] [S<random seed>]\n"
+              << " [--debug-graphics] [--windowed] [playerName] [S<random seed>]\n"
                  "\n"
                  "The following options are available:\n"
-                 "  --debug-graphics enable debug video mode. In this mode, you will see the entire content of the video memory including invisible areas\n"
-                 "  --help show this help\n"
+                 "  --debug-graphics  enable debug video mode. In this mode, you will see the entire content of the video memory including invisible areas\n"
+                 "  --windowed        run the game in windowed mode, do not expand to full screen\n"
+                 "  --help            show this help\n"
                  "\n"
               << std::endl;
     return EXIT_FAILURE;
@@ -111,6 +112,11 @@ int main(int argc, char* argv[])
 int main(int argc, char* argv[])
 {
     bool debugGraphics = false;
+#ifdef __EMSCRIPTEN__
+    bool fullscreen = false;
+#else
+    bool fullscreen = true;
+#endif
 
     char* origGameArgv[3];
     origGameArgv[0] = argv[1];
@@ -119,6 +125,8 @@ int main(int argc, char* argv[])
     for (int i = 1; i < argc; ++i) {
         if (!std::strcmp(argv[i], "--debug-graphics"))
             debugGraphics = true;
+        if (!std::strcmp(argv[i], "--windowed"))
+            fullscreen = false;
         else if (!std::strcmp(argv[i], "--help"))
             return usage(argc, argv);
         else if (argv[i][0] != '-' && origGameArgc < 3)
@@ -129,6 +137,8 @@ int main(int argc, char* argv[])
 
     if (debugGraphics)
         Driver::instance().vga().setDebugMode(true);
+    if (fullscreen)
+        Driver::instance().vga().setFullscreenMode(true);
 
     addTask(sdlLoop());
     return resl::main(origGameArgc, origGameArgv);

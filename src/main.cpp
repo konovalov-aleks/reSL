@@ -112,11 +112,7 @@ int main(int argc, char* argv[])
 int main(int argc, char* argv[])
 {
     bool debugGraphics = false;
-#ifdef __EMSCRIPTEN__
-    bool fullscreen = false;
-#else
     bool fullscreen = true;
-#endif
 
     char* origGameArgv[3];
     origGameArgv[0] = argv[1];

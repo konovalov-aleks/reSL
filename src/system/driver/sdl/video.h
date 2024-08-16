@@ -21,6 +21,8 @@ public:
     VGAEmulation(const VGAEmulation&) = delete;
     VGAEmulation& operator=(const VGAEmulation&) = delete;
 
+    void requestScreenUpdate() { m_needRedraw = true; }
+
     void flush();
     void waitVerticalRetrace();
 

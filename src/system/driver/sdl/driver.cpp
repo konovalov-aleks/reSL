@@ -11,6 +11,7 @@
 #include <SDL_events.h>
 #include <SDL_mouse.h>
 #include <SDL_scancode.h>
+#include <SDL_video.h>
 
 #include <algorithm>
 #include <cassert>
@@ -114,6 +115,10 @@ void Driver::pollEvent()
         case SDL_KEYDOWN:
         case SDL_KEYUP:
             onKeyboardEvent(e.key);
+            break;
+        case SDL_WINDOWEVENT:
+            if (e.window.event == SDL_WINDOWEVENT_RESIZED)
+                vga().requestScreenUpdate();
             break;
         }
     }
@@ -303,6 +308,9 @@ inline std::uint8_t scancodeToKeyCode(SDL_Scancode sc)
 
 void Driver::onKeyboardEvent(const SDL_KeyboardEvent& e)
 {
+    if (e.keysym.scancode == SDL_SCANCODE_F5 && e.type == SDL_KEYUP)
+        vga().setFullscreenMode(true);
+
     if (!m_keyboardHandler) [[unlikely]]
         return;
 

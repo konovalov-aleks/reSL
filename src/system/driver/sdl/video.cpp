@@ -263,7 +263,7 @@ void VGAEmulation::generatePalette()
         0xFF00AAAA, // Dark cyan
         0xFF00FF00, // Light green
         0xFF00AA00, // Dark green
-        0xFF000000  // Blinking color (Black/White)
+        0xFFFFFFFF  // Blinking color (Black/White)
     };
 
     if (m_pixelFormat == SDL_PIXELFORMAT_ARGB8888)

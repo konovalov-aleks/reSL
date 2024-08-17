@@ -146,7 +146,7 @@ Task taskGameMainLoop()
 
     // The original game uses uint8 here - VGA color code.
     // They alternate between 0 and 0x3F.
-    std::uint32_t blinkingColor = 0xFFFFFF;
+    std::uint32_t blinkingColor = 0xFFFFFFFF;
 
     bool isOddIter = false;
 

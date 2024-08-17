@@ -2,14 +2,10 @@
 
 #include "task.h"
 
-#include <cassert>
-#include <chrono>
-#include <compare>
 #include <deque>
 #include <list>
-#include <optional>
-#include <set>
 #include <utility>
+#include <vector>
 
 namespace resl {
 
@@ -34,15 +30,7 @@ private:
 
     using Tasks = std::deque<Task>;
 
-    struct AwakeTimeCompare {
-    public:
-        bool operator()(const Task& a, const Task& b) const noexcept
-        {
-            assert(a.promise().m_context);
-            assert(b.promise().m_context);
-            return a.promise().m_context->m_sleepUntil < b.promise().m_context->m_sleepUntil;
-        }
-    };
+    Task chooseTaskToResume();
 
     void reset();
 
@@ -50,8 +38,9 @@ private:
 
     std::list<std::pair<Task, Context>> m_tasks;
 
-    std::deque<Task> m_readyTasks;
-    std::multiset<Task, AwakeTimeCompare> m_sleepingTasks;
+    // Tasks ready to be executed starting at a certain time.
+    // Binary heap, the key is "m_sleepUntil"
+    std::vector<Task> m_queue;
 
     bool m_stop = false;
 };

@@ -6,7 +6,6 @@
 #include <chrono>
 #include <coroutine> // IWYU pragma: export
 #include <cstdlib>
-#include <optional>
 
 namespace resl {
 
@@ -15,7 +14,8 @@ struct TaskPromise;
 struct Context {
     using Time = std::chrono::steady_clock::time_point;
 
-    std::optional<Time> m_sleepUntil;
+    // a newly created task has a highest execution priority
+    Time m_sleepUntil = {};
     bool m_suspended = false;
 };
 
@@ -64,7 +64,10 @@ void Task::resume() const
 
 class SleepAwaitable {
 public:
-    SleepAwaitable() = default;
+    SleepAwaitable()
+        : m_awakeTime(std::chrono::steady_clock::now())
+    {
+    }
 
     template <typename DurationT>
     SleepAwaitable(DurationT sleepFor)
@@ -77,7 +80,7 @@ public:
     void await_resume() { }
 
 private:
-    std::optional<Context::Time> m_awakeTime;
+    Context::Time m_awakeTime;
 };
 
 Task addTask(Task);

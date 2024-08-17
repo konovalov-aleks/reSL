@@ -37,8 +37,6 @@ namespace resl {
 static const char g_windowTitle[] = "reSL - reverse engineered ShortLine game";
 
 static constexpr Uint32 g_supportedPixelFormats[] = {
-    SDL_PIXELFORMAT_RGB888,
-    SDL_PIXELFORMAT_BGR888,
     SDL_PIXELFORMAT_ARGB8888,
     SDL_PIXELFORMAT_ABGR8888,
     SDL_PIXELFORMAT_RGBA8888,
@@ -183,16 +181,16 @@ void VGAEmulation::init()
     SDL_SetWindowTitle(m_window, g_windowTitle);
     SDL_WarpMouseInWindow(m_window, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 
-    const Uint32 pixelFormat = choosePixelFormat();
-    std::cout << "Pixel format: " << SDL_GetPixelFormatName(pixelFormat)
+    m_pixelFormat = choosePixelFormat();
+    std::cout << "Pixel format: " << SDL_GetPixelFormatName(m_pixelFormat)
               << std::endl;
-    generatePalette(pixelFormat);
+    generatePalette();
 
     // roundUp(memSize / vgaRowBytes)
     constexpr int nRows =
         1 + (sizeof(VGAState::mem) / sizeof(VGAState::mem[0]) - 1) / vga::VIDEO_MEM_ROW_BYTES;
     m_screen = SDL_CreateTexture(
-        m_renderer, pixelFormat, SDL_TEXTUREACCESS_STREAMING,
+        m_renderer, m_pixelFormat, SDL_TEXTUREACCESS_STREAMING,
         vga::VIDEO_MEM_ROW_BYTES * 8, nRows);
     if (!m_screen) [[unlikely]] {
         std::cerr << "Unable to create SDL texture! SDL_Error: " << SDL_GetError() << std::endl;
@@ -242,57 +240,66 @@ Uint32 VGAEmulation::choosePixelFormat()
     return g_supportedPixelFormats[0];
 }
 
-void VGAEmulation::generatePalette(Uint32 pixelFormat)
+void VGAEmulation::generatePalette()
 {
     assert(std::find(
                std::begin(g_supportedPixelFormats),
                std::end(g_supportedPixelFormats),
-               pixelFormat) != std::end(g_supportedPixelFormats));
+               m_pixelFormat) != std::end(g_supportedPixelFormats));
 
     m_vgaState.palette = {
-        0x55AA00, // Green
-        0x000000, // Black
-        0xAAAAAA, // Gray
-        0x555555, // Dark gray
-        0xFFFFFF, // White
-        0xFFFF55, // Yellow
-        0xAAAA00, // Brown
-        0x0055FF, // Blue
-        0x0055AA, // Dark blue
-        0xFF5500, // Red
-        0xAA5500, // Dark red
-        0x1AFFFF, // Cyan
-        0x00AAAA, // Dark cyan
-        0x00FF00, // Light green
-        0x00AA00, // Dark green
-        0x000000  // Blinking color (Black/White)
+        0xFF55AA00, // Green
+        0xFF000000, // Black
+        0xFFAAAAAA, // Gray
+        0xFF555555, // Dark gray
+        0xFFFFFFFF, // White
+        0xFFFFFF55, // Yellow
+        0xFFAAAA00, // Brown
+        0xFF0055FF, // Blue
+        0xFF0055AA, // Dark blue
+        0xFFFF5500, // Red
+        0xFFAA5500, // Dark red
+        0xFF1AFFFF, // Cyan
+        0xFF00AAAA, // Dark cyan
+        0xFF00FF00, // Light green
+        0xFF00AA00, // Dark green
+        0xFF000000  // Blinking color (Black/White)
     };
 
-    if (pixelFormat == SDL_PIXELFORMAT_RGB888)
+    if (m_pixelFormat == SDL_PIXELFORMAT_ARGB8888)
         return;
 
-    if (pixelFormat == SDL_PIXELFORMAT_BGR888 ||
-        pixelFormat == SDL_PIXELFORMAT_ABGR8888 ||
-        pixelFormat == SDL_PIXELFORMAT_BGRA8888) {
+    for (std::uint32_t& v : m_vgaState.palette)
+        v = argbToPreferred(v);
+}
+
+std::uint32_t VGAEmulation::argbToPreferred(std::uint32_t argb) const
+{
+    if (m_pixelFormat == SDL_PIXELFORMAT_ARGB8888)
+        return argb;
+
+    std::uint32_t c = argb & 0xFFFFFF;
+    if (m_pixelFormat == SDL_PIXELFORMAT_ABGR8888 ||
+        m_pixelFormat == SDL_PIXELFORMAT_BGRA8888) {
 
         // RGB -> BGR
-        for (std::uint32_t& v : m_vgaState.palette)
-            v = (v & 0xFF) << 16 | (v & 0xFF00) | (v >> 16);
+        c = (c & 0xFF) << 16 | (c & 0xFF00) | (c >> 16);
     }
 
     // add alpha value
-    if (pixelFormat == SDL_PIXELFORMAT_ARGB8888 ||
-        pixelFormat == SDL_PIXELFORMAT_ABGR8888) {
+    if (m_pixelFormat == SDL_PIXELFORMAT_ABGR8888)
+        return (argb & 0xFF000000) | c;
 
-        for (std::uint32_t& v : m_vgaState.palette)
-            v = v | 0xFF000000;
+    if (m_pixelFormat == SDL_PIXELFORMAT_RGBA8888 ||
+        m_pixelFormat == SDL_PIXELFORMAT_BGRA8888) {
 
-    } else if (pixelFormat == SDL_PIXELFORMAT_RGBA8888 ||
-               pixelFormat == SDL_PIXELFORMAT_BGRA8888) {
-
-        for (std::uint32_t& v : m_vgaState.palette)
-            v = (v << 8) | 0xFF;
+        return (c << 8) | (argb >> 24);
     }
+
+    // unreachable
+    std::cerr << "FATAL: Unsupported pixel format "
+              << SDL_GetPixelFormatName(m_pixelFormat) << std::endl;
+    std::abort();
 }
 
 bool VGAEmulation::updatePicture()
@@ -471,10 +478,10 @@ void VGAEmulation::setWriteOperation(vga::WriteOperation op)
     m_vgaState.writeOperation = op;
 }
 
-void VGAEmulation::setPaletteItem(std::uint8_t idx, std::uint32_t rgb)
+void VGAEmulation::setPaletteItem(std::uint8_t idx, std::uint32_t argb)
 {
     assert(idx < m_vgaState.palette.size());
-    m_vgaState.palette[idx] = rgb;
+    m_vgaState.palette[idx] = argbToPreferred(argb);
 
     int x1 = std::numeric_limits<int>::max();
     int x2 = std::numeric_limits<int>::min();

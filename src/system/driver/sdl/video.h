@@ -49,7 +49,7 @@ public:
     // bit 0-7  Upper 8 bits of the start address of the display buffer
     void setFrameOrigin(std::int16_t x, std::int16_t y);
 
-    void setPaletteItem(std::uint8_t idx, std::uint32_t rgb);
+    void setPaletteItem(std::uint8_t idx, std::uint32_t argb);
 
     unsigned timeToNextFrameMS() const;
 
@@ -100,7 +100,8 @@ private:
     void close();
 
     Uint32 choosePixelFormat();
-    void generatePalette(Uint32 pixelFormat);
+    void generatePalette();
+    std::uint32_t argbToPreferred(std::uint32_t) const;
 
     void updateVideoMemory(unsigned);
     bool updatePicture();
@@ -113,6 +114,7 @@ private:
     int m_wndHeight = SCREEN_HEIGHT;
 
     VGAState m_vgaState;
+    Uint32 m_pixelFormat = 0;
 
     ClockT::time_point m_nextFrameTime = {};
 

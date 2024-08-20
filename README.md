@@ -1,16 +1,14 @@
 [<img width="516" alt="banner" src="https://github.com/konovalov-aleks/reSL/assets/11459433/eea5c05c-8175-4417-9fed-990ca22190e5">](https://konovalov-aleks.github.io/)
 
 # reSL
-The reverse engineered DOS game [ShortLine v1.1. (DOKA 1992)](https://www.myabandonware.com/game/shortline-railroad-1i6)
+
+The reverse engineered DOS game ShortLine v1.1. (DOKA 1992)
+
+<img width="640" alt="reSL" src="https://github.com/user-attachments/assets/774774a4-c3c7-41d5-a76e-4183ece09393">
 
 **You can try the live demo here: https://konovalov-aleks.github.io/**
 
-The original game can be downloaded from the link below (version 1.1): 
-https://www.old-games.ru/game/download/1232.html
-
 ## Current status
-
-<img width="640" alt="reSL" src="https://github.com/konovalov-aleks/reSL/assets/11459433/35f3f24b-b513-44ed-a5a8-17c03803bbab">
 
 The code has been fully restored. The game is now being adapted to work on touch-controlled devices.
 
@@ -42,8 +40,11 @@ Therefore, the existing differences between reSL and the original game are due t
 
 ## Reverse engineering process
 
-md5 hash of the file I decompiled (see the link to download above):
+md5 hash of the file I decompiled:
 > d3516ca38a6e17a7326141794a041212  SL.EXE
+
+The original game can be downloaded from the link below (version 1.1): 
+https://www.old-games.ru/game/download/1232.html
 
 I use Ghidra as a main tool:
 https://github.com/NationalSecurityAgency/ghidra
@@ -133,3 +134,16 @@ The original game was created by **Doka** in 1992.
 So, it's very old and now it's not clear how to contact the authors to get permission to reverse engineer their product. I hope they don't mind me giving the game a second life and adapting it to modern platforms.
 
 **I don't plan to make any profit, this project is just for fun. The rights to all algorithms in the restored code belong to the authors of the original game (Andrei Snegov, DOKA).**
+
+### Interesting fact
+
+In the [last chapter of the game manual "Inside SHORTLINE"](https://github.com/konovalov-aleks/reSL/blob/aff51dc2464df675437e3c788970195f1f74e7df/resources/RULES.TXT#L223C1-L230C35), the authors planned to describe the game mechanics in detail. But the section was never finished:
+
+>  13. 'Inside SHORTLINE'
+>
+>This manual is to be supplied. It'll contain the detailed
+>description of the model geometry and topology, math formulas and
+>constant using in simulation, provides the better understanding
+>of different aspects of the game and give strategy tips.
+
+It seems that this project has realized the idea of ​​the authors of the original game. After all, open source code is the best description of algorithms, formulas and constants.

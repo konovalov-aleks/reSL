@@ -8,6 +8,7 @@ set(SOURCES
     src/game/demo.cpp
     src/game/drawing.cpp
     src/game/entrance.cpp
+    src/game/field_tile_grid_overlay.cpp
     src/game/header.cpp
     src/game/impasse.cpp
     src/game/init.cpp
@@ -60,6 +61,7 @@ set(SOURCES
     src/system/buffer.cpp
     src/system/driver/sdl/audio.cpp
     src/system/driver/sdl/driver.cpp
+    src/system/driver/sdl/mouse.cpp
     src/system/driver/sdl/video.cpp
     src/system/exit.cpp
     src/system/filesystem.cpp
@@ -69,6 +71,7 @@ set(SOURCES
     src/system/time.cpp
     src/tasks/scheduler.cpp
     src/tasks/task.cpp
+    src/ui/components/button.cpp
     src/ui/components/dialog.cpp
     src/ui/components/draw_header.cpp
     src/ui/components/status_bar.cpp

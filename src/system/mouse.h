@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 
 namespace resl {
 
@@ -37,7 +38,8 @@ enum MouseButton {
     MB_MIDDLE = 4
 };
 
-using MouseHandler = void (*)(std::uint16_t mouseEventFlags, std::uint16_t mouseButtonState,
-                              std::int16_t lastRawHMickeyCount, std::int16_t lastRawVMickeyCount);
+using MouseHandler = std::function<void(std::uint16_t mouseEventFlags,
+                                        std::uint16_t mouseButtonState,
+                                        std::int16_t x, std::int16_t y)>;
 
 } // namespace resl

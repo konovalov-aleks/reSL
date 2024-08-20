@@ -37,11 +37,11 @@ MessageQueue<MsgMouseEvent> g_mouseMsgQueue;
 /* 14af:0761 */
 void handleMouseInput(std::uint16_t mouseEventFlags,
                       std::uint16_t mouseButtonState,
-                      std::int16_t dx, std::int16_t dy)
+                      std::int16_t x, std::int16_t y)
 {
     // the original game uses a global vairable here but we have a different
     // coroutines implementation, and it makes sense to use local variable instead.
-    MsgMouseEvent msg = { MouseAction::None, dx, dy };
+    MsgMouseEvent msg = { MouseAction::None, x, y };
 
     if (g_previousMouseButtonState)
         g_previousMouseButtonState = static_cast<std::uint8_t>(mouseButtonState);
@@ -80,7 +80,7 @@ Task taskMouseEventHandling()
 
         assert(mouse::g_state.mode);
         mouse::Mode& mode = *mouse::g_state.mode;
-        mode.updatePosFn(e.cursorDX, e.cursorDY);
+        mode.updatePosFn(e.x, e.y);
 
         switch (e.action) {
         case MouseAction::CallServer:
@@ -119,21 +119,17 @@ Task taskMouseEventHandling()
                         showStatusMessage("Switch is locked by train");
                         playErrorMelody();
                     } else {
-                        mouse::eraseArrowCursor();
                         const std::int16_t switchIdx = static_cast<std::int16_t>(sw - g_switches);
                         eraseSwitch(switchIdx);
                         toggleSwitch(*sw);
                         drawSwitch(switchIdx, true);
-                        mouse::drawArrowCursor();
                         scheduleAllTrainsRedrawing();
                         playSwitchSwitchedMelody();
                     }
                 } else if (Semaphore* sem = findClosestSemaphore(mode.x, mode.y)) {
-                    mouse::eraseArrowCursor();
                     toggleSemaphore(*sem);
                     drawSemaphore(*sem, 0);
                     drawSemaphore(*sem, 350);
-                    mouse::drawArrowCursor();
                     scheduleAllTrainsRedrawing();
                     playEntitySwitchedSound(sem->isRed);
                 } else
@@ -142,11 +138,7 @@ Task taskMouseEventHandling()
             break;
 
         case MouseAction::ToggleMouseMode:
-            /* 14af:0477 */
-            if (mouse::g_state.mode == &mouse::g_modeManagement)
-                setMode(mouse::g_modeConstruction);
-            else
-                setMode(mouse::g_modeManagement);
+            mouse::toggleMode();
             break;
 
         case MouseAction::ToggleNextRailType:

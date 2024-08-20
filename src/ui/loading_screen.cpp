@@ -3,28 +3,59 @@
 #include <graphics/drawing.h>
 #include <graphics/vga.h>
 #include <system/buffer.h>
+#include <system/driver/driver.h>
 #include <system/filesystem.h>
 #include <system/keyboard.h>
+#include <system/mouse.h>
 
 #include <cstdint>
 
 namespace resl {
 
-/* 17a7:0150 */
-static void drawLoadingScreenTitle(std::int16_t item)
-{
-    vga::waitForLine(70);
-    graphics::copyRectangle(132, 10, 8, item * 49 + 351, 49, 46);
-    vga::setVideoModeR0W2();
-}
+namespace {
 
-/* 17a7:0120 */
-static void clearLoadingScreenTitle()
-{
-    vga::waitForLine(70);
-    graphics::copyRectangle(132, 10, 0, 600, 49, 46);
-    vga::setVideoModeR0W2();
-}
+    /* 17a7:0150 */
+    void drawLoadingScreenTitle(std::int16_t item)
+    {
+        vga::waitForLine(70);
+        graphics::copyRectangle(132, 10, 8, item * 49 + 351, 49, 46);
+        vga::setVideoModeR0W2();
+    }
+
+    /* 17a7:0120 */
+    void clearLoadingScreenTitle()
+    {
+        vga::waitForLine(70);
+        graphics::copyRectangle(132, 10, 0, 600, 49, 46);
+        vga::setVideoModeR0W2();
+    }
+
+    class LoadingScreenMouseHandler {
+    public:
+        LoadingScreenMouseHandler()
+            : m_clicked(false)
+        {
+            m_oldHandler = Driver::instance().mouse().setHandler(
+                [this](std::uint16_t flags, std::uint16_t /* buttonState */,
+                       std::int16_t /* x */, std::int16_t /* y */) {
+                    if (flags) // any mouse button actions
+                        m_clicked = true;
+                });
+        }
+
+        ~LoadingScreenMouseHandler()
+        {
+            Driver::instance().mouse().setHandler(m_oldHandler);
+        }
+
+        bool clicked() const noexcept { return m_clicked; }
+
+    private:
+        MouseHandler m_oldHandler;
+        bool m_clicked;
+    };
+
+} // namespace
 
 /* 17a7:0005 */
 void showLoadingScreen()
@@ -38,6 +69,8 @@ void showLoadingScreen()
     graphics::imageDot7(0, 350, 400, 350, g_pageBuffer);
 
     drawLoadingScreenTitle(0);
+
+    LoadingScreenMouseHandler mouseHandler;
 
     /** BUGFIX **
 
@@ -56,7 +89,7 @@ void showLoadingScreen()
     for (std::int16_t i = 0; i < 5; ++i) {
         drawLoadingScreenTitle(i % 4);
         for (std::int16_t j = 0; j < 220; ++j) {
-            if (g_lastKeyPressed)
+            if (g_lastKeyPressed || mouseHandler.clicked())
                 return;
             vga::waitVerticalRetrace();
         }

@@ -4,19 +4,16 @@
 // IWYU pragma: friend "system/driver/sdl/.*"
 
 // IWYU pragma: no_include "system/driver/sdl/audio.h"
+// IWYU pragma: no_include "system/driver/sdl/mouse.h"
 // IWYU pragma: no_include "system/driver/sdl/video.h"
 
 #include "audio.h" // IWYU pragma: export
+#include "mouse.h" // IWYU pragma: export
 #include "video.h" // IWYU pragma: export
 
-#include <graphics/vga.h>
 #include <system/keyboard.h>
-#include <system/mouse.h>
 
 #include <SDL_events.h>
-#include <SDL_stdinc.h>
-
-#include <cstdint>
 
 namespace resl {
 
@@ -32,21 +29,18 @@ public:
 
     VGAEmulation& vga() { return m_vga; }
     AudioDriver& audio() { return m_audio; }
+    MouseDriver& mouse() { return m_mouse; }
 
     void sleep(unsigned ms);
 
-    void setMouseHandler(MouseHandler hdl) { m_mouseHandler = hdl; }
     void setKeyboardHandler(KeyboardHandler hdl) { m_keyboardHandler = hdl; }
 
     void pollEvent();
 
 private:
-    Driver();
+    Driver() = default;
     Driver(const Driver&) = delete;
     Driver& operator=(const Driver&) = delete;
-
-    void onMouseButtonEvent(const SDL_MouseButtonEvent&);
-    void onMouseMove(const SDL_MouseMotionEvent&);
 
     void onKeyboardEvent(const SDL_KeyboardEvent&);
 
@@ -60,13 +54,9 @@ private:
 
     VGAEmulation m_vga;
     AudioDriver m_audio;
+    MouseDriver m_mouse;
 
     KeyboardHandler m_keyboardHandler = nullptr;
-
-    MouseHandler m_mouseHandler = nullptr;
-    Sint32 m_lastCursorX = SCREEN_WIDTH / 2;
-    Sint32 m_lastCursorY = SCREEN_HEIGHT / 2;
-    std::uint16_t m_mouseButtonState;
 };
 
 } // namespace resl

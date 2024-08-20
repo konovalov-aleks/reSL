@@ -10,6 +10,7 @@
 #include "savefile/load_game.h"
 #include "semaphore.h"
 #include "switch.h"
+#include <system/driver/driver.h>
 #include <system/random.h>
 #include <system/time.h>
 #include <tasks/message_queue.h>
@@ -72,9 +73,9 @@ static void moveCursorTowardsPoint(std::int16_t x, std::int16_t y)
 {
     const mouse::Mode& m = *mouse::g_state.mode;
     g_demoMouseMsg.action = MouseAction::None;
-    g_demoMouseMsg.cursorDX = (x - m.x) / 4;
-    g_demoMouseMsg.cursorDY = (y - m.y) / 4;
-    g_mouseMsgQueue.push(g_demoMouseMsg);
+    g_demoMouseMsg.x = m.x + (x - m.x) / 4;
+    g_demoMouseMsg.y = m.y + (y - m.y) / 4;
+    Driver::instance().mouse().setPosition(g_demoMouseMsg.x, g_demoMouseMsg.y);
 }
 
 /* 1300:0200 */

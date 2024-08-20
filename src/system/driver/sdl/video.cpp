@@ -2,6 +2,7 @@
 
 #include "graphics/vga.h"
 #include "system/driver/sdl/driver.h"
+#include "system/driver/sdl/mouse.h"
 
 #include <SDL_blendmode.h>
 #include <SDL_error.h>
@@ -63,8 +64,13 @@ void VGAEmulation::flush()
     if (updatePicture() || m_needRedraw) {
         m_needRedraw = false;
 
-        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0xFF);
+        SDL_SetRenderDrawColor(m_renderer, 0x00, 0x00, 0x00, 0xFF);
         SDL_RenderClear(m_renderer);
+        SDL_SetRenderDrawColor(m_renderer, 0x55, 0xAA, 0x00, 0xFF);
+        const SDL_Rect screenRect = { 0, 0, m_wndWidth, m_wndHeight };
+        SDL_RenderFillRect(m_renderer, &screenRect);
+        for (Overlay& ov : m_overlays)
+            ov(m_renderer);
 
         const bool isDebugGraphicsMode = m_wndWidth != SCREEN_WIDTH;
         if (isDebugGraphicsMode) [[unlikely]] {
@@ -114,6 +120,8 @@ void VGAEmulation::flush()
                 SDL_RenderCopy(m_renderer, m_screen, &srcRect, nullptr);
             }
         }
+
+        Driver::instance().mouse().drawCursor(m_renderer);
         SDL_RenderPresent(m_renderer);
 
         m_dirtyRect = {};
@@ -192,6 +200,7 @@ void VGAEmulation::init()
     m_screen = SDL_CreateTexture(
         m_renderer, m_pixelFormat, SDL_TEXTUREACCESS_STREAMING,
         vga::VIDEO_MEM_ROW_BYTES * 8, nRows);
+    SDL_SetTextureBlendMode(m_screen, SDL_BLENDMODE_BLEND);
     if (!m_screen) [[unlikely]] {
         std::cerr << "Unable to create SDL texture! SDL_Error: " << SDL_GetError() << std::endl;
         close();
@@ -248,7 +257,7 @@ void VGAEmulation::generatePalette()
                m_pixelFormat) != std::end(g_supportedPixelFormats));
 
     m_vgaState.palette = {
-        0xFF55AA00, // Green
+        0x0055AA00, // Green (transparent to be able to draw on the background)
         0xFF000000, // Black
         0xFFAAAAAA, // Gray
         0xFF555555, // Dark gray

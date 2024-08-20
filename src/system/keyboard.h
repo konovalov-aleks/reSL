@@ -11,6 +11,7 @@ using KeyboardHandler = void (*)(std::uint8_t keycode);
 
 // http://www.techhelpmanual.com/57-keyboard_scan_codes.html
 inline constexpr std::uint8_t g_keyEscape = 1;
+inline constexpr std::uint8_t g_keySpace = 57;
 
 //-----------------------------------------------------------------------------
 

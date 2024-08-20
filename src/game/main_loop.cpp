@@ -9,6 +9,7 @@
 #include "io_status.h"
 #include "melody.h"
 #include "mouse/construction_mode.h"
+#include "mouse/management_mode.h"
 #include "mouse/mode.h"
 #include "mouse/state.h"
 #include "rail.h"
@@ -22,6 +23,7 @@
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/vga.h>
+#include <system/driver/driver.h>
 #include <system/keyboard.h>
 #include <system/time.h>
 #include <tasks/task.h>
@@ -85,6 +87,8 @@ inline PauseMenuAction showPauseMenu()
     Rectangle dialogRect;
     bool needInit = true;
     for (;;) {
+        mouse::Mode* oldMode = mouse::g_state.mode;
+        mouse::setMode(mouse::g_modeManagement);
         if (needInit) {
             dialogRect = drawDialog(DialogType::Pause, 0);
             writeRecords();
@@ -107,6 +111,7 @@ inline PauseMenuAction showPauseMenu()
             graphics::copyFromShadowBuffer(dialogRect);
             vga::setVideoModeR0W2();
             scheduleAllTrainsRedrawing();
+            mouse::setMode(*oldMode);
             enableTimer();
             spawnNewTrain();
             return PauseMenuAction::ContinueGame;
@@ -128,9 +133,8 @@ inline PauseMenuAction showPauseMenu()
             return PauseMenuAction::ReturnToMainMenu;
 
         default:
-            // wrong choice
-            /* 16a6:01e0 */
-            playErrorMelody();
+            // unreachable
+            std::abort();
         }
     }
 }
@@ -200,19 +204,26 @@ Task taskGameMainLoop()
                 co_await sleep(50);
 
                 if (g_lastKeyPressed) {
-                    disableTimer();
-                    if (g_isDemoMode) {
-                        stopDemo();
-                        enableTimer();
-                        needReturnToMainMenu = true;
-                        break;
+                    // use <space> as a hot key to switch mouse modes
+                    if (g_lastKeyPressed == g_keySpace) {
+                        mouse::toggleMode();
+                        Driver::instance().vga().requestScreenUpdate();
+                        g_lastKeyPressed = 0;
                     } else {
-                        PauseMenuAction menuRes = showPauseMenu();
-                        if (menuRes == PauseMenuAction::ReturnToMainMenu) {
+                        disableTimer();
+                        if (g_isDemoMode) {
+                            stopDemo();
+                            enableTimer();
                             needReturnToMainMenu = true;
                             break;
+                        } else {
+                            PauseMenuAction menuRes = showPauseMenu();
+                            if (menuRes == PauseMenuAction::ReturnToMainMenu) {
+                                needReturnToMainMenu = true;
+                                break;
+                            }
+                            continue;
                         }
-                        continue;
                     }
                 }
 

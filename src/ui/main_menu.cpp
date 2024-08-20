@@ -27,10 +27,13 @@
 #include <system/filesystem.h>
 #include <system/keyboard.h>
 #include <tasks/task.h>
+#include <ui/components/button.h>
 
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
+#include <optional>
 
 namespace resl {
 
@@ -116,7 +119,7 @@ inline ArchiveMenuAction showArchiveMenu()
                         std::int16_t itemY = dialog.itemY[0];
                         if (itemY > 350)
                             itemY -= 350;
-                        highlightFirstDlgItemSymbol(dialog.x, itemY);
+                        toggleButtonState(dialog.x, itemY);
                         // wait untill the button is released
                         while (!(g_lastKeyCode & g_keyReleasedFlag)) {
                             // The original game uses busy-loop here (without sleep)
@@ -145,7 +148,7 @@ inline ArchiveMenuAction showArchiveMenu()
                     graphics::setVideoFrameOrigin(0, 0);
                     fillGameFieldBackground(350);
                     drawFieldBackground(350);
-                    mouse::g_state.mode = &mouse::g_modeManagement;
+                    mouse::setMode(mouse::g_modeManagement);
                     spawnNewTrain();
                     return ArchiveMenuAction::StartGame;
 
@@ -154,7 +157,7 @@ inline ArchiveMenuAction showArchiveMenu()
                     // [D]elete
                     drawDialog(DialogType::Confirmation, 0);
                     g_lastKeyPressed = 0;
-                    if (handleDialog(DialogType::Confirmation) == 0) {
+                    if (handleDialog(DialogType::Confirmation, 1) == 0) {
                         // Yes
                         std::remove(file.fileName);
                         showNextFile = true;
@@ -177,9 +180,8 @@ inline ArchiveMenuAction showArchiveMenu()
                     return ArchiveMenuAction::ReturnToMainMenu;
 
                 default:
-                    /* 15e8:08bf */
-                    // wrong choice
-                    playErrorMelody();
+                    // unreachable
+                    std::abort();
                 }
             }
         }
@@ -211,8 +213,8 @@ void mainMenu()
             /* 15e8:0575 */
             // No item selected - dialog was closed due to timeout.
             // In this case, run the demo.
-            highlightFirstDlgItemSymbol(g_dialogs[static_cast<int>(DialogType::MainMenu)].x,
-                                        g_dialogs[static_cast<int>(DialogType::MainMenu)].itemY[1]);
+            toggleButtonState(g_dialogs[static_cast<int>(DialogType::MainMenu)].x,
+                              g_dialogs[static_cast<int>(DialogType::MainMenu)].itemY[1]);
             playEntitySwitchedSound(false);
             vga::waitForNRetraces(8);
             [[fallthrough]];
@@ -228,7 +230,7 @@ void mainMenu()
                 graphics::setVideoFrameOrigin(0, 0);
                 fillGameFieldBackground(350);
                 drawFieldBackground(350);
-                mouse::g_state.mode = &mouse::g_modeManagement;
+                mouse::setMode(mouse::g_modeManagement);
                 return;
             }
             break;
@@ -241,7 +243,7 @@ void mainMenu()
             graphics::setVideoFrameOrigin(0, 350);
             graphics::copyScreenBufferTo(0);
             graphics::setVideoFrameOrigin(0, 0);
-            mouse::g_state.mode = &mouse::g_modeConstruction;
+            mouse::setMode(mouse::g_modeConstruction);
             return;
 
         case 3:
@@ -266,7 +268,7 @@ void mainMenu()
             std::int16_t itemY = mainMenu.itemY[4];
             if (itemY > 350)
                 itemY -= 350;
-            highlightFirstDlgItemSymbol(mainMenu.x, itemY);
+            toggleButtonState(mainMenu.x, itemY);
             graphics::setVideoFrameOrigin(0, 0);
             break;
         }
@@ -277,8 +279,8 @@ void mainMenu()
             exitWithMessage("Bye\n");
 
         default:
-            playErrorMelody();
-            break;
+            // unreachable
+            std::abort();
         };
     }
 }

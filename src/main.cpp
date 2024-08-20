@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
     calibrateActiveSleep();
 
     Driver::instance().setKeyboardHandler(&keyboardInteruptionHandler);
-    Driver::instance().setMouseHandler(&handleMouseInput);
+    Driver::instance().mouse().setHandler(&handleMouseInput);
 
     initTasks(/* taskStacksMemory */);
 

@@ -93,6 +93,25 @@ void Scheduler::resumeTask(std::coroutine_handle<TaskPromise> task)
     std::ranges::push_heap(m_queue, AwakeTimeCompare());
 }
 
+void Scheduler::suspendTask(std::coroutine_handle<TaskPromise> task)
+{
+    assert(task.promise().m_context);
+    if (task.promise().m_context->m_suspended)
+        return;
+
+    // the task must be located in m_tasks
+    assert(std::find_if(m_tasks.begin(), m_tasks.end(),
+                        [&task](const std::pair<Task, Context>& t) {
+                            return &t.first.promise() == &task.promise();
+                        }) != m_tasks.end());
+    task.promise().m_context->m_suspended = true;
+
+    auto iter = std::ranges::find(m_queue, task);
+    assert(iter != m_queue.end());
+    m_queue.erase(iter);
+    std::ranges::make_heap(m_queue, AwakeTimeCompare());
+}
+
 void Scheduler::run()
 {
     m_stop = false;

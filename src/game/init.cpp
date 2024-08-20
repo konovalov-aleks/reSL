@@ -2,6 +2,7 @@
 
 #include "entrance.h"
 #include "header.h"
+#include "mouse/mouse.h"
 #include "move_trains.h"
 #include "rail.h"
 #include "rail_info.h"
@@ -271,8 +272,7 @@ void resetTasks()
     stopTask(g_taskMoveAndRedrawTrains);
     g_taskMoveAndRedrawTrains = addTask(taskMoveAndRedrawTrains());
 
-    // TODO
-    //    g_mouseMsgQueue.clear();
+    g_mouseMsgQueue.clear();
 }
 
 } // namespace resl

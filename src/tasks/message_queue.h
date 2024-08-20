@@ -33,6 +33,7 @@ public:
             assert(!m_msgQueue->m_queue.empty());
             MsgT result = std::move(m_msgQueue->m_queue.front());
             m_msgQueue->m_queue.pop();
+            m_msgQueue->m_waitingTask = {};
             return result;
         }
 
@@ -56,6 +57,14 @@ public:
     {
         while (!m_queue.empty())
             m_queue.pop();
+
+        if (m_waitingTask) {
+            // The task was moved to the execution queue of the scheduler
+            // because a message was pushed to MessageQueue.
+            // But we have cleared the queue => we have to cancel execution
+            // to prevent a spurious wake up.
+            Scheduler::instance().suspendTask(m_waitingTask);
+        }
     }
 
 private:

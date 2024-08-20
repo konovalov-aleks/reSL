@@ -19,7 +19,9 @@ public:
 
     void addTask(Task);
     bool stopTask(Task);
+
     void resumeTask(std::coroutine_handle<TaskPromise>);
+    void suspendTask(std::coroutine_handle<TaskPromise>);
 
     void run();
     void stop() { m_stop = true; }

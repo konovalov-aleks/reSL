@@ -6,7 +6,7 @@ The reverse engineered DOS game ShortLine v1.1. (DOKA 1992)
 
 <img width="640" alt="reSL" src="https://github.com/user-attachments/assets/774774a4-c3c7-41d5-a76e-4183ece09393">
 
-**You can try the live demo here: https://konovalov-aleks.github.io/**
+**You can play the game here, right in your browser: https://konovalov-aleks.github.io/**
 
 ## Current status
 

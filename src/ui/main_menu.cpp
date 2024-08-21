@@ -33,7 +33,9 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <filesystem>
 #include <optional>
+#include <string>
 
 namespace resl {
 
@@ -84,15 +86,20 @@ inline ArchiveMenuAction showArchiveMenu()
         char buf[80];
         // Date and time format:
         // https://www.stanislavs.org/helppc/file_attributes.html
+        int year = (file.fileDate >> 9) + 80; // year since 1980
+        if (year > 100)
+            year -= 100;
+        const std::string fileName =
+            std::filesystem::path(file.fileName).filename().string();
         std::snprintf(buf, sizeof(buf),
                       "Player: %-18s Date: %02d-%3s-%02d  Time: %02d:%02d  File: %-s",
                       g_playerName,
                       file.fileDate & 0x1F,                           // day
                       g_monthNames[((file.fileDate >> 5) & 0xF) - 1], // month
-                      (file.fileDate >> 9) + 80,                      // year since 1980
-                      (file.fileTime >> 11) & 0x1F,                   // hours
-                      (file.fileTime >> 5) & 0x3F,                    // minutes
-                      file.fileName);
+                      year,
+                      (file.fileTime >> 11) & 0x1F, // hours
+                      (file.fileTime >> 5) & 0x3F,  // minutes
+                      fileName.c_str());
         drawWorld();
 
         while (!showNextFile) {

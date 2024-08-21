@@ -27,11 +27,13 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <filesystem>
+#include <iterator>
+#include <string>
 #include <type_traits>
 
 #ifndef NDEBUG
 #   include <algorithm>
-#   include <iterator>
 #endif // !NDEBUG
 
 namespace resl {
@@ -491,17 +493,31 @@ IOStatus loadSavedGame(const char* fileName)
 /* 1400:0638 */
 int findNextSaveFile()
 {
-    /* 1d7d:01a8 : 1 byte */
-    static bool g_searchStarted = false;
+    static const std::filesystem::path searchPaths[] = {
+#ifdef __EMSCRIPTEN__
+        std::filesystem::path(g_persistentFolder) / "????????.??_",
+#endif // __EMSCRIPTEN__
+        "????????.??_",
+    };
+
+    static int g_searchStarted = false;
+    static int g_curPath = 0;
 
     int err;
     if (!g_searchStarted) {
-        err = findFirst("????????.??_", 0);
-        if (!err)
-            g_searchStarted = true;
+        const int initialPath = g_curPath;
+        do {
+            err = findFirst(searchPaths[g_curPath].generic_string().c_str(), 0);
+            if (!err) {
+                g_searchStarted = true;
+                break;
+            }
+            g_curPath = (g_curPath + 1) % std::size(searchPaths);
+        } while (g_curPath != initialPath);
     } else {
         err = findNext();
         if (err) {
+            g_curPath = (g_curPath + 1) % std::size(searchPaths);
             g_searchStarted = false;
             err = findNextSaveFile();
         }

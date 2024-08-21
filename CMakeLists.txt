@@ -108,7 +108,8 @@ if (EMSCRIPTEN)
         "-sEXIT_RUNTIME=1"
         "-sMODULARIZE=1"
         "-sEXPORT_NAME=\"createModule\""
-        "-sEXPORTED_RUNTIME_METHODS=[\"callMain\",\"addOnExit\",\"JSEvents\"]")
+        "-sEXPORTED_RUNTIME_METHODS=[\"callMain\",\"addOnExit\",\"JSEvents\"]"
+        "-lidbfs.js")
 
     file (GLOB resources LIST_DIRECTORIES false ${CMAKE_CURRENT_SOURCE_DIR}/resources/*)
     file (GLOB extra LIST_DIRECTORIES false ${CMAKE_CURRENT_SOURCE_DIR}/resources/extra/*)

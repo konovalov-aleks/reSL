@@ -17,10 +17,37 @@
 #   include <system_error>
 #endif
 
+#ifdef __EMSCRIPTEN__
+#   include <emscripten.h>
+
+#   include <tuple>
+#endif // __EMSCRIPTEN__
+
 namespace resl {
 
 /* 262d:7378 - 14 bytes */
 static char g_lastFileName[14];
+
+void initFS()
+{
+#ifdef __EMSCRIPTEN__
+    static_assert(
+        std::tuple(__EMSCRIPTEN_major__, __EMSCRIPTEN_minor__, __EMSCRIPTEN_tiny__) >=
+            std::tuple(3, 1, 61),
+        "emscripten older than 3.1.61 doesn't support autoPersist flag "
+        "=> this code will work incorrectly");
+
+    EM_ASM({
+        var path = UTF8ToString($0);
+        FS.mkdir(path);
+        FS.mount(IDBFS, {
+            autoPersist: true
+        }, path);
+        FS.syncfs(true, (err) => {
+            console.error(`FS.syncfs failed: ${err}`);
+        }); }, g_persistentFolder);
+#endif // __EMSCRIPTEN__
+}
 
 /* 1abc:0005 */
 std::size_t readBinaryFile(const char* fileName, void* pagePtr)

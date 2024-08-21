@@ -28,6 +28,13 @@
 #include <limits>
 #include <type_traits>
 
+#ifdef __EMSCRIPTEN__
+#   include <system/filesystem.h>
+
+#   include <filesystem>
+#   include <string>
+#endif // __EMSCRIPTEN__
+
 namespace resl {
 
 namespace {
@@ -191,7 +198,15 @@ static void generateFileName(char* buf, std::size_t bufSize)
 /* 1400:0245 */
 static void saveGameState(const char* fileName)
 {
-    std::FILE* file = std::fopen(fileName, "wb");
+#ifdef __EMSCRIPTEN__
+    const std::string fullPathStr =
+        (std::filesystem::path(g_persistentFolder) / fileName).generic_string();
+    const char* const fullPath = fullPathStr.c_str();
+#else
+    const char* const fullPath = fileName;
+#endif
+
+    std::FILE* file = std::fopen(fullPath, "wb");
     if (!file) [[unlikely]] {
         g_ioStatus = IOStatus::OpenError;
         return;

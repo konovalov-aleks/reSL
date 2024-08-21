@@ -5,6 +5,7 @@
 #include "game/train.h"
 #include "graphics/vga.h"
 #include "system/active_sleep.h"
+#include "system/filesystem.h"
 #include "system/keyboard.h"
 #include "system/time.h"
 #include "tasks/task.h"
@@ -130,6 +131,8 @@ int main(int argc, char* argv[])
         else
             return usage(argc, argv, i);
     }
+
+    initFS();
 
     if (debugGraphics)
         Driver::instance().vga().setDebugMode(true);

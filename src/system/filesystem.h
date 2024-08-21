@@ -5,6 +5,12 @@
 
 namespace resl {
 
+#ifdef __EMSCRIPTEN__
+
+static constexpr const char* const g_persistentFolder = "/persistent";
+
+#endif // __EMSCRIPTEN__
+
 // The original game uses a cumbersome structure DTA from DOS API with many
 // useless fields:
 //      https://www.stanislavs.org/helppc/int_21-4e.html
@@ -17,6 +23,8 @@ struct FileInfo {
 };
 
 //-----------------------------------------------------------------------------
+
+void initFS();
 
 /* 1abc:0005 */
 std::size_t readBinaryFile(const char* fileName, void* pagePtr);

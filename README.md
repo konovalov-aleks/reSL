@@ -64,13 +64,14 @@ To build reSL you will need:
 * modern C++ compiler with C++20 support (modern clang, GCC, MSVC)
 * [cmake](https://cmake.org/download/)
 * [SDL2](https://github.com/libsdl-org/SDL/releases)
+* [SDL2-image](https://github.com/libsdl-org/SDL_image/releases)
 
 ### MacOS
 
 Open the Terminal application and execute the following instructions:
 ```
 # install dependencies
-brew install cmake sdl2
+brew install cmake sdl2 sdl2_image
 # prepare the build folder
 mkdir -p build && cd build
 # run cmake
@@ -86,7 +87,7 @@ cmake --build . -j4
 Open the terminal application and execute the following instructions:
 ```
 # install dependencies
-sudo apt install -y cmake libsdl2-dev
+sudo apt install -y cmake libsdl2-dev libsdl2-image-dev
 # prepare the build folder
 mkdir -p build && cd build
 # run cmake

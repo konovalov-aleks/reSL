@@ -59,7 +59,7 @@ namespace {
     }
 
     /* 14af:0264 */
-    void updateCursorPos(std::int16_t x, std::int16_t y)
+    bool updateCursorPos(std::int16_t x, std::int16_t y)
     {
         Mode& mode = *g_state.mode;
         /*
@@ -81,18 +81,21 @@ namespace {
         const std::int8_t tileY = static_cast<std::int8_t>(
             y / 21.0 - tx + 22.0 / 21.0);
 
-        if (tileX == mode.x && tileY == mode.y)
-            return;
+        if (tileX == g_railCursorState.tileX && tileY == g_railCursorState.tileY)
+            return false;
 
         if (tileX < 0 || tileX > 10 || tileY < 0 || tileY > 10)
-            return;
+            return false;
 
         if (g_allowedRailCursorTypes[tileX][tileY] & (1 << g_railCursorState.railType)) {
             mode.clearFn();
             g_railCursorState.tileX = tileX;
             g_railCursorState.tileY = tileY;
             mode.drawFn();
+            return true;
         }
+
+        return false;
     }
 
 } // namespace

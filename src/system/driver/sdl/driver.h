@@ -38,7 +38,7 @@ public:
     void pollEvent();
 
 private:
-    Driver() = default;
+    Driver();
     Driver(const Driver&) = delete;
     Driver& operator=(const Driver&) = delete;
 

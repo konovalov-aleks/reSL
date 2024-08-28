@@ -3,6 +3,7 @@
 #include <SDL_events.h>
 #include <SDL_render.h>
 
+#include "touch_handler.h"
 #include <system/mouse.h>
 
 #include <cstdint>
@@ -11,7 +12,7 @@ namespace resl {
 
 class MouseDriver {
 public:
-    MouseDriver();
+    MouseDriver(SDL_Renderer*);
     ~MouseDriver();
 
     void setCursorVisibility(bool);
@@ -26,7 +27,15 @@ public:
 private:
     void onMouseButtonEvent(const SDL_MouseButtonEvent&);
     void onMouseMove(const SDL_MouseMotionEvent&);
+    void onTouch(const SDL_TouchFingerEvent&);
+    void onLongTouch(int x, int y);
+
+    void implOnMouseButtonEvent(const SDL_MouseButtonEvent&);
+    void implOnMouseMove(const SDL_MouseMotionEvent&);
+
     void drawCursor(SDL_Renderer*);
+
+    TouchHandler m_touchHandler;
 
     MouseHandler m_handler = nullptr;
     std::uint16_t m_mouseButtonState;
@@ -34,7 +43,7 @@ private:
     int m_cursorX = 0;
     int m_cursorY = 0;
 
-    SDL_Texture* m_cursorTexture = nullptr;
+    SDL_Texture* m_cursorTexture;
     bool m_mouseConnected;
     bool m_cursorVisible = false;
 

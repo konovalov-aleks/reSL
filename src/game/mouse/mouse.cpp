@@ -80,7 +80,9 @@ Task taskMouseEventHandling()
 
         assert(mouse::g_state.mode);
         mouse::Mode& mode = *mouse::g_state.mode;
-        mode.updatePosFn(e.x, e.y);
+        bool positionChanged = false;
+        if (e.action != MouseAction::BuildRails)
+            positionChanged = mode.updatePosFn(e.x, e.y);
 
         switch (e.action) {
         case MouseAction::CallServer:
@@ -143,18 +145,22 @@ Task taskMouseEventHandling()
 
         case MouseAction::ToggleNextRailType:
             /* 14af:0595 */
-            assert(mouse::g_state.mode);
-            mouse::g_state.mode->clearFn();
-            for (;;) {
-                RailInfo& rcs = mouse::g_railCursorState;
-                rcs.railType = (rcs.railType + 1) % 6;
-                const std::uint8_t curRailMask = 1 << rcs.railType;
-                const std::uint8_t allowedMask =
-                    g_allowedRailCursorTypes[rcs.tileX][rcs.tileY];
-                if (curRailMask & allowedMask)
-                    break;
+
+            // if the user clicked on a new chunk, we just need to move cursor
+            if (!positionChanged) {
+                assert(mouse::g_state.mode);
+                mouse::g_state.mode->clearFn();
+                for (;;) {
+                    RailInfo& rcs = mouse::g_railCursorState;
+                    rcs.railType = (rcs.railType + 1) % 6;
+                    const std::uint8_t curRailMask = 1 << rcs.railType;
+                    const std::uint8_t allowedMask =
+                        g_allowedRailCursorTypes[rcs.tileX][rcs.tileY];
+                    if (curRailMask & allowedMask)
+                        break;
+                }
+                mouse::g_state.mode->drawFn();
             }
-            mouse::g_state.mode->drawFn();
             break;
 
         case MouseAction::BuildRails:

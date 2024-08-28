@@ -10,11 +10,12 @@ namespace resl::mouse {
 
 namespace {
 
-    void updateCursorPos(std::int16_t x, std::int16_t y)
+    bool updateCursorPos(std::int16_t x, std::int16_t y)
     {
         Mode& mode = g_modeManagement;
         mode.x = std::min(std::max<std::int16_t>(x, mode.minX), mode.maxX);
         mode.y = std::min(std::max<std::int16_t>(y, mode.minY), mode.maxY);
+        return true;
     }
 
 } // namespace

@@ -65,6 +65,8 @@ public:
 
     Uint32 preferredPixelFormat() const { return m_pixelFormat; }
 
+    SDL_Renderer* renderer() const noexcept { return m_renderer; }
+
 private:
     static constexpr int s_FPS = 60;
 

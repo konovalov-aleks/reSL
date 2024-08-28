@@ -62,6 +62,8 @@ set(SOURCES
     src/system/driver/sdl/audio.cpp
     src/system/driver/sdl/driver.cpp
     src/system/driver/sdl/mouse.cpp
+    src/system/driver/sdl/texture.cpp
+    src/system/driver/sdl/touch_handler.cpp
     src/system/driver/sdl/video.cpp
     src/system/exit.cpp
     src/system/filesystem.cpp
@@ -103,7 +105,8 @@ if (EMSCRIPTEN)
     target_compile_options(resl PRIVATE "-sUSE_SDL=2" "-msimd128")
     target_link_options(resl PRIVATE
         "-sASYNCIFY"
-        "-sUSE_SDL=2"
+        "--use-port=sdl2"
+        "--use-port=sdl2_image:formats=png"
         "-sINVOKE_RUN=0"
         "-sEXIT_RUNTIME=1"
         "-sMODULARIZE=1"
@@ -112,8 +115,9 @@ if (EMSCRIPTEN)
         "-lidbfs.js")
 
     file (GLOB resources LIST_DIRECTORIES false ${CMAKE_CURRENT_SOURCE_DIR}/resources/*)
+    file (GLOB reSL LIST_DIRECTORIES false ${CMAKE_CURRENT_SOURCE_DIR}/resources/reSL/*)
     file (GLOB extra LIST_DIRECTORIES false ${CMAKE_CURRENT_SOURCE_DIR}/resources/extra/*)
-    list (APPEND resources ${extra})
+    list (APPEND resources ${reSL} ${extra})
 
     foreach(path ${resources})
         get_filename_component(fname ${path} NAME)
@@ -122,12 +126,9 @@ if (EMSCRIPTEN)
     endforeach()
 else()
     find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
-    find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
+    find_package(SDL2_image REQUIRED)
 
-    if(TARGET SDL2::SDL2main)
-        target_link_libraries(resl PRIVATE SDL2::SDL2main)
-    endif()
-    target_link_libraries(resl PRIVATE SDL2::SDL2)
+    target_link_libraries(resl PRIVATE SDL2::SDL2 SDL2_image::SDL2_image)
 
     add_custom_command(
         TARGET resl
@@ -150,6 +151,10 @@ else()
         COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_CURRENT_SOURCE_DIR}/resources/RULES.TXT
             $<TARGET_FILE_DIR:resl>/RULES.TXT
+
+        COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_CURRENT_SOURCE_DIR}/resources/reSL/build_rail_icon.png
+            $<TARGET_FILE_DIR:resl>/build_rail_icon.png
     )
 
     if (WIN32)

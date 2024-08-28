@@ -2,6 +2,7 @@
 
 #include "system/driver/sdl/driver.h"
 #include "system/driver/sdl/video.h"
+#include "touch_handler.h"
 #include <graphics/vga.h>
 #include <system/mouse.h>
 
@@ -160,16 +161,17 @@ namespace {
 
 } // namespace
 
-MouseDriver::MouseDriver()
-    : m_mouseButtonState(mouseButtonState())
+MouseDriver::MouseDriver(SDL_Renderer* renderer)
+    : m_touchHandler(renderer, [this](int x, int y) { onLongTouch(x, y); })
+    , m_mouseButtonState(mouseButtonState())
+    , m_cursorTexture(createTexture(renderer))
     , m_mouseConnected(hasMouse())
 {
 }
 
 MouseDriver::~MouseDriver()
 {
-    if (m_cursorTexture)
-        SDL_DestroyTexture(m_cursorTexture);
+    SDL_DestroyTexture(m_cursorTexture);
 }
 
 void MouseDriver::setCursorVisibility(bool visible)
@@ -201,6 +203,12 @@ MouseHandler MouseDriver::setHandler(MouseHandler hdl)
 
 void MouseDriver::drawCursor(SDL_Renderer* renderer)
 {
+    if (!m_mouseConnected) {
+        m_touchHandler.draw(renderer);
+        Driver::instance().vga().requestScreenUpdate(); // TODO check if the animation is visible
+        return;
+    }
+
     /* It would be better to use SDL_CreateCursor / SDL_SetCursor to set
        a custom cursor. But in this case the cursor is drawn very blurry
        on high-dpi systems (like MacBook with retina display).
@@ -209,14 +217,19 @@ void MouseDriver::drawCursor(SDL_Renderer* renderer)
     if (!cursorVisible())
         return;
 
-    if (!m_cursorTexture)
-        m_cursorTexture = createTexture(renderer);
+    assert(m_cursorTexture);
 
     SDL_Rect dstRect = { m_cursorX, m_cursorY, cursorW, cursorH };
     SDL_RenderCopy(renderer, m_cursorTexture, nullptr, &dstRect);
 }
 
 void MouseDriver::onMouseButtonEvent(const SDL_MouseButtonEvent& e)
+{
+    m_mouseConnected = true;
+    implOnMouseButtonEvent(e);
+}
+
+void MouseDriver::implOnMouseButtonEvent(const SDL_MouseButtonEvent& e)
 {
     if (!m_handler) [[unlikely]]
         return;
@@ -241,6 +254,12 @@ void MouseDriver::onMouseButtonEvent(const SDL_MouseButtonEvent& e)
 
 void MouseDriver::onMouseMove(const SDL_MouseMotionEvent& e)
 {
+    m_mouseConnected = true;
+    implOnMouseMove(e);
+}
+
+void MouseDriver::implOnMouseMove(const SDL_MouseMotionEvent& e)
+{
     if (!m_handler) [[unlikely]]
         return;
 
@@ -261,6 +280,45 @@ void MouseDriver::onMouseMove(const SDL_MouseMotionEvent& e)
 
     m_cursorX = static_cast<int>(x);
     m_cursorY = static_cast<int>(y);
+}
+
+void MouseDriver::onTouch(const SDL_TouchFingerEvent& e)
+{
+    m_mouseConnected = false;
+    switch (e.type) {
+    case SDL_FINGERMOTION:
+        break;
+    case SDL_FINGERDOWN: {
+        const int x = static_cast<int>(e.x * SCREEN_WIDTH);
+        const int y = static_cast<int>(e.y * SCREEN_HEIGHT);
+        m_touchHandler.onPressStart(x, y);
+        break;
+    }
+    case SDL_FINGERUP:
+        if (!m_touchHandler.onPressEnd()) {
+            // the action was not handles as a long press event
+            // => handle this as a simple click
+            SDL_MouseButtonEvent mbe;
+            mbe.button = SDL_BUTTON_LEFT;
+            mbe.x = static_cast<int>(e.x * SCREEN_WIDTH);
+            mbe.y = static_cast<int>(e.y * SCREEN_HEIGHT);
+            mbe.type = SDL_MOUSEBUTTONUP;
+            implOnMouseButtonEvent(mbe);
+        }
+        break;
+    [[unlikely]] default:
+        std::cerr << "Unexpected touch event, type = " << e.type << std::endl;
+    }
+}
+
+void MouseDriver::onLongTouch(int x, int y)
+{
+    SDL_MouseButtonEvent mbe;
+    mbe.button = SDL_BUTTON_RIGHT;
+    mbe.x = x;
+    mbe.y = y;
+    mbe.type = SDL_MOUSEBUTTONUP;
+    implOnMouseButtonEvent(mbe);
 }
 
 } // namespace resl

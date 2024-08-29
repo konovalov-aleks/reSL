@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
-#include <cstddef>
+#include <cstdlib>
 #include <iostream>
 #include <limits>
 #include <utility>
@@ -51,14 +51,45 @@ void TouchHandler::onPressStart(int x, int y)
     }
 }
 
-bool TouchHandler::onPressEnd()
+void TouchHandler::onPressEnd()
 {
+    if (m_handler && m_context.pressed && std::holds_alternative<WaitStage>(m_stage))
+        m_handler(Action::Tap, m_context.x, m_context.y);
     m_context.pressed = false;
-    if (std::holds_alternative<FinishedStage>(m_stage)) {
+    if (std::holds_alternative<FinishedStage>(m_stage))
         m_stage = WaitStage();
-        return true;
-    }
-    return false;
+}
+
+void TouchHandler::onMove(int x, int y)
+{
+    const int dx = std::abs(x - m_context.x);
+    const int dy = std::abs(y - m_context.y);
+    const int distSqr = dx * dx + dy * dy;
+    std::visit(
+        [this, distSqr, x, y]<typename T>(T& s) {
+            if constexpr (std::is_same_v<T, WaitStage>) {
+                if (distSqr >= g_minSwipeDistance * g_minSwipeDistance) {
+                    static_assert(g_maxSwipeTimeMs >= WaitStage::g_animationDelayMs);
+                    if (m_handler)
+                        m_handler(Action::Swipe, x, y);
+                    m_stage = FinishedStage();
+                } else if (distSqr > g_maxTapDistance * g_maxTapDistance) {
+                    static_assert(g_maxSwipeTimeMs >= WaitStage::g_animationDelayMs);
+                    m_stage = SwipeStage { s.m_time };
+                }
+
+            } else if constexpr (std::is_same_v<T, TimerStage>)
+                m_context.pressed = distSqr <= g_maxTapDistance * g_maxTapDistance;
+
+            else if constexpr (std::is_same_v<T, SwipeStage>) {
+                if (distSqr >= g_minSwipeDistance * g_minSwipeDistance) {
+                    if (m_handler)
+                        m_handler(Action::Swipe, x, y);
+                    m_stage = FinishedStage();
+                }
+            }
+        },
+        m_stage);
 }
 
 void TouchHandler::draw(SDL_Renderer* renderer)
@@ -75,7 +106,7 @@ void TouchHandler::draw(SDL_Renderer* renderer)
             m_stage);
     if (newStage) {
         if (m_handler && std::holds_alternative<FinishedStage>(*newStage))
-            m_handler(m_context.x, m_context.y);
+            m_handler(Action::LongTap, m_context.x, m_context.y);
         m_stage = std::move(*newStage);
     }
 }
@@ -194,6 +225,16 @@ std::optional<TouchHandler::StageT> TouchHandler::ConfirmationStage::handle(
     SDL_RenderCopy(renderer, ctx.icon, nullptr, &dstRect);
 
     if (m_time >= maxScaleTimeMs)
+        return FinishedStage();
+
+    return std::nullopt;
+}
+
+std::optional<TouchHandler::StageT> TouchHandler::SwipeStage::handle(
+    SDL_Renderer*, int dTime, const AnimationContext&)
+{
+    m_time += dTime;
+    if (m_time > g_maxSwipeTimeMs)
         return FinishedStage();
 
     return std::nullopt;

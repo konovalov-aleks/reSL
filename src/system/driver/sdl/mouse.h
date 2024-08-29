@@ -28,10 +28,8 @@ private:
     void onMouseButtonEvent(const SDL_MouseButtonEvent&);
     void onMouseMove(const SDL_MouseMotionEvent&);
     void onTouch(const SDL_TouchFingerEvent&);
-    void onLongTouch(int x, int y);
 
-    void implOnMouseButtonEvent(const SDL_MouseButtonEvent&);
-    void implOnMouseMove(const SDL_MouseMotionEvent&);
+    void handleTouchAction(TouchHandler::Action, int x, int y);
 
     void drawCursor(SDL_Renderer*);
 

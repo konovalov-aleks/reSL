@@ -162,7 +162,11 @@ namespace {
 } // namespace
 
 MouseDriver::MouseDriver(SDL_Renderer* renderer)
-    : m_touchHandler(renderer, [this](int x, int y) { onLongTouch(x, y); })
+    : m_touchHandler(
+          renderer,
+          [this](TouchHandler::Action a, int x, int y) {
+              handleTouchAction(a, x, y);
+          })
     , m_mouseButtonState(mouseButtonState())
     , m_cursorTexture(createTexture(renderer))
     , m_mouseConnected(hasMouse())
@@ -226,11 +230,6 @@ void MouseDriver::drawCursor(SDL_Renderer* renderer)
 void MouseDriver::onMouseButtonEvent(const SDL_MouseButtonEvent& e)
 {
     m_mouseConnected = true;
-    implOnMouseButtonEvent(e);
-}
-
-void MouseDriver::implOnMouseButtonEvent(const SDL_MouseButtonEvent& e)
-{
     if (!m_handler) [[unlikely]]
         return;
 
@@ -255,11 +254,6 @@ void MouseDriver::implOnMouseButtonEvent(const SDL_MouseButtonEvent& e)
 void MouseDriver::onMouseMove(const SDL_MouseMotionEvent& e)
 {
     m_mouseConnected = true;
-    implOnMouseMove(e);
-}
-
-void MouseDriver::implOnMouseMove(const SDL_MouseMotionEvent& e)
-{
     if (!m_handler) [[unlikely]]
         return;
 
@@ -285,40 +279,43 @@ void MouseDriver::implOnMouseMove(const SDL_MouseMotionEvent& e)
 void MouseDriver::onTouch(const SDL_TouchFingerEvent& e)
 {
     m_mouseConnected = false;
+    const int x = static_cast<int>(e.x * SCREEN_WIDTH);
+    const int y = static_cast<int>(e.y * SCREEN_HEIGHT);
     switch (e.type) {
     case SDL_FINGERMOTION:
+        m_touchHandler.onMove(x, y);
         break;
     case SDL_FINGERDOWN: {
-        const int x = static_cast<int>(e.x * SCREEN_WIDTH);
-        const int y = static_cast<int>(e.y * SCREEN_HEIGHT);
         m_touchHandler.onPressStart(x, y);
         break;
     }
     case SDL_FINGERUP:
-        if (!m_touchHandler.onPressEnd()) {
-            // the action was not handles as a long press event
-            // => handle this as a simple click
-            SDL_MouseButtonEvent mbe;
-            mbe.button = SDL_BUTTON_LEFT;
-            mbe.x = static_cast<int>(e.x * SCREEN_WIDTH);
-            mbe.y = static_cast<int>(e.y * SCREEN_HEIGHT);
-            mbe.type = SDL_MOUSEBUTTONUP;
-            implOnMouseButtonEvent(mbe);
-        }
+        m_touchHandler.onPressEnd();
         break;
     [[unlikely]] default:
         std::cerr << "Unexpected touch event, type = " << e.type << std::endl;
     }
 }
 
-void MouseDriver::onLongTouch(int x, int y)
+void MouseDriver::handleTouchAction(TouchHandler::Action action, int x, int y)
 {
-    SDL_MouseButtonEvent mbe;
-    mbe.button = SDL_BUTTON_RIGHT;
-    mbe.x = x;
-    mbe.y = y;
-    mbe.type = SDL_MOUSEBUTTONUP;
-    implOnMouseButtonEvent(mbe);
+    if (!m_handler) [[unlikely]]
+        return;
+
+    switch (action) {
+    case TouchHandler::Action::Tap:
+        m_handler(ME_LEFTRELEASED, 0, x, y);
+        break;
+    case TouchHandler::Action::LongTap:
+        m_handler(ME_RIGHTRELEASED, 0, x, y);
+        break;
+    case TouchHandler::Action::Swipe:
+        m_handler(
+            ME_LEFTPRESSED | ME_RIGHTPRESSED,
+            MouseButton::MB_LEFT | MouseButton::MB_RIGHT, x, y);
+        m_handler(ME_LEFTRELEASED | ME_RIGHTRELEASED, 0, x, y);
+        break;
+    }
 }
 
 } // namespace resl

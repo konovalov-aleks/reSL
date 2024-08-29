@@ -1,6 +1,7 @@
 #pragma once
 
 #include "texture.h"
+#include <graphics/vga.h>
 
 #include <SDL_pixels.h>
 #include <SDL_rect.h>
@@ -18,13 +19,19 @@ namespace resl {
 
 class TouchHandler {
 public:
-    using LongPressHandlerT = std::function<void(int x, int y)>;
+    enum class Action {
+        Tap,
+        LongTap,
+        Swipe
+    };
+
+    using LongPressHandlerT = std::function<void(Action, int x, int y)>;
 
     TouchHandler(SDL_Renderer*, LongPressHandlerT);
 
     void onPressStart(int x, int y);
-    // returns whether this keypress was processed
-    bool onPressEnd();
+    void onPressEnd();
+    void onMove(int x, int y);
 
     void draw(SDL_Renderer*);
 
@@ -41,12 +48,21 @@ private:
     static constexpr int g_fillTimeMs = 700;
     static constexpr int g_clearTimeMs = 400;
 
-    class WaitStage;
+    static constexpr int g_maxTapDistance = SCREEN_HEIGHT / 5;
+    static constexpr int g_minSwipeDistance = SCREEN_HEIGHT / 3;
+    static constexpr int g_maxSwipeTimeMs = 500;
+
+    struct WaitStage;
     class TimerStage;
     class ConfirmationStage;
+    struct SwipeStage;
     class FinishedStage;
 
-    using StageT = std::variant<WaitStage, TimerStage, ConfirmationStage, FinishedStage>;
+    using StageT = std::variant<
+        WaitStage,
+        TimerStage, ConfirmationStage, // long tap animation
+        SwipeStage,
+        FinishedStage>;
 
     struct AnimationContext {
         bool pressed = false;
@@ -59,11 +75,9 @@ private:
         int y = 0;
     };
 
-    class WaitStage {
-    public:
+    struct WaitStage {
         std::optional<StageT> handle(SDL_Renderer*, int dTime, const AnimationContext&);
 
-    private:
         static constexpr int g_animationDelayMs = 200;
         int m_time = 0;
     };
@@ -85,6 +99,12 @@ private:
 
     private:
         int m_time = 0;
+    };
+
+    struct SwipeStage {
+        std::optional<StageT> handle(SDL_Renderer*, int dTime, const AnimationContext&);
+
+        int m_time;
     };
 
     class FinishedStage {

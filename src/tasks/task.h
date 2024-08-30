@@ -14,8 +14,14 @@ struct TaskPromise;
 struct Context {
     using Time = std::chrono::steady_clock::time_point;
 
+    Context(unsigned priority)
+        : m_priority(priority)
+    {
+    }
+
     // a newly created task has a highest execution priority
     Time m_sleepUntil = {};
+    unsigned m_priority;
     bool m_suspended = false;
 };
 

@@ -23,7 +23,11 @@ namespace {
         {
             assert(a.promise().m_context);
             assert(b.promise().m_context);
-            return a.promise().m_context->m_sleepUntil > b.promise().m_context->m_sleepUntil;
+            const auto& ac = *a.promise().m_context;
+            const auto& bc = *b.promise().m_context;
+            if (ac.m_sleepUntil == bc.m_sleepUntil)
+                return ac.m_priority < bc.m_priority;
+            return ac.m_sleepUntil > bc.m_sleepUntil;
         }
     };
 
@@ -48,7 +52,16 @@ void Scheduler::reset()
 
 void Scheduler::addTask(Task task)
 {
-    m_tasks.emplace_back(task, Context());
+    // The original game has logic that relies on a new task being launched next.
+    // So, the field m_priority makes a guarantee that the task will be started
+    // first even if there are tasks with the same awake time.
+    unsigned highestPriority = 0;
+    for (const auto& [_, ctx] : m_tasks) {
+        if (highestPriority < ctx.m_priority)
+            highestPriority = ctx.m_priority;
+    }
+
+    m_tasks.emplace_back(task, Context(highestPriority + 1));
     task.promise().m_context = &m_tasks.back().second;
 
     m_queue.push_back(task);

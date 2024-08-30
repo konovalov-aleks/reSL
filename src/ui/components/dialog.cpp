@@ -196,7 +196,7 @@ std::int16_t handleDialog(DialogType type, std::optional<std::int16_t> defaultCh
             }
 
             if (g_lastKeyPressed) {
-                for (std::size_t i = 0; !selectedItem && i < itemsCount; ++i) {
+                for (std::int16_t i = 0; !selectedItem && i < itemsCount; ++i) {
                     if (dlg.itemNames[i][0] >= 'A' &&
                         g_asciiToKeycodeTable[dlg.itemNames[i][0] - 'A'] == g_lastKeyPressed) {
 

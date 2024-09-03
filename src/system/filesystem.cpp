@@ -65,7 +65,12 @@ std::size_t readBinaryFile(const char* fileName, void* pagePtr)
 /* 1400:067f */
 std::size_t readTextFile(const char* fileName)
 {
-    std::FILE* file = std::fopen(fileName, "r");
+    // The original game uses "text" mode here, which can perform
+    // system-dependent transformations.
+    // E.g: in this mode, DOS automatically replaces line endings with "\r\n".
+    // But reSL is portable, so we read files as is (in fact, this functions
+    // is only used to read RULES.TXT, which is already uses \r\n line endings)
+    std::FILE* file = std::fopen(fileName, "rb");
     std::size_t nBytes = 0;
     if (file) {
         nBytes = std::fread(g_pageBuffer, 1, 0xFFDC, file);

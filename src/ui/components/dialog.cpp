@@ -173,8 +173,10 @@ std::int16_t handleDialog(DialogType type, std::optional<std::int16_t> defaultCh
 {
     const Dialog& dlg = g_dialogs[static_cast<int>(type)];
     std::int16_t timeout = 700;
-    std::size_t itemsCount = 0;
-    while (itemsCount < std::size(dlg.itemNames) && dlg.itemNames[itemsCount])
+    std::int16_t itemsCount = 0;
+    const std::int16_t maxItemsCount =
+        static_cast<std::int16_t>(std::size(dlg.itemNames));
+    while (itemsCount < maxItemsCount && dlg.itemNames[itemsCount])
         ++itemsCount;
 
     std::optional<std::int16_t> selectedItem;
@@ -188,7 +190,7 @@ std::int16_t handleDialog(DialogType type, std::optional<std::int16_t> defaultCh
             }
 
             if (g_lastKeyPressed) {
-                for (std::size_t i = 0; !selectedItem && i < itemsCount; ++i) {
+                for (std::int16_t i = 0; !selectedItem && i < itemsCount; ++i) {
                     if (dlg.itemNames[i][0] >= 'A' &&
                         g_asciiToKeycodeTable[dlg.itemNames[i][0] - 'A'] == g_lastKeyPressed) {
 

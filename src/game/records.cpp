@@ -253,25 +253,26 @@ void writeRecords()
 std::int16_t readLevel()
 {
     constexpr std::size_t levelFieldOffset = 7;
+    constexpr std::int16_t defaultLevel = 1;
 
     std::int16_t data[18];
     static_assert(sizeof(data) >= g_recordSize);
 
     std::FILE* file = std::fopen(g_recordsFileName, "rb");
     if (!file) [[unlikely]]
-        data[levelFieldOffset] = 1;
-    else {
-        std::fseek(file, playerNameHash() * g_recordSize, SEEK_SET);
-        std::fread(data, g_recordSize, 1, file);
-        std::fclose(file);
+        return defaultLevel;
+    std::fseek(file, playerNameHash() * g_recordSize, SEEK_SET);
+    std::size_t nRecords = std::fread(data, g_recordSize, 1, file);
+    std::fclose(file);
+    if (nRecords != 1) [[unlikely]]
+        return defaultLevel;
 
-        // The original game is not portable - it works only on LE systems.
-        // reSL have to perform a byte order conversion to be able to work on BE systems.
-        data[levelFieldOffset] = littleEndianToNative(data[levelFieldOffset]);
+    // The original game is not portable - it works only on LE systems.
+    // reSL have to perform a byte order conversion to be able to work on BE systems.
+    data[levelFieldOffset] = littleEndianToNative(data[levelFieldOffset]);
 
-        if (data[levelFieldOffset] == 0)
-            data[levelFieldOffset] = 1;
-    }
+    if (data[levelFieldOffset] <= 0)
+        data[levelFieldOffset] = defaultLevel;
     return data[levelFieldOffset];
 }
 

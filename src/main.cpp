@@ -60,9 +60,9 @@ static void initTasks(/* void* taskStacksMemory */)
        So, this implementation of the function is different (but logically the same).
     */
 
-    g_taskGameMainLoop = addTask(taskGameMainLoop());
-    addTask(taskMouseEventHandling());
     addTask(taskSpawnTrains());
+    addTask(taskMouseEventHandling());
+    g_taskGameMainLoop = addTask(taskGameMainLoop());
 
     runScheduler();
 }

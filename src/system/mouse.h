@@ -17,7 +17,7 @@ namespace resl {
 */
 
 // constants from MOUSE.H
-enum MouseEvent : std::uint16_t {
+enum MouseEventType : std::uint16_t {
     ME_MOVED = 1,
     ME_LEFTPRESSED = 2,
     ME_LEFTRELEASED = 4,
@@ -38,8 +38,36 @@ enum MouseButton {
     MB_MIDDLE = 4
 };
 
-using MouseHandler = std::function<void(std::uint16_t mouseEventFlags,
-                                        std::uint16_t mouseButtonState,
-                                        std::int16_t x, std::int16_t y)>;
+class MouseEvent {
+public:
+    MouseEvent(
+        std::uint16_t flags, std::uint16_t btnState,
+        std::int16_t x, std::int16_t y)
+        : m_flags(flags)
+        , m_buttonState(btnState)
+        , m_x(x)
+        , m_y(y)
+    {
+    }
+
+    std::uint16_t flags() const noexcept { return m_flags; }
+    std::uint16_t buttonState() const noexcept { return m_buttonState; }
+
+    std::int16_t x() const noexcept { return m_x; }
+    std::int16_t y() const noexcept { return m_y; }
+
+    void stopPropagation() noexcept { m_propagation = false; }
+    bool propagation() const noexcept { return m_propagation; }
+
+private:
+    std::uint16_t m_flags;
+    std::uint16_t m_buttonState;
+    std::int16_t m_x;
+    std::int16_t m_y;
+
+    bool m_propagation = true;
+};
+
+using MouseHandler = std::function<void(MouseEvent&)>;
 
 } // namespace resl

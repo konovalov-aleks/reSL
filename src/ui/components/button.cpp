@@ -67,7 +67,8 @@ void drawButton(std::int16_t x, std::int16_t y, const char* caption)
     drawGlyph(g_menuItemGlyph1, x, y, Color::White);
     drawGlyph(g_menuItemGlyph2, x, y, Color::Gray);
     drawGlyph(g_menuItemGlyph3, x, y, Color::Black);
-    drawText(x + 7, y + 5, caption, Color::Black);
+    if (caption)
+        drawText(x + 7, y + 5, caption, Color::Black);
 }
 
 /* 15e8:047b */

@@ -30,6 +30,7 @@
 #include <types/rectangle.h>
 #include <ui/components/dialog.h>
 #include <ui/components/draw_header.h>
+#include <ui/components/menu_button.h>
 #include <ui/components/status_bar.h>
 #include <ui/game_over.h>
 #include <ui/loading_screen.h>
@@ -87,8 +88,6 @@ inline PauseMenuAction showPauseMenu()
     Rectangle dialogRect;
     bool needInit = true;
     for (;;) {
-        mouse::Mode* oldMode = mouse::g_state.mode;
-        mouse::setMode(mouse::g_modeManagement);
         if (needInit) {
             dialogRect = drawDialog(DialogType::Pause, 0);
             writeRecords();
@@ -111,7 +110,6 @@ inline PauseMenuAction showPauseMenu()
             graphics::copyFromShadowBuffer(dialogRect);
             vga::setVideoModeR0W2();
             scheduleAllTrainsRedrawing();
-            mouse::setMode(*oldMode);
             enableTimer();
             spawnNewTrain();
             return PauseMenuAction::ContinueGame;
@@ -160,9 +158,10 @@ Task taskGameMainLoop()
 
     g_gameOver = false;
 
+    MenuButton menuButton;
+
     for (;;) {
         /* 16a6:004c */
-
         disableTimer();
 
         createNewWorld();
@@ -172,6 +171,7 @@ Task taskGameMainLoop()
         drawDialog(DialogType::MainMenu, 350);
 
         graphics::animateScreenShifting();
+        mouse::setMode(mouse::g_modeManagement);
         graphics::copyScreenBufferTo(0);
         graphics::setVideoFrameOrigin(0, 0);
 
@@ -183,6 +183,8 @@ Task taskGameMainLoop()
             stopTask(g_taskDemoAI);
             g_taskDemoAI = addTask(taskDemoAI());
         }
+
+        menuButton.enable();
 
         bool needReturnToMainMenu = false;
         while (!needReturnToMainMenu) {
@@ -209,21 +211,26 @@ Task taskGameMainLoop()
                         mouse::toggleMode();
                         Driver::instance().vga().requestScreenUpdate();
                         g_lastKeyPressed = 0;
+                    } else
+                        menuButton.click();
+                }
+                if (menuButton.clicked()) {
+                    menuButton.reset();
+                    menuButton.disable();
+                    disableTimer();
+                    if (g_isDemoMode) {
+                        stopDemo();
+                        enableTimer();
+                        needReturnToMainMenu = true;
+                        break;
                     } else {
-                        disableTimer();
-                        if (g_isDemoMode) {
-                            stopDemo();
-                            enableTimer();
+                        PauseMenuAction menuRes = showPauseMenu();
+                        if (menuRes == PauseMenuAction::ReturnToMainMenu) {
                             needReturnToMainMenu = true;
                             break;
-                        } else {
-                            PauseMenuAction menuRes = showPauseMenu();
-                            if (menuRes == PauseMenuAction::ReturnToMainMenu) {
-                                needReturnToMainMenu = true;
-                                break;
-                            }
-                            continue;
                         }
+                        menuButton.enable();
+                        continue;
                     }
                 }
 
@@ -301,6 +308,7 @@ Task taskGameMainLoop()
                     g_headers[static_cast<int>(HeaderFieldId::Level)].value++;
                     g_headers[static_cast<int>(HeaderFieldId::Money)].value += 10;
                     drawWorld();
+                    menuButton.draw(350);
                     graphics::animateScreenShifting();
                     graphics::copyScreenBufferTo(0);
                     graphics::setVideoFrameOrigin(0, 0);

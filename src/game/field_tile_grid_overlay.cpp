@@ -23,8 +23,8 @@ GridOverlay& GridOverlay::instance()
 GridOverlay::GridOverlay()
 {
     Driver::instance().vga().addOverlay(
-        [this](SDL_Renderer* r) {
-            draw(r);
+        [this](SDL_Renderer* r, int yOffset) {
+            draw(r, yOffset);
         });
 }
 
@@ -110,12 +110,15 @@ SDL_Texture* GridOverlay::texture(SDL_Renderer* renderer)
     return m_texture;
 }
 
-void GridOverlay::draw(SDL_Renderer* renderer)
+void GridOverlay::draw(SDL_Renderer* renderer, int yOffset)
 {
     if (!m_active)
         return;
 
-    SDL_Rect dstRect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+    SDL_Rect dstRect = {
+        0, yOffset,
+        SCREEN_WIDTH, SCREEN_HEIGHT
+    };
     SDL_RenderCopy(renderer, texture(renderer), nullptr, &dstRect);
 }
 

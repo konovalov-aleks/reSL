@@ -76,6 +76,7 @@ set(SOURCES
     src/ui/components/button.cpp
     src/ui/components/dialog.cpp
     src/ui/components/draw_header.cpp
+    src/ui/components/menu_button.cpp
     src/ui/components/status_bar.cpp
     src/ui/game_over.cpp
     src/ui/loading_screen.cpp

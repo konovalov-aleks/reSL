@@ -28,6 +28,7 @@
 #include <system/keyboard.h>
 #include <tasks/task.h>
 #include <ui/components/button.h>
+#include <ui/components/menu_button.h>
 
 #include <cassert>
 #include <cstdint>
@@ -232,6 +233,7 @@ void mainMenu()
             if (loadDemo() == IOStatus::NoError) {
                 g_isDemoMode = true;
                 drawWorld();
+                MenuButton::draw(350);
                 graphics::animateScreenShifting();
                 graphics::copyScreenBufferTo(0);
                 graphics::setVideoFrameOrigin(0, 0);

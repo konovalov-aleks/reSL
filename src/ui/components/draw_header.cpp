@@ -86,10 +86,13 @@ void setHeaderValues(
     updateHeaderField(3, level, yOffset);
 }
 
+static constexpr std::int16_t s_dispatchersXOrigin = 463;
+static constexpr std::int16_t s_dispatcherIconWidth = 22;
+
 /* 137c:0450 */
 void drawDispatcher(std::int16_t entranceIdx, bool signalling)
 {
-    const std::int16_t x = entranceIdx * 22 + 481;
+    const std::int16_t x = entranceIdx * s_dispatcherIconWidth + s_dispatchersXOrigin;
     g_glyphHeight = 16;
     drawGlyphW16(g_glyphEmptyBackground, x, 25, Color::Gray);
     drawGlyphW16(g_dispatcherGlyphs[signalling].bg, x, 25, g_entrances[entranceIdx].bgColor);
@@ -105,7 +108,7 @@ void drawDispatchers(std::int16_t yOffset)
     for (std::int16_t i = 0; i < g_entranceCount; ++i) {
         const Entrance& e = g_entrances[i];
         bool signalling = e.waitingTrainsCount != 0;
-        const std::int16_t x = i * 22 + 481;
+        const std::int16_t x = i * s_dispatcherIconWidth + s_dispatchersXOrigin;
         drawGlyphW16(g_dispatcherGlyphs[signalling].bg, x, y, e.bgColor);
         drawGlyphW16(g_dispatcherGlyphs[signalling].fg, x, y, Color::Black);
     }

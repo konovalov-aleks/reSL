@@ -20,6 +20,7 @@
 #include <functional>
 #include <iostream>
 #include <iterator>
+#include <utility>
 
 #ifndef NDEBUG
 #   include <limits>
@@ -136,11 +137,11 @@ namespace {
         assert(e.type == SDL_MOUSEBUTTONDOWN);
         switch (e.button) {
         case SDL_BUTTON_LEFT:
-            return MouseEvent::ME_LEFTPRESSED;
+            return MouseEventType::ME_LEFTPRESSED;
         case SDL_BUTTON_RIGHT:
-            return MouseEvent::ME_RIGHTPRESSED;
+            return MouseEventType::ME_RIGHTPRESSED;
         case SDL_BUTTON_MIDDLE:
-            return MouseEvent::ME_CENTERPRESSED;
+            return MouseEventType::ME_CENTERPRESSED;
         }
         return 0;
     }
@@ -150,11 +151,11 @@ namespace {
         assert(e.type == SDL_MOUSEBUTTONUP);
         switch (e.button) {
         case SDL_BUTTON_LEFT:
-            return MouseEvent::ME_LEFTRELEASED;
+            return MouseEventType::ME_LEFTRELEASED;
         case SDL_BUTTON_RIGHT:
-            return MouseEvent::ME_RIGHTRELEASED;
+            return MouseEventType::ME_RIGHTRELEASED;
         case SDL_BUTTON_MIDDLE:
-            return MouseEvent::ME_CENTERRELEASED;
+            return MouseEventType::ME_CENTERRELEASED;
         }
         return 0;
     }
@@ -199,10 +200,38 @@ void MouseDriver::setPosition(int x, int y)
     onMouseMove(e);
 }
 
-MouseHandler MouseDriver::setHandler(MouseHandler hdl)
+MouseDriver::HandlerHolder::HandlerHolder() noexcept
+    : m_iter(Driver::instance().mouse().m_handlers.end())
 {
-    std::swap(hdl, m_handler);
-    return hdl;
+}
+
+MouseDriver::HandlerHolder::HandlerHolder(HandlerStorageT::iterator iter) noexcept
+    : m_iter(iter)
+{
+}
+
+MouseDriver::HandlerHolder::~HandlerHolder()
+{
+    if (m_iter != Driver::instance().mouse().m_handlers.end())
+        Driver::instance().mouse().m_handlers.erase(m_iter);
+}
+
+MouseDriver::HandlerHolder::HandlerHolder(HandlerHolder&& other) noexcept
+{
+    std::swap(m_iter, other.m_iter);
+}
+
+MouseDriver::HandlerHolder&
+MouseDriver::HandlerHolder::operator=(HandlerHolder&& other) noexcept
+{
+    std::swap(m_iter, other.m_iter);
+    return *this;
+}
+
+MouseDriver::HandlerHolder MouseDriver::addHandler(MouseHandler hdl)
+{
+    m_handlers.push_front(hdl);
+    return { m_handlers.begin() };
 }
 
 void MouseDriver::drawCursor(SDL_Renderer* renderer)
@@ -227,11 +256,23 @@ void MouseDriver::drawCursor(SDL_Renderer* renderer)
     SDL_RenderCopy(renderer, m_cursorTexture, nullptr, &dstRect);
 }
 
+void MouseDriver::handle(
+    std::uint16_t flags, std::uint16_t btnState, std::int16_t x, std::int16_t y)
+{
+    if (m_handlers.empty()) [[unlikely]]
+        return;
+
+    MouseEvent e(flags, btnState, x, y);
+    for (MouseHandler& handler : m_handlers) {
+        handler(e);
+        if (!e.propagation())
+            break;
+    }
+}
+
 void MouseDriver::onMouseButtonEvent(const SDL_MouseButtonEvent& e)
 {
     m_mouseConnected = true;
-    if (!m_handler) [[unlikely]]
-        return;
 
     const std::uint16_t mouseEventFlags =
         e.type == SDL_MOUSEBUTTONDOWN ? mousePressedFlags(e)
@@ -248,14 +289,12 @@ void MouseDriver::onMouseButtonEvent(const SDL_MouseButtonEvent& e)
     else
         m_mouseButtonState &= (~btn);
 
-    m_handler(mouseEventFlags, m_mouseButtonState, e.x, e.y);
+    handle(mouseEventFlags, m_mouseButtonState, e.x, e.y);
 }
 
 void MouseDriver::onMouseMove(const SDL_MouseMotionEvent& e)
 {
     m_mouseConnected = true;
-    if (!m_handler) [[unlikely]]
-        return;
 
     if (cursorVisible())
         Driver::instance().vga().requestScreenUpdate();
@@ -270,7 +309,7 @@ void MouseDriver::onMouseMove(const SDL_MouseMotionEvent& e)
     assert(y <= std::numeric_limits<std::int16_t>::max());
     assert(y >= std::numeric_limits<std::int16_t>::min());
 
-    m_handler(0, m_mouseButtonState, x, y);
+    handle(0, m_mouseButtonState, x, y);
 
     m_cursorX = static_cast<int>(x);
     m_cursorY = static_cast<int>(y);
@@ -299,21 +338,18 @@ void MouseDriver::onTouch(const SDL_TouchFingerEvent& e)
 
 void MouseDriver::handleTouchAction(TouchHandler::Action action, int x, int y)
 {
-    if (!m_handler) [[unlikely]]
-        return;
-
     switch (action) {
     case TouchHandler::Action::Tap:
-        m_handler(ME_LEFTRELEASED, 0, x, y);
+        handle(ME_LEFTRELEASED, 0, x, y);
         break;
     case TouchHandler::Action::LongTap:
-        m_handler(ME_RIGHTRELEASED, 0, x, y);
+        handle(ME_RIGHTRELEASED, 0, x, y);
         break;
     case TouchHandler::Action::Swipe:
-        m_handler(
+        handle(
             ME_LEFTPRESSED | ME_RIGHTPRESSED,
             MouseButton::MB_LEFT | MouseButton::MB_RIGHT, x, y);
-        m_handler(ME_LEFTRELEASED | ME_RIGHTRELEASED, 0, x, y);
+        handle(ME_LEFTRELEASED | ME_RIGHTRELEASED, 0, x, y);
         break;
     }
 }

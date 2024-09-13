@@ -35,23 +35,18 @@ namespace {
         LoadingScreenMouseHandler()
             : m_clicked(false)
         {
-            m_oldHandler = Driver::instance().mouse().setHandler(
-                [this](std::uint16_t flags, std::uint16_t /* buttonState */,
-                       std::int16_t /* x */, std::int16_t /* y */) {
-                    if (flags) // any mouse button actions
+            m_handler = Driver::instance().mouse().addHandler(
+                [this](MouseEvent& e) {
+                    if (e.flags()) // any mouse button actions
                         m_clicked = true;
+                    e.stopPropagation();
                 });
-        }
-
-        ~LoadingScreenMouseHandler()
-        {
-            Driver::instance().mouse().setHandler(m_oldHandler);
         }
 
         bool clicked() const noexcept { return m_clicked; }
 
     private:
-        MouseHandler m_oldHandler;
+        MouseDriver::HandlerHolder m_handler;
         bool m_clicked;
     };
 

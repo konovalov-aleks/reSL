@@ -71,8 +71,8 @@ private:
         std::array<SDL_FPoint, (g_nSteps + 1) * 2> points;
         std::array<std::uint8_t, g_nSteps * 3 * 2> indices;
 
-        int x = 0;
-        int y = 0;
+        int x;
+        int y;
     };
 
     struct WaitStage {
@@ -117,6 +117,9 @@ private:
 
     void computePoints();
     void moveTo(int x, int y);
+
+    static int adjustXForAnimation(int);
+    static int adjustYForAnimation(int);
 
     AnimationContext m_context;
     StageT m_stage = WaitStage();

@@ -101,7 +101,8 @@ int main(int argc, char* argv[])
     calibrateActiveSleep();
 
     Driver::instance().setKeyboardHandler(&keyboardInteruptionHandler);
-    Driver::instance().mouse().setHandler(&handleMouseInput);
+    MouseDriver::HandlerHolder mouseHandler =
+        Driver::instance().mouse().addHandler(&handleMouseInput);
 
     initTasks(/* taskStacksMemory */);
 
@@ -133,6 +134,9 @@ int main(int argc, char* argv[])
     }
 
     initFS();
+
+    // Driver should destroyed after scheduler => we have to initialize it first
+    Driver::instance();
 
     if (debugGraphics)
         Driver::instance().vga().setDebugMode(true);

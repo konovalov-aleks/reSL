@@ -69,8 +69,12 @@ void VGAEmulation::flush()
         SDL_SetRenderDrawColor(m_renderer, 0x55, 0xAA, 0x00, 0xFF);
         const SDL_Rect screenRect = { 0, 0, m_wndWidth, m_wndHeight };
         SDL_RenderFillRect(m_renderer, &screenRect);
-        for (Overlay& ov : m_overlays)
-            ov(m_renderer);
+        for (Overlay& ov : m_overlays) {
+            const int yOffset = m_vgaState.overflowLineCompare < SCREEN_HEIGHT
+                ? m_vgaState.overflowLineCompare
+                : 0;
+            ov(m_renderer, yOffset);
+        }
 
         const bool isDebugGraphicsMode = m_wndWidth != SCREEN_WIDTH;
         if (isDebugGraphicsMode) [[unlikely]] {

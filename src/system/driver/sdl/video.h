@@ -16,7 +16,7 @@
 
 namespace resl {
 
-using Overlay = std::function<void(SDL_Renderer*)>;
+using Overlay = std::function<void(SDL_Renderer*, int yOffset)>;
 
 class VGAEmulation {
 public:

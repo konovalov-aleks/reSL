@@ -28,24 +28,21 @@ namespace {
     public:
         ManualScreenMouseHandler()
         {
-            m_oldHandler = Driver::instance().mouse().setHandler(
-                [this](std::uint16_t flags, std::uint16_t /* buttonState */,
-                       std::int16_t x, std::int16_t y) {
-                    if (!(flags & ME_LEFTRELEASED))
+            m_handler = Driver::instance().mouse().addHandler(
+                [this](MouseEvent& me) {
+                    me.stopPropagation();
+                    if (!(me.flags() & ME_LEFTRELEASED))
                         return;
 
+                    const std::int16_t x = me.x();
+                    const std::int16_t y = me.y() + 350;
+
                     m_clicked = true;
-                    y += 350;
 
                     if (x >= closeBtnX && x < closeBtnX + buttonWidth() &&
                         y >= closeBtnY && y < closeBtnY + buttonHeight())
                         m_closeBtnPressed = true;
                 });
-        }
-
-        ~ManualScreenMouseHandler()
-        {
-            Driver::instance().mouse().setHandler(m_oldHandler);
         }
 
         bool clicked() const noexcept { return m_clicked; }
@@ -58,7 +55,7 @@ namespace {
         }
 
     private:
-        MouseHandler m_oldHandler;
+        MouseDriver::HandlerHolder m_handler;
         bool m_clicked = false;
         bool m_closeBtnPressed = false;
     };

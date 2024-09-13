@@ -35,16 +35,6 @@ void TouchHandler::onPressStart(int x, int y)
     }
 
     if (std::holds_alternative<WaitStage>(m_stage)) {
-        if (x < g_r1)
-            x = g_r1;
-        else if (x > SCREEN_WIDTH - g_r1)
-            x = SCREEN_WIDTH - g_r1;
-
-        if (y < g_r1)
-            y = g_r1;
-        else if (y > SCREEN_HEIGHT - g_r1)
-            y = SCREEN_HEIGHT - g_r1;
-
         moveTo(x, y);
         m_context.x = x;
         m_context.y = y;
@@ -168,7 +158,9 @@ std::optional<TouchHandler::StageT> TouchHandler::TimerStage::handle(
         std::cerr << "SDL_RenderGeometryRaw failed: " << SDL_GetError() << std::endl;
 
     SDL_Rect dstRect = {
-        ctx.x - 87 / 2, ctx.y - 53 / 2, 87, 53 // TODO constants
+        adjustXForAnimation(ctx.x) - 87 / 2,
+        adjustYForAnimation(ctx.y) - 53 / 2,
+        87, 53 // TODO constants
     };
     SDL_SetTextureAlphaMod(ctx.icon, static_cast<Uint8>(200 * nPoints / ctx.points.size()));
     SDL_RenderCopy(renderer, ctx.icon, nullptr, &dstRect);
@@ -219,7 +211,9 @@ std::optional<TouchHandler::StageT> TouchHandler::ConfirmationStage::handle(
     const int width = 87 * scale;
     const int height = 53 * scale;
     SDL_Rect dstRect = {
-        ctx.x - width / 2, ctx.y - height / 2, width, height
+        adjustXForAnimation(ctx.x) - width / 2,
+        adjustYForAnimation(ctx.y) - height / 2,
+        width, height
     };
     SDL_SetTextureAlphaMod(ctx.icon, static_cast<Uint8>(200 * (maxScaleTimeMs - scale) / maxScaleTimeMs));
     SDL_RenderCopy(renderer, ctx.icon, nullptr, &dstRect);
@@ -244,12 +238,19 @@ void TouchHandler::computePoints()
 {
     static_assert(g_nSteps * 2 <= std::numeric_limits<std::uint8_t>::max());
     float angle = -M_PI / 2.0f;
+
+    m_context.x = g_r1;
+    m_context.y = g_r1;
     for (int step = 0; step < g_nSteps; ++step, angle += g_angleStep) {
         const float cosVal = std::cos(angle);
         const float sinVal = std::sin(angle);
 
-        m_context.points[step * 2] = { cosVal * g_r1, sinVal * g_r1 };
-        m_context.points[step * 2 + 1] = { cosVal * g_r2, sinVal * g_r2 };
+        m_context.points[step * 2] = {
+            cosVal * g_r1 + m_context.x, sinVal * g_r1 + m_context.y
+        };
+        m_context.points[step * 2 + 1] = {
+            cosVal * g_r2 + m_context.x, sinVal * g_r2 + m_context.y
+        };
     }
     m_context.points[g_nSteps * 2] = m_context.points[0];
     m_context.points[g_nSteps * 2 + 1] = m_context.points[1];
@@ -263,12 +264,35 @@ void TouchHandler::computePoints()
 
 void TouchHandler::moveTo(int x, int y)
 {
-    int dx = x - m_context.x;
-    int dy = y - m_context.y;
+    x = adjustXForAnimation(x);
+    y = adjustYForAnimation(y);
+    const int oldX = adjustXForAnimation(m_context.x);
+    const int oldY = adjustYForAnimation(m_context.y);
+
+    const int dx = x - oldX;
+    const int dy = y - oldY;
     for (SDL_FPoint& p : m_context.points) {
         p.x += dx;
         p.y += dy;
     }
+}
+
+int TouchHandler::adjustXForAnimation(int x)
+{
+    if (x < g_r1)
+        return g_r1;
+    if (x > SCREEN_WIDTH - g_r1)
+        return SCREEN_WIDTH - g_r1;
+    return x;
+}
+
+int TouchHandler::adjustYForAnimation(int y)
+{
+    if (y < g_r1)
+        return g_r1;
+    if (y > SCREEN_HEIGHT - g_r1)
+        return SCREEN_HEIGHT - g_r1;
+    return y;
 }
 
 } // namespace resl

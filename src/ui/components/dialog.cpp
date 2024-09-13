@@ -42,16 +42,8 @@ namespace {
             : m_type(dt)
         {
             Driver::instance().mouse().setCursorVisibility(true);
-            m_oldHandler = Driver::instance().mouse().setHandler(
-                [this](std::uint16_t flags, std::uint16_t buttonState,
-                       std::int16_t x, std::int16_t y) {
-                    handle(flags, buttonState, x, y);
-                });
-        }
-
-        ~DialogMouseHandler()
-        {
-            Driver::instance().mouse().setHandler(m_oldHandler);
+            m_handler = Driver::instance().mouse().addHandler(
+                [this](MouseEvent& me) { handle(me); });
         }
 
         bool newClicks()
@@ -67,15 +59,15 @@ namespace {
         DialogMouseHandler& operator=(const DialogMouseHandler&) = delete;
 
     private:
-        void handle(std::uint16_t flags, std::uint16_t /* buttonState */,
-                    std::int16_t x, std::int16_t y)
+        void handle(MouseEvent& e)
         {
-            if (!(flags & ME_LEFTRELEASED))
+            e.stopPropagation();
+            if (!(e.flags() & ME_LEFTRELEASED))
                 return;
 
             m_clicked = true;
             const Dialog& dlg = g_dialogs[static_cast<int>(m_type)];
-            if (x < dlg.x || x > dlg.x + dlg.itemWidth)
+            if (e.x() < dlg.x || e.x() > dlg.x + dlg.itemWidth)
                 return;
 
             const int itemHeight = buttonHeight();
@@ -83,14 +75,14 @@ namespace {
                 std::int16_t dlgY = dlg.itemY[i];
                 if (dlgY > 350)
                     dlgY -= 350; // in the shadow buffer
-                if (y >= dlgY && y <= dlgY + itemHeight) {
+                if (e.y() >= dlgY && e.y() <= dlgY + itemHeight) {
                     m_selectedItem = i;
                     return;
                 }
             }
         }
 
-        MouseHandler m_oldHandler;
+        MouseDriver::HandlerHolder m_handler;
         DialogType m_type;
         std::optional<std::int16_t> m_selectedItem;
         bool m_clicked = false;

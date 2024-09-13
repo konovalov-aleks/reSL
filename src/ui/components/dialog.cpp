@@ -13,7 +13,6 @@
 #include <types/rectangle.h>
 
 #include <cassert>
-#include <cstddef>
 #include <cstdint>
 #include <iterator>
 #include <optional>

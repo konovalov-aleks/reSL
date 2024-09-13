@@ -86,16 +86,19 @@ void showLoadingScreen()
        reSL uses a hardcoded palette => the colors are always correct.
      */
 
-    for (std::int16_t i = 0; i < 5; ++i) {
-        drawLoadingScreenTitle(i % 4);
+    constexpr std::int16_t nItems = 5;
+    constexpr std::int16_t totalAnimationTime = 120;
+
+    for (std::int16_t i = 0; i < nItems + 1; ++i) {
+        drawLoadingScreenTitle(i % nItems);
         for (std::int16_t j = 0; j < 220; ++j) {
             if (g_lastKeyPressed || mouseHandler.clicked())
                 return;
             vga::waitVerticalRetrace();
         }
-        if (i != 4) {
+        if (i != nItems) {
             clearLoadingScreenTitle();
-            vga::waitForNRetraces(30);
+            vga::waitForNRetraces(totalAnimationTime / nItems);
         }
     }
     g_lastKeyPressed = 0;

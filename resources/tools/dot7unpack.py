@@ -8,7 +8,16 @@ import os
 from PIL import Image
 import numpy as np
 
-from palette import palette
+from palette import Colors
+
+
+def palette():
+    ''' generate palette for PIL Image '''
+    res = []
+    for i in range(16):
+        r, g, b = Colors[i]
+        res += [r, g, b]
+    return res
 
 
 def import_image(width, height, data):

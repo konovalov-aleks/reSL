@@ -14,16 +14,5 @@ Colors = {
     12: (0x00, 0xAA, 0xAA),  # dark cyan
     13: (0x00, 0xFF, 0x00),  # green
     14: (0x00, 0xAA, 0x00),  # dark green
-    15: (0xFF, 0xFF, 0xFF),  # blinking B/W
+    15: (0xFF, 0x00, 0xFF),  # blinking B/W
 }
-
-
-def palette():
-    ''' generate palette for PIL Image '''
-    res = []
-    for i in range(16):
-        r, g, b = Colors[i]
-        res += [r, g, b]
-    return res
-
-

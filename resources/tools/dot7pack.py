@@ -9,7 +9,7 @@ import struct
 from PIL import Image
 import numpy as np
 
-from palette import palette
+from palette import Colors
 
 
 _DOT7HDR = b'\x22\x00\x07\x38\x3F\x3E\x06\x19\x11\x24\x04\x1B\x03\x12\x02\x3F'
@@ -54,10 +54,20 @@ def export_dot7(img, f):
 
 
 def pack(imgfile, outpfile):
-    img = Image.open(imgfile)
-    img = img.convert('P', palette=palette())
+    img = Image.open(imgfile).convert('RGB')
+    img = np.array(img)
+
+    p = {}
+    for key, value in Colors.items():
+        p[value] = key
+
+    indexed = np.empty(shape=(img.shape[0], img.shape[1]), dtype=np.uint8)
+    for y in range(indexed.shape[0]):
+        for x in range(indexed.shape[1]):
+            indexed[y, x] = p[tuple(img[y, x])]
+
     with open(outpfile, 'wb') as f:
-        export_dot7(np.array(img), f)
+        export_dot7(indexed, f)
 
 
 def main():

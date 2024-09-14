@@ -8,7 +8,7 @@ namespace resl {
 // The original game uses a cumbersome structure DTA from DOS API with many
 // useless fields:
 //      https://www.stanislavs.org/helppc/int_21-4e.html
-// This structure has the same meaning, but contain only usefull fields.
+// This structure has the same meaning, but contain only useful fields.
 struct FileInfo {
     // https://www.stanislavs.org/helppc/file_attributes.html
     std::uint16_t fileTime = 0;

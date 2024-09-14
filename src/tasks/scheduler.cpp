@@ -35,7 +35,7 @@ namespace {
 
     static constexpr Clock::duration s_idleSleepTime = std::chrono::milliseconds(10);
 
-} // namepsace
+} // namespace
 
 Scheduler::~Scheduler()
 {

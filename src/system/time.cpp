@@ -23,7 +23,7 @@ namespace resl {
             access mode: hibyte only
             mode: 2 (rate generator)
 
-        It passes the following devider:
+        It passes the following divider:
             (10000 << 16) / 54945
 
         So the frequency is:

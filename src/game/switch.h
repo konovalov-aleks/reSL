@@ -13,8 +13,8 @@ struct Switch {
     RailConnection entry;
     RailConnection disabledPath;
     // In the case of X-shaped crossing, switches are connected to each other
-    // directly. This variable is the index of the adjucent switch.
-    std::int16_t adjucentSwitchIdx;
+    // directly. This variable is the index of the adjacent switch.
+    std::int16_t adjacentSwitchIdx;
 };
 
 //-----------------------------------------------------------------------------

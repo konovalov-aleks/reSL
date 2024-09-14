@@ -13,7 +13,7 @@ std::uint8_t g_lastKeyCode;
 //-----------------------------------------------------------------------------
 
 /* 14af:06e7 */
-void keyboardInteruptionHandler(std::uint8_t keycode)
+void keyboardInterruptionHandler(std::uint8_t keycode)
 {
     // The original implementation reads the data from the ports 0x60, 0x61
     // http://www.techhelpmanual.com/106-int_09h__keyboard_interrupt.html

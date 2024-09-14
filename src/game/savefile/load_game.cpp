@@ -130,7 +130,7 @@ namespace {
         void readBytes(char* dst, std::size_t n)
         {
             [[maybe_unused]] std::size_t cnt = std::fread(dst, 1, n, m_file);
-            // the original game also has no check if data was succesfully read
+            // the original game also has no check if data was successfully read
             assert(cnt == n);
         }
 
@@ -304,8 +304,8 @@ static void loadGameState(const char* fileName, char* switchStates, char* semaph
         >> read(fd, semaphoresIsRed, cnt);
 
         But obviously, this is not a portable solution:
-            1) storing pointers in a file is a wierd and dangerous idea
-                (but they do it and they adjast these pointer after loading)
+            1) storing pointers in a file is a weird and dangerous idea
+                (but they do it and they adjust these pointer after loading)
             2) different platforms have different pointer sizes, alignment
                 of structures elements, byte order, etc.
 

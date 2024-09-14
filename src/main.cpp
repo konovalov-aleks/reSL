@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
         std::strcpy(g_playerName, argv[1]);
 
     /*
-        The original game performes initialization here:
+        The original game performs initialization here:
             15ab:0096 > mouse driver initialization
             15ab:00b2 > allocates memory for task stacks
             15ab:00d5 > allocates memory for g_pageBuffer (262d:21d8)
@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
     initTimer();
     calibrateActiveSleep();
 
-    Driver::instance().setKeyboardHandler(&keyboardInteruptionHandler);
+    Driver::instance().setKeyboardHandler(&keyboardInterruptionHandler);
     MouseDriver::HandlerHolder mouseHandler =
         Driver::instance().mouse().addHandler(&handleMouseInput);
 

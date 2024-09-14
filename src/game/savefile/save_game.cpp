@@ -43,7 +43,7 @@ namespace {
     // To be able to adjust pointers when loading, they also write the addresses
     // of the g_rails and g_entrances arrays.
     // But reSL is portable and can't write pointers (since they can be larger
-    // than 2 bytes) => instead we will use these syntetic virtual offsets and
+    // than 2 bytes) => instead we will use these synthetic virtual offsets and
     // adjust pointer values we write to the file.
     static constexpr std::uint16_t g_railsVirtualOffset = 0x0E1F;
     static constexpr std::uint16_t g_entrancesVirtualOffset = 0xCAFE;

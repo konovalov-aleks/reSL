@@ -36,7 +36,7 @@ MessageQueue<MsgMouseEvent> g_mouseMsgQueue;
 
 void handleMouseInput(const MouseEvent& me)
 {
-    // the original game uses a global vairable here but we have a different
+    // the original game uses a global variable here but we have a different
     // coroutines implementation, and it makes sense to use local variable instead.
     MsgMouseEvent msg = { MouseAction::None, me.x(), me.y() };
 

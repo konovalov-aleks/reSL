@@ -19,7 +19,7 @@ The goal of the project is to gain fun and experience, as well as to port my fav
 
 ## Why did I take v1.1, not latest v2.0?
 
-I initially started reverse engeneering the second version. But I soon realized that:
+I initially started reverse engineering the second version. But I soon realized that:
 * this game is a bit different from the one I played in childhood.
 * moreover it works much worse - there are no animations, the screen blinks when switching menus.
 * v2.0 is written on Pascal using BGI library. But v1.1 is written on TurboC using assembler parts for working with graphics and to implement some tricky mechanics (ShortLine even uses coroutines written on assembler!).

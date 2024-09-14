@@ -21,7 +21,7 @@ struct StaticObject {
     std::uint8_t type;
     Color color;
     // The year in which this object should appear.
-    // The value is represented as the number of years sinse 1800:
+    // The value is represented as the number of years since 1800:
     //      year = 1800 + obj.creationYear;
     std::uint8_t creationYear;
 };

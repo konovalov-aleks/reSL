@@ -407,7 +407,7 @@ static bool handleCollisions(Carriage& c1, Carriage& c2)
     xOffsets[3] = -a1 + a2;
     yOffsets[3] = -b1 + b2;
 
-    // This is wierd, but in the original game this values is overwritten with 0:
+    // This is weird, but in the original game this values is overwritten with 0:
     //    18fa:0563
     xOffsets[0] = 0;
 

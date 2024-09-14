@@ -15,4 +15,4 @@ extern const StaticObjectGlyph g_houseGlyphs[5];
 /* 1d7d:8a0b - 256 bytes */
 extern const StaticObjectGlyph g_treeGlyphs[4];
 
-} // namepsace resl
+} // namespace resl

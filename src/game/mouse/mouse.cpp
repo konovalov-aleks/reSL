@@ -39,7 +39,7 @@ void handleMouseInput(std::uint16_t mouseEventFlags,
                       std::uint16_t mouseButtonState,
                       std::int16_t x, std::int16_t y)
 {
-    // the original game uses a global vairable here but we have a different
+    // the original game uses a global variable here but we have a different
     // coroutines implementation, and it makes sense to use local variable instead.
     MsgMouseEvent msg = { MouseAction::None, x, y };
 

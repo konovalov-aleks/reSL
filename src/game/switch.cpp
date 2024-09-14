@@ -61,8 +61,8 @@ void toggleSwitch(Switch& s)
 
     std::swap(s.entry, s.disabledPath);
 
-    if (s.adjucentSwitchIdx != -1)
-        g_switches[s.adjucentSwitchIdx].exit = s.entry;
+    if (s.adjacentSwitchIdx != -1)
+        g_switches[s.adjacentSwitchIdx].exit = s.entry;
 }
 
 /* 13d1:010f */

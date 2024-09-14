@@ -27,7 +27,7 @@ extern std::uint8_t g_lastKeyCode;
 // Thus, this function in the original game receives nothing - it reads the
 // data from the IO port 0x60.
 /* 14af:06e7 */
-void keyboardInteruptionHandler(std::uint8_t keycode);
+void keyboardInterruptionHandler(std::uint8_t keycode);
 
 /* 1c71:000f */
 void updateKeyboardLeds(std::int16_t);

@@ -127,7 +127,7 @@ inline ArchiveMenuAction showArchiveMenu()
                         if (itemY > 350)
                             itemY -= 350;
                         toggleButtonState(dialog.x, itemY);
-                        // wait untill the button is released
+                        // wait until the button is released
                         while (!(g_lastKeyCode & g_keyReleasedFlag)) {
                             // The original game uses busy-loop here (without sleep)
                             // I'm not so cruel :D
@@ -161,7 +161,7 @@ inline ArchiveMenuAction showArchiveMenu()
 
                 case 3:
                     /* 15e8:0823 */
-                    // [D]elete
+                    // [D] Delete
                     drawDialog(DialogType::Confirmation, 0);
                     g_lastKeyPressed = 0;
                     if (handleDialog(DialogType::Confirmation, 1) == 0) {
@@ -204,7 +204,7 @@ void mainMenu()
         switch (handleDialog(DialogType::MainMenu)) {
         case 0:
             /* 15e8:04ea */
-            // [M]anual
+            // [M] Manual
             showManual();
             readBinaryFile("play.7", g_pageBuffer);
             drawGameField(350);
@@ -255,14 +255,14 @@ void mainMenu()
 
         case 3:
             /* 15e8:063e */
-            // [A]rchive
+            // [A] Archive
             if (showArchiveMenu() == ArchiveMenuAction::StartGame)
                 return;
             break;
 
         case 4: {
             /* 15e8:08c7 */
-            // [R]ecords
+            // [R] Records
             showRecordsScreen();
             graphics::animateScreenShifting();
             g_lastKeyPressed = 0;

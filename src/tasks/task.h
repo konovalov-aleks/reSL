@@ -48,11 +48,11 @@ struct TaskPromise {
     friend struct Task;
 };
 
-void Task::await_suspend(std::coroutine_handle<TaskPromise> outher)
+void Task::await_suspend(std::coroutine_handle<TaskPromise> outer)
 {
-    assert(outher.promise().m_context);
-    outher.promise().m_inner = *this;
-    promise().m_context = outher.promise().m_context;
+    assert(outer.promise().m_context);
+    outer.promise().m_inner = *this;
+    promise().m_context = outer.promise().m_context;
 }
 
 void Task::resume() const

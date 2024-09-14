@@ -64,7 +64,7 @@ struct Train {
 
     // The movement step is rounded when processing the train movement.
     // To compensate for the accumulated error, the debt from the previous
-    // iteration is saveda nd taken into account when calculating the distance
+    // iteration is saved and taken into account when calculating the distance
     // of movement in the next iteration.
     std::uint8_t movementDebt;
 

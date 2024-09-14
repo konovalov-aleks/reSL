@@ -114,11 +114,11 @@ void imageDot7(std::int16_t x, std::int16_t y,
     vga::setVideoModeR0W0();
     for (std::int16_t curY = 0; curY < height; curY += 7) {
         for (std::int16_t curX = 0; curX < 640; curX += 8) {
-            std::uint8_t drawed = 0;
-            while (drawed != 0xF) {
+            std::uint8_t drawn = 0;
+            while (drawn != 0xF) {
                 const std::uint8_t b = *data;
                 const std::uint8_t planes = b & 0xF;
-                drawed |= planes;
+                drawn |= planes;
                 vga::videoChoosePlanes(planes);
                 ++data;
                 if (curX < width)

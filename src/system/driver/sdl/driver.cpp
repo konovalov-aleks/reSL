@@ -104,12 +104,12 @@ inline std::uint8_t scancodeToKeyCode(SDL_Scancode sc)
 
         01   1  Esc │12  18  E    │23  35  H      │34  52  . >    │45  69  NumLock
         02   2  1 ! │13  19  R    │24  36  J      │35  53  / ?    │46  70  ScrollLck
-        03   3  2 @ │14  20  T    │25  37  K      │36  54  Shft(R)│47  71  Home [7]
+        03   3  2 @ │14  20  T    │25  37  K      │36  54 Shift(R)│47  71  Home [7]
         04   4  3 # │15  21  Y    │26  38  L      │37  55  * PrtSc│48  72  ↑    [8]
         05   5  4 $ │16  22  U    │27  39  ; :    │38  56  Alt    │49  73  PgUp [9]
         06   6  5 % │17  23  I    │28  40  " '    │39  57  space  │4a  74  K -
         07   7  6 ^ │18  24  O    │29  41  ` ~    │3a  58  CapsLck│4b  75  ←    [4]
-        08   8  7 & │19  25  P    │2a  42  Shft(L)│3b  59  F1     │4c  76       [5]
+        08   8  7 & │19  25  P    │2a  42 Shift(L)│3b  59  F1     │4c  76       [5]
         09   9  8 * │1a  26  [ {  │2b  43  \ |    │3c  60  F2     │4d  77  →    [6]
         0a  10  9 ( │1b  27  ] }  │2c  44  Z      │3d  61  F3     │4e  78  K +
         0b  11  0 ) │1c  28  Enter│2d  45  X      │3e  62  F4     │4f  79  End  [1]

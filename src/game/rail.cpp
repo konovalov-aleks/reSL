@@ -67,7 +67,7 @@ void connectRail(const RailInfo& r)
                 rc2.slot = ri.slot1;
             } else if (rc1.rail != g_disabledSwitchPath) {
                 Switch& s = g_switches[g_nSwitches++];
-                s.adjucentSwitchIdx = -1;
+                s.adjacentSwitchIdx = -1;
                 s.exit.rail = &rail;
                 s.exit.slot = ri.slot1;
                 s.disabledPath.rail = &rail2;
@@ -78,7 +78,7 @@ void connectRail(const RailInfo& r)
             }
         } else if (rc2.rail != g_disabledSwitchPath) {
             Switch& s = g_switches[g_nSwitches++];
-            s.adjucentSwitchIdx = -1;
+            s.adjacentSwitchIdx = -1;
             s.exit.rail = &rail2;
             s.exit.slot = ri.slot2;
             s.disabledPath.rail = &rail;
@@ -91,8 +91,8 @@ void connectRail(const RailInfo& r)
                 // Handle X-shaped crossings.
                 // In this case, we switches are connected each other directly.
                 if (s2->entry.rail == &rail2 && s2->entry.slot == ri.slot2) {
-                    s.adjucentSwitchIdx = static_cast<std::int16_t>(s2 - g_switches);
-                    s2->adjucentSwitchIdx = static_cast<std::int16_t>(&s - g_switches);
+                    s.adjacentSwitchIdx = static_cast<std::int16_t>(s2 - g_switches);
+                    s2->adjacentSwitchIdx = static_cast<std::int16_t>(&s - g_switches);
                     break;
                 }
             }

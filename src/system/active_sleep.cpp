@@ -6,7 +6,7 @@
 
 namespace resl {
 
-// The original game performes a measurement of how many iterations need to be
+// The original game performs a measurement of how many iterations need to be
 // performed on the current hardware to spend 1 ms. This information is used in
 // the active sleep implementation.
 // At least in the first steps, I don't see any reason to implement this logic
@@ -18,7 +18,7 @@ namespace resl {
 /* 1594:00ab */
 void calibrateActiveSleep()
 {
-    // the original game performes 200000 loop iterations and measure the time here
+    // the original game performs 200000 loop iterations and measure the time here
 }
 
 /* 1594:0113 */

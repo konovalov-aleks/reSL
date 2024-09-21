@@ -118,6 +118,7 @@ if (EMSCRIPTEN)
         "-sEXPORT_NAME=\"createModule\""
         "-sEXPORTED_RUNTIME_METHODS=[\"callMain\",\"addOnExit\",\"JSEvents\"]")
 
+    list(TRANSFORM resources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
     file (GLOB extra LIST_DIRECTORIES false ${CMAKE_CURRENT_SOURCE_DIR}/resources/extra/*)
     list (APPEND resources ${extra})
 

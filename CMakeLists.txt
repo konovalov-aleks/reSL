@@ -131,7 +131,6 @@ else()
     target_link_libraries(resl PRIVATE SDL2::SDL2)
 
     install(TARGETS resl RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-
     install(FILES
         ${resources}
         DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -149,15 +148,14 @@ else()
     endforeach()
 
     if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
-        # locate DLLs, if there are any (might also discover some redundant ones)
-        set(RUNTIME_DLL_SET $<BOOL:$<TARGET_RUNTIME_DLLS:${CMAKE_PROJECT_NAME}>>)
+        set(RUNTIME_DLL_SET $<BOOL:$<TARGET_RUNTIME_DLLS:resl>>)
         set(COPY_COMMAND
             ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_RUNTIME_DLLS:${CMAKE_PROJECT_NAME}>
-            ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}
+            $<TARGET_RUNTIME_DLLS:resl>
+            $<TARGET_FILE_DIR:resl>
         )
         add_custom_command(
-            TARGET ${CMAKE_PROJECT_NAME}
+            TARGET resl
             POST_BUILD
             COMMAND "$<${RUNTIME_DLL_SET}:${COPY_COMMAND}>"
             COMMAND_EXPAND_LISTS

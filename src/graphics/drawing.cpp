@@ -4,9 +4,9 @@
 #include "vga.h"
 #include <system/driver/driver.h>
 #include <types/rectangle.h>
-#include <utility/ror.h>
 #include <utility/sar.h>
 
+#include <bit>
 #include <cassert>
 #include <cstdlib>
 #include <utility>
@@ -47,7 +47,7 @@ void horizontalLine(std::int16_t x1, std::int16_t x2, std::int16_t y, Color colo
     if (videoPtr1 == videoPtr2) {
         // single point
         Driver::instance().vga().setWriteMask(
-            (ror<std::uint16_t>(0x80FF, pixelOffsetInsideByte2) >> 8) & (0xFF >> pixelOffsetInsideByte1) & 0xFF);
+            (std::rotr<std::uint16_t>(0x80FF, pixelOffsetInsideByte2) >> 8) & (0xFF >> pixelOffsetInsideByte1) & 0xFF);
         Driver::instance().vga().write(videoPtr1, color);
     } else {
         Driver::instance().vga().setWriteMask(0xFF >> pixelOffsetInsideByte1);
@@ -57,7 +57,8 @@ void horizontalLine(std::int16_t x1, std::int16_t x2, std::int16_t y, Color colo
         for (std::int16_t i = 0, cnt = videoPtr2 - videoPtr1; i < cnt; ++i)
             Driver::instance().vga().write(videoPtr1++, color);
 
-        Driver::instance().vga().setWriteMask((ror<std::uint16_t>(0x80FF, pixelOffsetInsideByte2) >> 8) & 0xFF);
+        Driver::instance().vga().setWriteMask(
+            (std::rotr<std::uint16_t>(0x80FF, pixelOffsetInsideByte2) >> 8) & 0xFF);
         Driver::instance().vga().write(videoPtr1++, color);
     }
 }
@@ -205,7 +206,7 @@ void line(std::int16_t x1, std::int16_t y1, std::int16_t x2, std::int16_t y2, Co
 
         const auto moveAlongX = [&videoPtr, &pixelMask]() {
             std::uint8_t lastBit = pixelMask & 1;
-            pixelMask = ror(pixelMask, 1);
+            pixelMask = std::rotr(pixelMask, 1);
             videoPtr += lastBit;
         };
 

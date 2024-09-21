@@ -82,7 +82,7 @@ void clampRectToGameFieldBoundaries(Rectangle& r)
 void drawRailBg1(std::int16_t tileX, std::int16_t tileY,
                  std::int16_t railType, Color color, std::int16_t yOffset)
 {
-    assert(railType >= 0 && static_cast<std::size_t>(railType) <= std::size(railBackgrounds));
+    assert(railType >= 0 && railType <= std::ssize(railBackgrounds));
     RailGlyph* rg = railBackgrounds[railType].bg1;
     drawGlyphAlignX8(&rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
                      (tileX + tileY) * 21 + rg->dy + yOffset - 22, color);
@@ -92,7 +92,7 @@ void drawRailBg1(std::int16_t tileX, std::int16_t tileY,
 void drawRailBg2(std::int16_t tileX, std::int16_t tileY,
                  std::int16_t railType, Color color, std::int16_t yOffset)
 {
-    assert(railType >= 0 && static_cast<std::size_t>(railType) <= std::size(railBackgrounds));
+    assert(railType >= 0 && railType <= std::ssize(railBackgrounds));
     RailGlyph* rg = railBackgrounds[railType].bg2;
     drawGlyphAlignX8(&rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
                      (tileX + tileY) * 21 + rg->dy + yOffset - 22, color);
@@ -102,7 +102,7 @@ void drawRailBg2(std::int16_t tileX, std::int16_t tileY,
 void drawRail(std::int16_t tileX, std::int16_t tileY,
               std::int16_t railType, Color color, std::int16_t yOffset)
 {
-    assert(railType >= 0 && static_cast<std::size_t>(railType) <= std::size(railBackgrounds));
+    assert(railType >= 0 && railType <= std::ssize(railBackgrounds));
     RailGlyph* rg = railBackgrounds[railType].mainGlyph;
     drawGlyphAlignX8(&rg->glyph, (tileX - tileY) * 88 + rg->dx + 320,
                      (tileX + tileY) * 21 + rg->dy + yOffset - 22, color);

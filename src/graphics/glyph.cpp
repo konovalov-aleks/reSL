@@ -3,8 +3,9 @@
 #include "color.h"
 #include "vga.h"
 #include <system/driver/driver.h>
-#include <utility/ror.h>
 #include <utility/sar.h>
+
+#include <bit>
 
 namespace resl {
 
@@ -40,7 +41,7 @@ void drawGlyph(const Glyph& glyph, std::int16_t x, std::int16_t y, Color color)
     for (std::uint8_t row = 0; row < glyph.height; ++row) {
         for (std::uint8_t col = 0; col < glyph.width; ++col) {
             if (*glyphPtr) {
-                std::uint8_t data = ror(*glyphPtr, pixelOffsetInsideByte);
+                std::uint8_t data = std::rotr(*glyphPtr, pixelOffsetInsideByte);
                 Driver::instance().vga().setWriteMask(data & rightMask);
                 Driver::instance().vga().write(videoPtr, color);
 
@@ -62,7 +63,7 @@ void drawGlyphW8(const std::uint8_t* glyph, std::int16_t x, std::int16_t y, Colo
     const std::uint8_t pixelOffsetInsideByte = x & 7;
     const std::uint8_t rightMask = 0xFF >> pixelOffsetInsideByte;
     for (std::uint8_t row = 0; row < g_glyphHeight; ++row) {
-        std::uint8_t data = ror(*glyph++, pixelOffsetInsideByte);
+        std::uint8_t data = std::rotr(*glyph++, pixelOffsetInsideByte);
         Driver::instance().vga().setWriteMask(data & rightMask);
         Driver::instance().vga().write(videoPtr, color);
 
@@ -81,7 +82,7 @@ void drawGlyphW16(const std::uint8_t* glyph, std::int16_t x, std::int16_t y, Col
     const std::uint8_t pixelOffsetInsideByte = x & 7;
     const std::uint8_t rightMask = 0xFF >> pixelOffsetInsideByte;
     for (std::uint8_t row = 0; row < g_glyphHeight; ++row) {
-        std::uint8_t data = ror(*(glyph + 1), pixelOffsetInsideByte);
+        std::uint8_t data = std::rotr(*(glyph + 1), pixelOffsetInsideByte);
 
         Driver::instance().vga().setWriteMask(data & rightMask);
         Driver::instance().vga().write(videoPtr, color);
@@ -89,7 +90,7 @@ void drawGlyphW16(const std::uint8_t* glyph, std::int16_t x, std::int16_t y, Col
         Driver::instance().vga().setWriteMask(data & ~rightMask);
         Driver::instance().vga().write(videoPtr + 1, color);
 
-        data = ror(*glyph, pixelOffsetInsideByte);
+        data = std::rotr(*glyph, pixelOffsetInsideByte);
         glyph += 2;
         Driver::instance().vga().setWriteMask(data & rightMask);
         Driver::instance().vga().write(videoPtr + 1, color);

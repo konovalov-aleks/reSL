@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.20)
 
 project(reSL)
 
-file(GLOB_RECURSE HEADERS "*.h")
+file(GLOB_RECURSE headers "*.h")
 
-set(SOURCES
+set(sources
     src/game/demo.cpp
     src/game/drawing.cpp
     src/game/entrance.cpp
@@ -78,6 +78,15 @@ set(SOURCES
     src/ui/manual.cpp
 )
 
+set(resources
+    resources/play.7
+    resources/GAMEOVER.7
+    resources/demo_a
+    resources/captions.7
+    resources/poster.7
+    resources/RULES.TXT
+)
+
 macro(GroupSources curdir)
    file(GLOB children RELATIVE ${PROJECT_SOURCE_DIR}/${curdir} ${PROJECT_SOURCE_DIR}/${curdir}/*)
    foreach(child ${children})
@@ -92,9 +101,11 @@ endmacro()
 
 GroupSources(src)
 
-add_executable(resl ${SOURCES} ${HEADERS})
+add_executable(resl ${sources} ${headers})
 
 set_property(TARGET resl PROPERTY CXX_STANDARD 20)
+
+include(GNUInstallDirs)
 
 if (EMSCRIPTEN)
     target_compile_options(resl PRIVATE "-sUSE_SDL=2" "-msimd128")
@@ -107,7 +118,6 @@ if (EMSCRIPTEN)
         "-sEXPORT_NAME=\"createModule\""
         "-sEXPORTED_RUNTIME_METHODS=[\"callMain\",\"addOnExit\",\"JSEvents\"]")
 
-    file (GLOB resources LIST_DIRECTORIES false ${CMAKE_CURRENT_SOURCE_DIR}/resources/*)
     file (GLOB extra LIST_DIRECTORIES false ${CMAKE_CURRENT_SOURCE_DIR}/resources/extra/*)
     list (APPEND resources ${extra})
 
@@ -117,42 +127,41 @@ if (EMSCRIPTEN)
         target_link_options(resl PRIVATE "--embed-file=${path}@${fname}")
     endforeach()
 else()
-    find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
-    find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
-
-    if(TARGET SDL2::SDL2main)
-        target_link_libraries(resl PRIVATE SDL2::SDL2main)
-    endif()
+    find_package(SDL2 CONFIG REQUIRED)
     target_link_libraries(resl PRIVATE SDL2::SDL2)
 
-    add_custom_command(
-        TARGET resl
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_CURRENT_SOURCE_DIR}/resources/play.7
-            $<TARGET_FILE_DIR:resl>/play.7
-        COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_CURRENT_SOURCE_DIR}/resources/GAMEOVER.7
-            $<TARGET_FILE_DIR:resl>/GAMEOVER.7
-        COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_CURRENT_SOURCE_DIR}/resources/demo_a
-            $<TARGET_FILE_DIR:resl>/demo_a
-        COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_CURRENT_SOURCE_DIR}/resources/captions.7
-            $<TARGET_FILE_DIR:resl>/captions.7
-        COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_CURRENT_SOURCE_DIR}/resources/poster.7
-            $<TARGET_FILE_DIR:resl>/poster.7
-        COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_CURRENT_SOURCE_DIR}/resources/RULES.TXT
-            $<TARGET_FILE_DIR:resl>/RULES.TXT
+    install(TARGETS resl RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+    install(FILES
+        ${resources}
+        DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
 
-    if (WIN32)
+    foreach (path ${resources})
+        get_filename_component(fname ${path} NAME)
         add_custom_command(
-            TARGET resl POST_BUILD
-            COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:SDL2::SDL2>" "$<TARGET_FILE_DIR:resl>"
-            VERBATIM
+            TARGET resl
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/${path}
+                $<TARGET_FILE_DIR:resl>/${fname}
+        )
+    endforeach()
+
+    if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
+        # locate DLLs, if there are any (might also discover some redundant ones)
+        set(RUNTIME_DLL_SET $<BOOL:$<TARGET_RUNTIME_DLLS:${CMAKE_PROJECT_NAME}>>)
+        set(COPY_COMMAND
+            ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_RUNTIME_DLLS:${CMAKE_PROJECT_NAME}>
+            ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}
+        )
+        add_custom_command(
+            TARGET ${CMAKE_PROJECT_NAME}
+            POST_BUILD
+            COMMAND "$<${RUNTIME_DLL_SET}:${COPY_COMMAND}>"
+            COMMAND_EXPAND_LISTS
+            COMMENT "Copying runtime dependencies (DLLs)"
         )
     endif()
 endif()

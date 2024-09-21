@@ -1,17 +1,12 @@
 #pragma once
 
+#include <bit>
 #include <concepts>
 #include <cstddef>
 #include <cstring>
 #include <type_traits>
 
 namespace resl {
-
-#if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
-#   define RESL_BYTE_ORDER_BIG_ENDIAN
-#else
-#   define RESL_BYTE_ORDER_LITTLE_ENDIAN
-#endif
 
 namespace details {
 
@@ -87,22 +82,24 @@ namespace details {
 template <details::arithmetic T>
 inline T nativeToLittleEndian(T n)
 {
-#ifdef RESL_BYTE_ORDER_BIG_ENDIAN
-    return details::Endianness<T>::Swap(n);
-#else
-    return n;
-#endif
+    if constexpr (std::endian::native == std::endian::big)
+        return details::Endianness<T>::Swap(n);
+    else if constexpr (std::endian::native == std::endian::little)
+        return n;
+    else
+        static_assert(sizeof(T) == 0, "mixed-endian is not supported");
 }
 
 // Converts from the native representation to big endian
 template <details::arithmetic T>
 inline T NativeToBigEndian(T n)
 {
-#ifdef RESL_BYTE_ORDER_BIG_ENDIAN
-    return n;
-#else
-    return details::Endianness<T>::Swap(n);
-#endif
+    if constexpr (std::endian::native == std::endian::big)
+        return n;
+    else if constexpr (std::endian::native == std::endian::little)
+        return details::Endianness<T>::Swap(n);
+    else
+        static_assert(sizeof(T) == 0, "mixed-endian is not supported");
 }
 
 // Converts from little endian to the native representation

@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
     for (int i = 1; i < argc; ++i) {
         if (!std::strcmp(argv[i], "--debug-graphics"))
             debugGraphics = true;
-        if (!std::strcmp(argv[i], "--windowed"))
+        else if (!std::strcmp(argv[i], "--windowed"))
             fullscreen = false;
         else if (!std::strcmp(argv[i], "--help"))
             return usage(argc, argv);

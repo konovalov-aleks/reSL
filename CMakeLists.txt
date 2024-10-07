@@ -114,7 +114,7 @@ set_property(TARGET resl PROPERTY CXX_STANDARD 20)
 include(GNUInstallDirs)
 
 if (EMSCRIPTEN)
-    target_compile_options(resl PRIVATE "-sUSE_SDL=2" "-msimd128")
+    target_compile_options(resl PRIVATE "-sUSE_SDL=2")
     target_link_options(resl PRIVATE
         "-sASYNCIFY"
         "--use-port=sdl2"

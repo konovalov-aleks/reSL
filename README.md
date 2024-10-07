@@ -12,6 +12,8 @@ The reverse engineered DOS game ShortLine v1.1. (DOKA 1992)
 
 The code has been fully restored. The game is now being adapted to work on touch-controlled devices.
 
+The *main* branch contains an improved version of the game. You can see the version closest to the original game in the ["original" branch](https://github.com/konovalov-aleks/reSL/tree/original).
+
 ## Idea and goals of the project:
 
 This project does not pursue any profit and will not be used for commercial purposes.

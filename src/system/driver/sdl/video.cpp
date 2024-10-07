@@ -177,7 +177,10 @@ void VGAEmulation::init()
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
 #endif // __APPLE__
 
-    const Uint32 flags = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE;
+    Uint32 flags = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI;
+#ifndef __EMSCRIPTEN__
+    flags |= SDL_WINDOW_RESIZABLE;
+#endif // !__EMSCRIPTEN__
     int err = SDL_CreateWindowAndRenderer(
         m_wndWidth, m_wndHeight, flags, &m_window, &m_renderer);
     if (err) [[unlikely]] {

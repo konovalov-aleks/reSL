@@ -74,6 +74,7 @@ set(sources
     src/tasks/scheduler.cpp
     src/tasks/task.cpp
     src/ui/components/button.cpp
+    src/ui/components/close_button.cpp
     src/ui/components/dialog.cpp
     src/ui/components/draw_header.cpp
     src/ui/components/menu_button.cpp

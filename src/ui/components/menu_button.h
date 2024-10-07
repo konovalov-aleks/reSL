@@ -19,8 +19,6 @@ public:
     bool clicked() const noexcept { return m_clicked; }
     void reset() noexcept { m_clicked = false; }
 
-    bool handleMouseClick(std::int16_t x, std::int16_t y) noexcept;
-
     static void draw(std::int16_t yOffset = 0) noexcept;
 
 private:

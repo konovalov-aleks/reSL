@@ -60,6 +60,16 @@ static void eraseArchiveMenu(std::int16_t yOffset)
     vga::setVideoModeR0W2();
 }
 
+static void drawMainMenu()
+{
+    drawGameField(350);
+    setHeaderValues(0, 100, 1800, readLevel(), 350);
+    drawDialog(DialogType::MainMenu, 350);
+    graphics::setVideoFrameOrigin(0, 350);
+    graphics::copyScreenBufferTo(0);
+    graphics::setVideoFrameOrigin(0, 0);
+}
+
 enum class ArchiveMenuAction {
     ReturnToMainMenu,
     StartGame
@@ -73,7 +83,7 @@ inline ArchiveMenuAction showArchiveMenu()
 
         if (int err = findNextSaveFile(); err) [[unlikely]] {
             alert("Can't open game files in current dir");
-            eraseArchiveMenu(0);
+            drawMainMenu();
             return ArchiveMenuAction::ReturnToMainMenu;
         }
 
@@ -180,12 +190,7 @@ inline ArchiveMenuAction showArchiveMenu()
                     /* 15e8:085c */
                     // [B]ye
                     createNewWorld();
-                    drawGameField(350);
-                    setHeaderValues(0, 100, 1800, readLevel(), 350);
-                    drawDialog(DialogType::MainMenu, 350);
-                    graphics::setVideoFrameOrigin(0, 350);
-                    graphics::copyScreenBufferTo(0);
-                    graphics::setVideoFrameOrigin(0, 0);
+                    drawMainMenu();
                     return ArchiveMenuAction::ReturnToMainMenu;
 
                 default:

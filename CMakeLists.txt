@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 project(reSL)
 
+option(USE_IWYU "enable include-what-you-use tool" OFF)
+
 file(GLOB_RECURSE headers "*.h")
 
 set(sources
@@ -177,9 +179,11 @@ endif()
 
 target_include_directories(resl PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
-find_program(iwyu_path NAMES include-what-you-use iwyu)
-if (NOT iwyu_path)
-    message("WARNING: include-what-you-use tool was not found - will build without include validation")
-else()
-    set_property(TARGET resl PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path};-Xiwyu;--no_fwd_decls;-Xiwyu;--cxx17ns)
+if (${USE_IWYU})
+    find_program(iwyu_path NAMES include-what-you-use iwyu)
+    if (NOT iwyu_path)
+        message("WARNING: include-what-you-use tool was not found - will build without include validation")
+    else()
+        set_property(TARGET resl PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path};-Xiwyu;--no_fwd_decls;-Xiwyu;--cxx17ns)
+    endif()
 endif()

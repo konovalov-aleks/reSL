@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.20)
 
 project(reSL)
 
+if (NOT EMSCRIPTEN)
+    option(USE_SYSTEM_SDL2 "use SDL2 library from the system" OFF)
+endif()
+
 option(USE_IWYU "enable include-what-you-use tool" OFF)
 
 file(GLOB_RECURSE headers "*.h")
@@ -134,8 +138,25 @@ if (EMSCRIPTEN)
         target_link_options(resl PRIVATE "--embed-file=${path}@${fname}")
     endforeach()
 else()
-    find_package(SDL2 CONFIG REQUIRED)
-    target_link_libraries(resl PRIVATE SDL2::SDL2)
+    if (${USE_SYSTEM_SDL2})
+        find_package(SDL2 CONFIG REQUIRED)
+        target_link_libraries(resl PRIVATE SDL2::SDL2)
+    else()
+        include(FetchContent)
+        set(FETCHCONTENT_QUIET FALSE)
+
+        FetchContent_Declare(
+            SDL2
+            GIT_REPOSITORY  https://github.com/libsdl-org/SDL
+            GIT_TAG         release-2.30.10
+            GIT_PROGRESS    TRUE
+        )
+        FetchContent_MakeAvailable(SDL2)
+
+        set(SDL_LIBRARIES ${SDL_LIBRARIES} SDL2main SDL2-static)
+        target_include_directories(resl PRIVATE include)
+        target_link_libraries(resl PRIVATE ${SDL_LIBRARIES})
+    endif()
 
     install(TARGETS resl RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
     install(FILES

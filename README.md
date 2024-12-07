@@ -63,7 +63,6 @@ After all the code has been rewritten, in the second stage, I will optimize the 
 To build reSL you will need:
 * modern C++ compiler with C++20 support (modern clang, GCC, MSVC)
 * [cmake](https://cmake.org/download/)
-* [SDL2](https://github.com/libsdl-org/SDL/releases)
 
 ### MacOS / Linux
 

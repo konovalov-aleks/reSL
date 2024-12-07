@@ -234,6 +234,22 @@ MouseDriver::HandlerHolder MouseDriver::addHandler(MouseHandler hdl)
     return { m_handlers.begin() };
 }
 
+MouseDriver::TouchContextProviderHolder::TouchContextProviderHolder(TouchHandler& th)
+    : m_touchHandler(th)
+{
+}
+
+MouseDriver::TouchContextProviderHolder::~TouchContextProviderHolder()
+{
+    m_touchHandler.setTouchContextProvider(nullptr);
+}
+
+MouseDriver::TouchContextProviderHolder MouseDriver::setTouchContextProvider(TouchContextProvider& tcp)
+{
+    m_touchHandler.setTouchContextProvider(&tcp);
+    return { m_touchHandler };
+}
+
 void MouseDriver::drawCursor(SDL_Renderer* renderer)
 {
     if (!m_mouseConnected) {

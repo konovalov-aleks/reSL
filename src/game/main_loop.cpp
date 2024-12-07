@@ -137,6 +137,34 @@ inline PauseMenuAction showPauseMenu()
     }
 }
 
+class GameTouchContextProvider : public TouchContextProvider {
+public:
+    LongTouchAction recognizeTouchAction(int x, int y) const override
+    {
+        if (m_paused)
+            return LongTouchAction::None;
+
+        if (mouse::g_state.mode == &mouse::g_modeConstruction)
+            return LongTouchAction::BuildRail;
+
+        return findClosestEntrance(x, y) ? LongTouchAction::CallServer
+                                         : LongTouchAction::None;
+    }
+
+    bool isSwipeAllowed() const override
+    {
+        return !m_paused;
+    }
+
+    void setPaused(bool p)
+    {
+        m_paused = p;
+    }
+
+private:
+    bool m_paused = false;
+};
+
 /* 16a6:0001 */
 Task taskGameMainLoop()
 {
@@ -185,6 +213,9 @@ Task taskGameMainLoop()
         }
 
         menuButton.enable();
+        GameTouchContextProvider touchContext;
+        const auto touchContextProviderHolder =
+            Driver::instance().mouse().setTouchContextProvider(touchContext);
 
         bool needReturnToMainMenu = false;
         while (!needReturnToMainMenu) {
@@ -217,6 +248,7 @@ Task taskGameMainLoop()
                 if (menuButton.clicked()) {
                     menuButton.reset();
                     menuButton.disable();
+                    touchContext.setPaused(true);
                     disableTimer();
                     if (g_isDemoMode) {
                         stopDemo();
@@ -230,6 +262,7 @@ Task taskGameMainLoop()
                             break;
                         }
                         menuButton.enable();
+                        touchContext.setPaused(false);
                         continue;
                     }
                 }

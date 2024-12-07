@@ -18,12 +18,51 @@
 
 namespace resl {
 
-const char* const g_iconPath = "build_rail_icon.png";
+namespace {
+
+    constexpr char g_iconBuildRailPath[] = "build_rail_icon.png";
+    constexpr char g_iconCallServerPath[] = "call_server_icon.png";
+
+    constexpr int g_r1 = 60;
+    constexpr int g_r2 = 50;
+
+    constexpr int g_iconWidth = 64;
+    constexpr int g_iconHeight = 64;
+
+    enum class IconPosition {
+        Top,
+        Left,
+        Right
+    };
+
+    IconPosition iconPosition(int x, int y)
+    {
+        if (y - g_r1 - g_iconHeight >= 0)
+            return IconPosition::Top;
+
+        return x > SCREEN_WIDTH / 2 ? IconPosition::Left
+                                    : IconPosition::Right;
+    }
+
+    std::pair<int, int> iconOffset(int x, int y)
+    {
+        switch (iconPosition(x, y)) {
+        case IconPosition::Top:
+            return { -g_iconWidth / 2, -g_r1 - g_iconHeight };
+        case IconPosition::Left:
+            return { -g_r1 - g_iconWidth, -g_iconHeight / 2 };
+        case IconPosition::Right:
+            return { g_r1, -g_iconHeight / 2 };
+        };
+    }
+
+} // namespace
 
 TouchHandler::TouchHandler(SDL_Renderer* renderer, LongPressHandlerT handler)
     : m_handler(std::move(handler))
 {
-    m_context.icon = { renderer, g_iconPath };
+    m_context.iconBuildRail = { renderer, g_iconBuildRailPath };
+    m_context.iconCallServer = { renderer, g_iconCallServerPath };
     computePoints();
 }
 
@@ -57,7 +96,12 @@ void TouchHandler::onMove(int x, int y)
     const int distSqr = dx * dx + dy * dy;
     std::visit(
         [this, distSqr, x, y]<typename T>(T& s) {
+            const bool allowSwipe =
+                m_context.touchContextProvider && m_context.touchContextProvider->isSwipeAllowed();
             if constexpr (std::is_same_v<T, WaitStage>) {
+                if (!allowSwipe)
+                    return;
+
                 if (distSqr >= g_minSwipeDistance * g_minSwipeDistance) {
                     static_assert(g_maxSwipeTimeMs >= WaitStage::g_animationDelayMs);
                     if (m_handler)
@@ -67,13 +111,12 @@ void TouchHandler::onMove(int x, int y)
                     static_assert(g_maxSwipeTimeMs >= WaitStage::g_animationDelayMs);
                     m_stage = SwipeStage { s.m_time };
                 }
-
             } else if constexpr (std::is_same_v<T, TimerStage>)
                 m_context.pressed = distSqr <= g_maxTapDistance * g_maxTapDistance;
 
             else if constexpr (std::is_same_v<T, SwipeStage>) {
                 if (distSqr >= g_minSwipeDistance * g_minSwipeDistance) {
-                    if (m_handler)
+                    if (allowSwipe && m_handler)
                         m_handler(Action::Swipe, x, y);
                     m_stage = FinishedStage();
                 }
@@ -101,17 +144,29 @@ void TouchHandler::draw(SDL_Renderer* renderer)
     }
 }
 
-std::optional<TouchHandler::StageT> TouchHandler::WaitStage::handle(
-    SDL_Renderer*, int dTime, const AnimationContext& ctx)
+void TouchHandler::setTouchContextProvider(TouchContextProvider* tcp)
 {
-    if (!ctx.pressed) {
+    m_context.touchContextProvider = tcp;
+}
+
+std::optional<TouchHandler::StageT> TouchHandler::WaitStage::handle(
+    SDL_Renderer*, int dTime, AnimationContext& ctx)
+{
+    const LongTouchAction longTouchAction = ctx.touchContextProvider
+        ? ctx.touchContextProvider->recognizeTouchAction(ctx.x, ctx.y)
+        : LongTouchAction::None;
+
+    if (!ctx.pressed || longTouchAction == LongTouchAction::None) {
         m_time = 0;
         return std::nullopt;
     }
     m_time += dTime;
-    if (m_time >= g_animationDelayMs)
+    if (m_time >= g_animationDelayMs) {
+        ctx.curIcon = longTouchAction == LongTouchAction::BuildRail
+            ? &ctx.iconBuildRail
+            : &ctx.iconCallServer;
         return TimerStage();
-
+    }
     return std::nullopt;
 }
 
@@ -157,13 +212,14 @@ std::optional<TouchHandler::StageT> TouchHandler::TimerStage::handle(
     if (res) [[unlikely]]
         std::cerr << "SDL_RenderGeometryRaw failed: " << SDL_GetError() << std::endl;
 
-    SDL_Rect dstRect = {
-        adjustXForAnimation(ctx.x) - 87 / 2,
-        adjustYForAnimation(ctx.y) - 53 / 2,
-        87, 53 // TODO constants
-    };
-    SDL_SetTextureAlphaMod(ctx.icon, static_cast<Uint8>(200 * nPoints / ctx.points.size()));
-    SDL_RenderCopy(renderer, ctx.icon, nullptr, &dstRect);
+    const int adjX = adjustXForAnimation(ctx.x);
+    const int adjY = adjustYForAnimation(ctx.y);
+    const auto [iconXOffset, iconYOffset] = iconOffset(adjX, adjY);
+
+    SDL_Rect dstRect = { adjX + iconXOffset, adjY + iconYOffset, g_iconWidth, g_iconHeight };
+    assert(ctx.curIcon);
+    SDL_SetTextureAlphaMod(*ctx.curIcon, static_cast<Uint8>(200 * nPoints / ctx.points.size()));
+    SDL_RenderCopy(renderer, *ctx.curIcon, nullptr, &dstRect);
 
     return std::nullopt;
 }
@@ -207,16 +263,19 @@ std::optional<TouchHandler::StageT> TouchHandler::ConfirmationStage::handle(
     const float scale = 1 - x * x / (maxScaleTimeMs * maxScaleTimeMs);
     m_time += dTime;
 
-    // TODO use constants
-    const int width = 87 * scale;
-    const int height = 53 * scale;
+    const int width = g_iconWidth * scale;
+    const int height = g_iconHeight * scale;
+    const int adjX = adjustXForAnimation(ctx.x);
+    const int adjY = adjustYForAnimation(ctx.y);
+    const auto [iconXOffset, iconYOffset] = iconOffset(adjX, adjY);
     SDL_Rect dstRect = {
-        adjustXForAnimation(ctx.x) - width / 2,
-        adjustYForAnimation(ctx.y) - height / 2,
+        static_cast<int>(adjX + iconXOffset * scale),
+        static_cast<int>(adjY + iconYOffset * scale),
         width, height
     };
-    SDL_SetTextureAlphaMod(ctx.icon, static_cast<Uint8>(200 * (maxScaleTimeMs - scale) / maxScaleTimeMs));
-    SDL_RenderCopy(renderer, ctx.icon, nullptr, &dstRect);
+    assert(ctx.curIcon);
+    SDL_SetTextureAlphaMod(*ctx.curIcon, static_cast<Uint8>(200 * (maxScaleTimeMs - scale) / maxScaleTimeMs));
+    SDL_RenderCopy(renderer, *ctx.curIcon, nullptr, &dstRect);
 
     if (m_time >= maxScaleTimeMs)
         return FinishedStage();

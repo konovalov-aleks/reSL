@@ -1,6 +1,7 @@
 #pragma once
 
 #include "texture.h"
+#include "touch_context.h"
 #include <graphics/vga.h>
 
 #include <SDL_pixels.h>
@@ -35,10 +36,9 @@ public:
 
     void draw(SDL_Renderer*);
 
-private:
-    static constexpr int g_r1 = 60;
-    static constexpr int g_r2 = 55;
+    void setTouchContextProvider(TouchContextProvider*);
 
+private:
     static constexpr int g_nSteps = 32;
     static constexpr float g_angleStep = 2 * M_PI / g_nSteps;
 
@@ -67,16 +67,21 @@ private:
     struct AnimationContext {
         bool pressed = false;
 
-        Texture icon;
+        const Texture* curIcon = nullptr;
+        Texture iconBuildRail;
+        Texture iconCallServer;
+
         std::array<SDL_FPoint, (g_nSteps + 1) * 2> points;
         std::array<std::uint8_t, g_nSteps * 3 * 2> indices;
+
+        TouchContextProvider* touchContextProvider = nullptr;
 
         int x;
         int y;
     };
 
     struct WaitStage {
-        std::optional<StageT> handle(SDL_Renderer*, int dTime, const AnimationContext&);
+        std::optional<StageT> handle(SDL_Renderer*, int dTime, AnimationContext&);
 
         static constexpr int g_animationDelayMs = 200;
         int m_time = 0;

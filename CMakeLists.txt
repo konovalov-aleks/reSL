@@ -159,9 +159,12 @@ else()
                 ${CMAKE_CURRENT_SOURCE_DIR}/${path}
                 $<TARGET_FILE_DIR:resl>/${fname}
 
-        COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_CURRENT_SOURCE_DIR}/resources/reSL/build_rail_icon.png
-            $<TARGET_FILE_DIR:resl>/build_rail_icon.png
+            COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/resources/reSL/build_rail_icon.png
+                $<TARGET_FILE_DIR:resl>/build_rail_icon.png
+            COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/resources/reSL/call_server_icon.png
+                $<TARGET_FILE_DIR:resl>/call_server_icon.png
         )
     endforeach()
 

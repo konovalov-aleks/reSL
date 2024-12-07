@@ -3,6 +3,7 @@
 #include <SDL_events.h>
 #include <SDL_render.h>
 
+#include "touch_context.h"
 #include "touch_handler.h"
 #include <system/mouse.h>
 
@@ -31,6 +32,20 @@ public:
         HandlerStorageT::iterator m_iter;
     };
 
+    class [[nodiscard]] TouchContextProviderHolder {
+    public:
+        TouchContextProviderHolder(TouchHandler&);
+        ~TouchContextProviderHolder();
+
+        TouchContextProviderHolder(const TouchContextProviderHolder&) = delete;
+        TouchContextProviderHolder(TouchContextProviderHolder&&) = delete;
+        TouchContextProviderHolder& operator=(const TouchContextProviderHolder&) = delete;
+        TouchContextProviderHolder& operator=(TouchContextProviderHolder&&) = delete;
+
+    private:
+        TouchHandler& m_touchHandler;
+    };
+
     MouseDriver(SDL_Renderer*);
     ~MouseDriver();
 
@@ -42,6 +57,7 @@ public:
     void setPosition(int x, int y);
 
     HandlerHolder addHandler(MouseHandler hdl);
+    TouchContextProviderHolder setTouchContextProvider(TouchContextProvider&);
 
 private:
     void handle(std::uint16_t flags, std::uint16_t btnState,

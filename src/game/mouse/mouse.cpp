@@ -34,32 +34,29 @@ static std::uint8_t g_previousMouseButtonState = 0;
 /* 1d7d:1c96 */
 MessageQueue<MsgMouseEvent> g_mouseMsgQueue;
 
-/* 14af:0761 */
-void handleMouseInput(std::uint16_t mouseEventFlags,
-                      std::uint16_t mouseButtonState,
-                      std::int16_t x, std::int16_t y)
+void handleMouseInput(const MouseEvent& me)
 {
     // the original game uses a global variable here but we have a different
     // coroutines implementation, and it makes sense to use local variable instead.
-    MsgMouseEvent msg = { MouseAction::None, x, y };
+    MsgMouseEvent msg = { MouseAction::None, me.x(), me.y() };
 
     if (g_previousMouseButtonState)
-        g_previousMouseButtonState = static_cast<std::uint8_t>(mouseButtonState);
+        g_previousMouseButtonState = static_cast<std::uint8_t>(me.buttonState());
     else {
-        if ((mouseEventFlags & (ME_LEFTPRESSED | ME_RIGHTPRESSED)) &&
-            mouseButtonState == (MouseButton::MB_LEFT | MouseButton::MB_RIGHT)) {
+        if ((me.flags() & (ME_LEFTPRESSED | ME_RIGHTPRESSED)) &&
+            me.buttonState() == (MouseButton::MB_LEFT | MouseButton::MB_RIGHT)) {
 
             msg.action = MouseAction::ToggleMouseMode;
             g_previousMouseButtonState = MouseButton::MB_LEFT;
         } else {
-            if (mouseEventFlags & ME_LEFTRELEASED) {
+            if (me.flags() & ME_LEFTRELEASED) {
                 // left button clicked
                 if (mouse::g_state.mode == &mouse::g_modeManagement)
                     msg.action = MouseAction::MouseClick;
                 else
                     msg.action = MouseAction::ToggleNextRailType;
             } else {
-                if (mouseEventFlags & ME_RIGHTRELEASED) {
+                if (me.flags() & ME_RIGHTRELEASED) {
                     // right button clicked
                     if (mouse::g_state.mode == &mouse::g_modeManagement)
                         msg.action = MouseAction::CallServer;
@@ -80,7 +77,9 @@ Task taskMouseEventHandling()
 
         assert(mouse::g_state.mode);
         mouse::Mode& mode = *mouse::g_state.mode;
-        mode.updatePosFn(e.x, e.y);
+        bool positionChanged = false;
+        if (e.action != MouseAction::BuildRails)
+            positionChanged = mode.updatePosFn(e.x, e.y);
 
         switch (e.action) {
         case MouseAction::CallServer:
@@ -143,18 +142,22 @@ Task taskMouseEventHandling()
 
         case MouseAction::ToggleNextRailType:
             /* 14af:0595 */
-            assert(mouse::g_state.mode);
-            mouse::g_state.mode->clearFn();
-            for (;;) {
-                RailInfo& rcs = mouse::g_railCursorState;
-                rcs.railType = (rcs.railType + 1) % 6;
-                const std::uint8_t curRailMask = 1 << rcs.railType;
-                const std::uint8_t allowedMask =
-                    g_allowedRailCursorTypes[rcs.tileX][rcs.tileY];
-                if (curRailMask & allowedMask)
-                    break;
+
+            // if the user clicked on a new chunk, we just need to move cursor
+            if (!positionChanged) {
+                assert(mouse::g_state.mode);
+                mouse::g_state.mode->clearFn();
+                for (;;) {
+                    RailInfo& rcs = mouse::g_railCursorState;
+                    rcs.railType = (rcs.railType + 1) % 6;
+                    const std::uint8_t curRailMask = 1 << rcs.railType;
+                    const std::uint8_t allowedMask =
+                        g_allowedRailCursorTypes[rcs.tileX][rcs.tileY];
+                    if (curRailMask & allowedMask)
+                        break;
+                }
+                mouse::g_state.mode->drawFn();
             }
-            mouse::g_state.mode->drawFn();
             break;
 
         case MouseAction::BuildRails:

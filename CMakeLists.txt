@@ -68,6 +68,8 @@ set(sources
     src/system/driver/sdl/audio.cpp
     src/system/driver/sdl/driver.cpp
     src/system/driver/sdl/mouse.cpp
+    src/system/driver/sdl/texture.cpp
+    src/system/driver/sdl/touch_handler.cpp
     src/system/driver/sdl/video.cpp
     src/system/exit.cpp
     src/system/filesystem.cpp
@@ -78,8 +80,10 @@ set(sources
     src/tasks/scheduler.cpp
     src/tasks/task.cpp
     src/ui/components/button.cpp
+    src/ui/components/close_button.cpp
     src/ui/components/dialog.cpp
     src/ui/components/draw_header.cpp
+    src/ui/components/menu_button.cpp
     src/ui/components/status_bar.cpp
     src/ui/game_over.cpp
     src/ui/loading_screen.cpp
@@ -120,7 +124,8 @@ if (EMSCRIPTEN)
     target_compile_options(resl PRIVATE "-sUSE_SDL=2")
     target_link_options(resl PRIVATE
         "-sASYNCIFY"
-        "-sUSE_SDL=2"
+        "--use-port=sdl2"
+        "--use-port=sdl2_image:formats=png"
         "-sINVOKE_RUN=0"
         "-sEXIT_RUNTIME=1"
         "-sMODULARIZE=1"
@@ -129,8 +134,9 @@ if (EMSCRIPTEN)
         "-lidbfs.js")
 
     list(TRANSFORM resources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
+    file (GLOB reSL LIST_DIRECTORIES false ${CMAKE_CURRENT_SOURCE_DIR}/resources/reSL/*)
     file (GLOB extra LIST_DIRECTORIES false ${CMAKE_CURRENT_SOURCE_DIR}/resources/extra/*)
-    list (APPEND resources ${extra})
+    list (APPEND resources ${reSL} ${extra})
 
     foreach(path ${resources})
         get_filename_component(fname ${path} NAME)
@@ -140,10 +146,13 @@ if (EMSCRIPTEN)
 else()
     if (${USE_SYSTEM_SDL2})
         find_package(SDL2 CONFIG REQUIRED)
-        target_link_libraries(resl PRIVATE SDL2::SDL2)
+        find_package(SDL2_image REQUIRED)
+        target_link_libraries(resl PRIVATE SDL2::SDL2 SDL2_image::SDL2_image)
     else()
         include(FetchContent)
         set(FETCHCONTENT_QUIET FALSE)
+
+        set(BUILD_SHARED_LIBS OFF)
 
         FetchContent_Declare(
             SDL2
@@ -151,10 +160,51 @@ else()
             GIT_TAG         release-2.30.10
             GIT_PROGRESS    TRUE
         )
-        FetchContent_MakeAvailable(SDL2)
+        set(SDL_CPUINFO OFF)
+        set(SDL_FILE OFF)
+        set(SDL_FILESYSTEM OFF)
+        set(SDL_HAPTIC OFF)
+        set(SDL_HIDAPI OFF)
+        set(SDL_LOCALE OFF)
+        set(SDL_MISC OFF)
+        set(SDL_POWER OFF)
+        set(SDL_SENSOR OFF)
+        set(SDL_TIMERS OFF)
 
-        set(SDL_LIBRARIES ${SDL_LIBRARIES} SDL2main SDL2-static)
-        target_include_directories(resl PRIVATE include)
+        FetchContent_Declare(
+            SDL2_image
+            GIT_REPOSITORY  https://github.com/libsdl-org/SDL_image
+            GIT_TAG         release-2.8.2
+            GIT_PROGRESS    TRUE
+        )
+
+        set(SDL2IMAGE_PNG ON)
+
+        set(SDL2IMAGE_JPG_SAVE OFF)
+        set(SDL2IMAGE_PNG_SAVE OFF)
+        set(SDL2IMAGE_AVIF OFF)
+        set(SDL2IMAGE_BMP OFF)
+        set(SDL2IMAGE_GIF OFF)
+        set(SDL2IMAGE_JPG OFF)
+        set(SDL2IMAGE_JXL OFF)
+        set(SDL2IMAGE_LBM OFF)
+        set(SDL2IMAGE_PCX OFF)
+        set(SDL2IMAGE_PNM OFF)
+        set(SDL2IMAGE_QOI OFF)
+        set(SDL2IMAGE_SVG OFF)
+        set(SDL2IMAGE_TGA OFF)
+        set(SDL2IMAGE_TIF OFF)
+        set(SDL2IMAGE_WEBP OFF)
+        set(SDL2IMAGE_XCF OFF)
+        set(SDL2IMAGE_XPM OFF)
+        set(SDL2IMAGE_XV OFF)
+
+        set(SDL2IMAGE_DEPS_SHARED OFF)
+        set(SDL2IMAGE_TESTS OFF)
+
+        FetchContent_MakeAvailable(SDL2 SDL2_IMAGE)
+
+        set(SDL_LIBRARIES ${SDL_LIBRARIES} SDL2main SDL2-static SDL2_image::SDL2_image-static)
         target_link_libraries(resl PRIVATE ${SDL_LIBRARIES})
     endif()
 
@@ -172,6 +222,13 @@ else()
             COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_CURRENT_SOURCE_DIR}/${path}
                 $<TARGET_FILE_DIR:resl>/${fname}
+
+            COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/resources/reSL/build_rail_icon.png
+                $<TARGET_FILE_DIR:resl>/build_rail_icon.png
+            COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/resources/reSL/call_server_icon.png
+                $<TARGET_FILE_DIR:resl>/call_server_icon.png
         )
     endforeach()
 

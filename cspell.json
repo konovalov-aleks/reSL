@@ -15,6 +15,9 @@
         "CENTERRELEASED",
         "CRTC",
         "DOKA",
+        "FINGERDOWN",
+        "FINGERMOTION",
+        "FINGERUP",
         "Fullscreen",
         "gameover",
         "hibyte",
@@ -50,6 +53,7 @@
         "symb",
         "syncfs",
         "TEXTUREACCESS",
+        "tfinger",
         "WINDOWEVENT"
     ],
     "ignoreWords": [],

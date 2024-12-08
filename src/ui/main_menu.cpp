@@ -1,5 +1,6 @@
 #include "main_menu.h"
 
+#include "components/close_button.h"
 #include "components/dialog.h"
 #include "components/draw_header.h"
 #include "components/status_bar.h"
@@ -28,6 +29,7 @@
 #include <system/keyboard.h>
 #include <tasks/task.h>
 #include <ui/components/button.h>
+#include <ui/components/menu_button.h>
 
 #include <cassert>
 #include <cstdint>
@@ -237,6 +239,7 @@ void mainMenu()
             if (loadDemo() == IOStatus::NoError) {
                 g_isDemoMode = true;
                 drawWorld();
+                MenuButton::draw(350);
                 graphics::animateScreenShifting();
                 graphics::copyScreenBufferTo(0);
                 graphics::setVideoFrameOrigin(0, 0);
@@ -269,18 +272,26 @@ void mainMenu()
             /* 15e8:08c7 */
             // [R] Records
             showRecordsScreen();
+            CloseButton closeBtn;
+            closeBtn.draw(350);
             graphics::animateScreenShifting();
+            graphics::copyScreenBufferTo(0);
+            graphics::setVideoFrameOrigin(0, 0);
             g_lastKeyPressed = 0;
-            while (g_lastKeyPressed == 0) {
+            while (g_lastKeyPressed == 0 && !closeBtn.clicked()) {
                 // The original game has computation-intense loop here
                 // (without waitVerticalRetrace call).
                 vga::waitVerticalRetrace();
             }
-            const Dialog& mainMenu = g_dialogs[static_cast<int>(DialogType::MainMenu)];
-            std::int16_t itemY = mainMenu.itemY[4];
-            if (itemY > 350)
-                itemY -= 350;
-            toggleButtonState(mainMenu.x, itemY);
+            closeBtn.click();
+
+            readBinaryFile("play.7", g_pageBuffer);
+            drawGameField(350);
+            setHeaderValues(0, 100, 1800, readLevel(), 350);
+            drawDialog(DialogType::MainMenu, 350);
+            graphics::animateScreenShifting();
+            graphics::setVideoFrameOrigin(0, 350);
+            graphics::copyScreenBufferTo(0);
             graphics::setVideoFrameOrigin(0, 0);
             break;
         }

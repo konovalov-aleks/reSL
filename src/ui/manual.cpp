@@ -1,7 +1,6 @@
 #include "manual.h"
 
-#include "components/button.h"
-#include <game/melody.h>
+#include "components/close_button.h"
 #include <graphics/animation.h>
 #include <graphics/color.h>
 #include <graphics/drawing.h>
@@ -18,52 +17,6 @@
 #include <cstring>
 
 namespace resl {
-
-namespace {
-
-    constexpr std::int16_t closeBtnX = 600;
-    constexpr std::int16_t closeBtnY = 360;
-
-    class ManualScreenMouseHandler {
-    public:
-        ManualScreenMouseHandler()
-        {
-            m_oldHandler = Driver::instance().mouse().setHandler(
-                [this](std::uint16_t flags, std::uint16_t /* buttonState */,
-                       std::int16_t x, std::int16_t y) {
-                    if (!(flags & ME_LEFTRELEASED))
-                        return;
-
-                    m_clicked = true;
-                    y += 350;
-
-                    if (x >= closeBtnX && x < closeBtnX + buttonWidth() &&
-                        y >= closeBtnY && y < closeBtnY + buttonHeight())
-                        m_closeBtnPressed = true;
-                });
-        }
-
-        ~ManualScreenMouseHandler()
-        {
-            Driver::instance().mouse().setHandler(m_oldHandler);
-        }
-
-        bool clicked() const noexcept { return m_clicked; }
-        bool closePressed() const noexcept { return m_closeBtnPressed; }
-
-        void reset()
-        {
-            m_clicked = false;
-            m_closeBtnPressed = false;
-        }
-
-    private:
-        MouseHandler m_oldHandler;
-        bool m_clicked = false;
-        bool m_closeBtnPressed = false;
-    };
-
-} // namespace
 
 /* 16a6:04a8 */
 void showManual()
@@ -91,7 +44,17 @@ void showManual()
         }
     }
 
-    ManualScreenMouseHandler mouseHandler;
+    bool needSwitchPage = false;
+    MouseDriver::HandlerHolder screenClickHandler =
+        Driver::instance().mouse().addHandler(
+            [&needSwitchPage](MouseEvent& e) {
+                if (e.flags() == ME_LEFTRELEASED) {
+                    needSwitchPage = true;
+                    e.stopPropagation();
+                }
+            });
+
+    CloseButton closeButton;
 
     std::int16_t curPage = 0;
     do {
@@ -101,25 +64,24 @@ void showManual()
             drawTextSmall(48, i * 13 + 360, pageData, Color::Black);
             pageData += std::strlen(pageData) + 2;
         }
-        drawButton(closeBtnX, closeBtnY, "X");
+        closeButton.draw(350);
 
         graphics::animateScreenShifting();
         graphics::copyScreenBufferTo(0);
         graphics::setVideoFrameOrigin(0, 0);
-        mouseHandler.reset();
 
         g_lastKeyPressed = 0;
         do {
             // The original game has computation-intense loop here
             // (without waitVerticalRetrace call).
             vga::waitVerticalRetrace();
-        } while (!g_lastKeyPressed && !mouseHandler.clicked());
+        } while (!g_lastKeyPressed && !closeButton.clicked() && !needSwitchPage);
 
         curPage = (curPage + 1) % pageCnt;
-    } while (g_lastKeyPressed != g_keyEscape && !mouseHandler.closePressed());
+        needSwitchPage = false;
+    } while (g_lastKeyPressed != g_keyEscape && !closeButton.clicked());
 
-    toggleButtonState(closeBtnX, closeBtnY);
-    playEntitySwitchedSound(false);
+    closeButton.click();
 }
 
 } // namespace resl

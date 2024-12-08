@@ -1,5 +1,6 @@
 #pragma once
 
+#include <system/mouse.h>
 #include <tasks/message_queue.h>
 #include <tasks/task.h>
 
@@ -38,9 +39,7 @@ extern MessageQueue<MsgMouseEvent> g_mouseMsgQueue;
 //-----------------------------------------------------------------------------
 
 /* 14af:0761 */
-void handleMouseInput(std::uint16_t mouseEventFlags,
-                      std::uint16_t mouseButtonState,
-                      std::int16_t dx, std::int16_t dy);
+void handleMouseInput(const MouseEvent&);
 
 /* 14af:0320 */
 Task taskMouseEventHandling();

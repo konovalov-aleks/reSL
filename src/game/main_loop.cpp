@@ -30,6 +30,7 @@
 #include <types/rectangle.h>
 #include <ui/components/dialog.h>
 #include <ui/components/draw_header.h>
+#include <ui/components/menu_button.h>
 #include <ui/components/status_bar.h>
 #include <ui/game_over.h>
 #include <ui/loading_screen.h>
@@ -87,8 +88,6 @@ inline PauseMenuAction showPauseMenu()
     Rectangle dialogRect;
     bool needInit = true;
     for (;;) {
-        mouse::Mode* oldMode = mouse::g_state.mode;
-        mouse::setMode(mouse::g_modeManagement);
         if (needInit) {
             dialogRect = drawDialog(DialogType::Pause, 0);
             writeRecords();
@@ -111,7 +110,6 @@ inline PauseMenuAction showPauseMenu()
             graphics::copyFromShadowBuffer(dialogRect);
             vga::setVideoModeR0W2();
             scheduleAllTrainsRedrawing();
-            mouse::setMode(*oldMode);
             enableTimer();
             spawnNewTrain();
             return PauseMenuAction::ContinueGame;
@@ -139,6 +137,34 @@ inline PauseMenuAction showPauseMenu()
     }
 }
 
+class GameTouchContextProvider : public TouchContextProvider {
+public:
+    LongTouchAction recognizeTouchAction(int x, int y) const override
+    {
+        if (m_paused)
+            return LongTouchAction::None;
+
+        if (mouse::g_state.mode == &mouse::g_modeConstruction)
+            return LongTouchAction::BuildRail;
+
+        return findClosestEntrance(x, y) ? LongTouchAction::CallServer
+                                         : LongTouchAction::None;
+    }
+
+    bool isSwipeAllowed() const override
+    {
+        return !m_paused;
+    }
+
+    void setPaused(bool p)
+    {
+        m_paused = p;
+    }
+
+private:
+    bool m_paused = false;
+};
+
 /* 16a6:0001 */
 Task taskGameMainLoop()
 {
@@ -160,9 +186,10 @@ Task taskGameMainLoop()
 
     g_gameOver = false;
 
+    MenuButton menuButton;
+
     for (;;) {
         /* 16a6:004c */
-
         disableTimer();
 
         createNewWorld();
@@ -172,6 +199,7 @@ Task taskGameMainLoop()
         drawDialog(DialogType::MainMenu, 350);
 
         graphics::animateScreenShifting();
+        mouse::setMode(mouse::g_modeManagement);
         graphics::copyScreenBufferTo(0);
         graphics::setVideoFrameOrigin(0, 0);
 
@@ -183,6 +211,11 @@ Task taskGameMainLoop()
             stopTask(g_taskDemoAI);
             g_taskDemoAI = addTask(taskDemoAI());
         }
+
+        menuButton.enable();
+        GameTouchContextProvider touchContext;
+        const auto touchContextProviderHolder =
+            Driver::instance().mouse().setTouchContextProvider(touchContext);
 
         bool needReturnToMainMenu = false;
         while (!needReturnToMainMenu) {
@@ -209,21 +242,28 @@ Task taskGameMainLoop()
                         mouse::toggleMode();
                         Driver::instance().vga().requestScreenUpdate();
                         g_lastKeyPressed = 0;
+                    } else
+                        menuButton.click();
+                }
+                if (menuButton.clicked()) {
+                    menuButton.reset();
+                    menuButton.disable();
+                    touchContext.setPaused(true);
+                    disableTimer();
+                    if (g_isDemoMode) {
+                        stopDemo();
+                        enableTimer();
+                        needReturnToMainMenu = true;
+                        break;
                     } else {
-                        disableTimer();
-                        if (g_isDemoMode) {
-                            stopDemo();
-                            enableTimer();
+                        PauseMenuAction menuRes = showPauseMenu();
+                        if (menuRes == PauseMenuAction::ReturnToMainMenu) {
                             needReturnToMainMenu = true;
                             break;
-                        } else {
-                            PauseMenuAction menuRes = showPauseMenu();
-                            if (menuRes == PauseMenuAction::ReturnToMainMenu) {
-                                needReturnToMainMenu = true;
-                                break;
-                            }
-                            continue;
                         }
+                        menuButton.enable();
+                        touchContext.setPaused(false);
+                        continue;
                     }
                 }
 
@@ -301,6 +341,7 @@ Task taskGameMainLoop()
                     g_headers[static_cast<int>(HeaderFieldId::Level)].value++;
                     g_headers[static_cast<int>(HeaderFieldId::Money)].value += 10;
                     drawWorld();
+                    menuButton.draw(350);
                     graphics::animateScreenShifting();
                     graphics::copyScreenBufferTo(0);
                     graphics::setVideoFrameOrigin(0, 0);

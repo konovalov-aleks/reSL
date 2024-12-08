@@ -8,6 +8,8 @@
 #include <SDL.h>
 #include <SDL_error.h>
 #include <SDL_events.h>
+#include <SDL_hints.h>
+#include <SDL_image.h>
 #include <SDL_mouse.h>
 #include <SDL_scancode.h>
 #include <SDL_video.h>
@@ -24,17 +26,29 @@
 
 namespace resl {
 
+Driver::Driver()
+    : m_mouse(m_vga.renderer())
+{
+}
+
 Driver::SDLInit::SDLInit()
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS)) [[unlikely]] {
         std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
         std::exit(EXIT_FAILURE);
     }
+    if (IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) [[unlikely]] {
+        std::cerr << "Unable to initialize SDL Image (png)" << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+
+    SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
     SDL_ShowCursor(false);
 }
 
 Driver::SDLInit::~SDLInit()
 {
+    IMG_Quit();
     SDL_Quit();
 }
 
@@ -79,12 +93,18 @@ void Driver::pollEvent()
         case SDL_QUIT:
             std::exit(EXIT_SUCCESS);
             break;
+
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
             mouse().onMouseButtonEvent(e.button);
             break;
         case SDL_MOUSEMOTION:
             mouse().onMouseMove(e.motion);
+            break;
+        case SDL_FINGERMOTION:
+        case SDL_FINGERDOWN:
+        case SDL_FINGERUP:
+            mouse().onTouch(e.tfinger);
             break;
         case SDL_KEYDOWN:
         case SDL_KEYUP:

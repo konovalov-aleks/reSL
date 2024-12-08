@@ -35,23 +35,18 @@ namespace {
         LoadingScreenMouseHandler()
             : m_clicked(false)
         {
-            m_oldHandler = Driver::instance().mouse().setHandler(
-                [this](std::uint16_t flags, std::uint16_t /* buttonState */,
-                       std::int16_t /* x */, std::int16_t /* y */) {
-                    if (flags) // any mouse button actions
+            m_handler = Driver::instance().mouse().addHandler(
+                [this](MouseEvent& e) {
+                    if (e.flags()) // any mouse button actions
                         m_clicked = true;
+                    e.stopPropagation();
                 });
-        }
-
-        ~LoadingScreenMouseHandler()
-        {
-            Driver::instance().mouse().setHandler(m_oldHandler);
         }
 
         bool clicked() const noexcept { return m_clicked; }
 
     private:
-        MouseHandler m_oldHandler;
+        MouseDriver::HandlerHolder m_handler;
         bool m_clicked;
     };
 
@@ -86,16 +81,19 @@ void showLoadingScreen()
        reSL uses a hardcoded palette => the colors are always correct.
      */
 
-    for (std::int16_t i = 0; i < 5; ++i) {
-        drawLoadingScreenTitle(i % 4);
+    constexpr std::int16_t nItems = 5;
+    constexpr std::int16_t totalAnimationTime = 120;
+
+    for (std::int16_t i = 0; i < nItems + 1; ++i) {
+        drawLoadingScreenTitle(i % nItems);
         for (std::int16_t j = 0; j < 220; ++j) {
             if (g_lastKeyPressed || mouseHandler.clicked())
                 return;
             vga::waitVerticalRetrace();
         }
-        if (i != 4) {
+        if (i != nItems) {
             clearLoadingScreenTitle();
-            vga::waitForNRetraces(30);
+            vga::waitForNRetraces(totalAnimationTime / nItems);
         }
     }
     g_lastKeyPressed = 0;

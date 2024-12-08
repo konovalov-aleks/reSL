@@ -16,7 +16,7 @@
 
 namespace resl {
 
-using Overlay = std::function<void(SDL_Renderer*)>;
+using Overlay = std::function<void(SDL_Renderer*, int yOffset)>;
 
 class VGAEmulation {
 public:
@@ -64,6 +64,8 @@ public:
     }
 
     Uint32 preferredPixelFormat() const { return m_pixelFormat; }
+
+    SDL_Renderer* renderer() const noexcept { return m_renderer; }
 
 private:
     static constexpr int s_FPS = 60;

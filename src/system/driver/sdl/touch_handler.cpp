@@ -5,8 +5,8 @@
 #include "texture.h"
 #include <graphics/vga.h>
 
-#include <SDL_Timer.h>
 #include <SDL_error.h>
+#include <SDL_timer.h>
 
 #include <algorithm>
 #include <cassert>

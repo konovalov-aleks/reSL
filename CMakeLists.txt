@@ -152,16 +152,56 @@ else()
         include(FetchContent)
         set(FETCHCONTENT_QUIET FALSE)
 
+        set(BUILD_SHARED_LIBS OFF)
+
         FetchContent_Declare(
             SDL2
             GIT_REPOSITORY  https://github.com/libsdl-org/SDL
             GIT_TAG         release-2.30.10
             GIT_PROGRESS    TRUE
         )
-        FetchContent_MakeAvailable(SDL2)
+        set(SDL_CPUINFO OFF)
+        set(SDL_FILE OFF)
+        set(SDL_FILESYSTEM OFF)
+        set(SDL_HAPTIC OFF)
+        set(SDL_HIDAPI OFF)
+        set(SDL_LOCALE OFF)
+        set(SDL_MISC OFF)
+        set(SDL_POWER OFF)
+        set(SDL_SENSOR OFF)
+        set(SDL_TIMERS OFF)
 
-        set(SDL_LIBRARIES ${SDL_LIBRARIES} SDL2main SDL2-static)
-        target_include_directories(resl PRIVATE include)
+        FetchContent_Declare(
+            SDL2_image
+            GIT_REPOSITORY  https://github.com/libsdl-org/SDL_image
+            GIT_TAG         release-2.8.2
+            GIT_PROGRESS    TRUE
+        )
+
+        set(SDLIMAGE_BMP ON)
+
+        set(SDL2IMAGE_JPG_SAVE OFF)
+        set(SDL2IMAGE_PNG_SAVE OFF)
+        set(SDLIMAGE_AVIF OFF)
+        set(SDLIMAGE_GIF OFF)
+        set(SDLIMAGE_JPG OFF)
+        set(SDLIMAGE_JXL OFF)
+        set(SDLIMAGE_LBM OFF)
+        set(SDLIMAGE_PCX OFF)
+        set(SDLIMAGE_PNG OFF)
+        set(SDLIMAGE_PNM OFF)
+        set(SDLIMAGE_QOI OFF)
+        set(SDLIMAGE_SVG OFF)
+        set(SDLIMAGE_TGA OFF)
+        set(SDLIMAGE_TIF OFF)
+        set(SDLIMAGE_WEBP OFF)
+        set(SDLIMAGE_XCF OFF)
+        set(SDLIMAGE_XPM OFF)
+        set(SDLIMAGE_XV OFF)
+
+        FetchContent_MakeAvailable(SDL2 SDL2_IMAGE)
+
+        set(SDL_LIBRARIES ${SDL_LIBRARIES} SDL2main SDL2-static SDL2_image::SDL2_image-static)
         target_link_libraries(resl PRIVATE ${SDL_LIBRARIES})
     endif()
 

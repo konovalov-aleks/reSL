@@ -1,6 +1,6 @@
 #include "texture.h"
 
-#include <SDL_Image.h>
+#include <SDL_image.h>
 
 #include <cstdlib>
 #include <iostream>

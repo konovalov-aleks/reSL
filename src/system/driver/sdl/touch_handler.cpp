@@ -144,6 +144,15 @@ void TouchHandler::draw(SDL_Renderer* renderer)
     }
 }
 
+bool TouchHandler::isAnimationVisible() const noexcept
+{
+    return std::visit(
+        [](auto& stage) {
+            return stage.isAnimationVisible();
+        },
+        m_stage);
+}
+
 void TouchHandler::setTouchContextProvider(TouchContextProvider* tcp)
 {
     m_context.touchContextProvider = tcp;

@@ -35,6 +35,7 @@ public:
     void onMove(int x, int y);
 
     void draw(SDL_Renderer*);
+    bool isAnimationVisible() const noexcept;
 
     void setTouchContextProvider(TouchContextProvider*);
 
@@ -82,6 +83,7 @@ private:
 
     struct WaitStage {
         std::optional<StageT> handle(SDL_Renderer*, int dTime, AnimationContext&);
+        bool isAnimationVisible() const noexcept { return false; }
 
         static constexpr int g_animationDelayMs = 200;
         int m_time = 0;
@@ -90,6 +92,7 @@ private:
     class TimerStage {
     public:
         std::optional<StageT> handle(SDL_Renderer*, int dTime, AnimationContext&);
+        bool isAnimationVisible() const noexcept { return true; }
 
     private:
         void fillColors(int nPoints);
@@ -101,6 +104,7 @@ private:
     class ConfirmationStage {
     public:
         std::optional<StageT> handle(SDL_Renderer*, int dTime, AnimationContext&);
+        bool isAnimationVisible() const noexcept { return true; }
 
     private:
         int m_time = 0;
@@ -108,6 +112,7 @@ private:
 
     struct SwipeStage {
         std::optional<StageT> handle(SDL_Renderer*, int dTime, const AnimationContext&);
+        bool isAnimationVisible() const noexcept { return false; }
 
         int m_time;
     };
@@ -118,6 +123,7 @@ private:
         {
             return std::nullopt;
         }
+        bool isAnimationVisible() const noexcept { return false; }
     };
 
     void computePoints();

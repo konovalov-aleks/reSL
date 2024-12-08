@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
 
     initFS();
 
-    // Driver should destroyed after scheduler => we have to initialize it first
+    // Driver should be destroyed after scheduler => we have to initialize it first
     Driver::instance();
 
     if (debugGraphics)

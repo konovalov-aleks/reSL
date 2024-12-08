@@ -65,31 +65,12 @@ After all the code has been rewritten, in the second stage, I will optimize the 
 To build reSL you will need:
 * modern C++ compiler with C++20 support (modern clang, GCC, MSVC)
 * [cmake](https://cmake.org/download/)
-* [SDL2](https://github.com/libsdl-org/SDL/releases)
 * [SDL2-image](https://github.com/libsdl-org/SDL_image/releases)
 
-### MacOS
+### MacOS / Linux
 
 Open the Terminal application and execute the following instructions:
 ```
-# install dependencies
-brew install cmake sdl2 sdl2_image
-# prepare the build folder
-mkdir -p build && cd build
-# run cmake
-cmake -DCMAKE_BUILD_TYPE=Release ..
-# build the project
-cmake --build . -j4
-# enjoy!
-./resl
-```
-
-### Linux (Ubuntu)
-
-Open the terminal application and execute the following instructions:
-```
-# install dependencies
-sudo apt install -y cmake libsdl2-dev libsdl2-image-dev
 # prepare the build folder
 mkdir -p build && cd build
 # run cmake
@@ -103,13 +84,10 @@ cmake --build . -j4
 ### Windows
 
 1. Install [Microsoft Visual Studio](https://visualstudio.microsoft.com/ru/downloads/) 2022 or newer.
-2. Download and unpack the [SDL2 development package for VC](https://github.com/libsdl-org/SDL/releases) (the name should be something like "SDL2-devel-2.30.5-VC.zip")
-3. Open the "X64 Native Tools Comand Prompt for VS 2022" terminal:
+2. Open the "X64 Native Tools Comand Prompt for VS 2022" terminal:
 ```
 # prepare the build folder
 mkdir -p build && cd build
-# set the path to the folder where you unpacked the SDL2 library (replace the path with yours)
-set SDL2_DIR=c:\projects\SDL2-2.30.5
 # run cmake
 cmake -DCMAKE_BUILD_TYPE=Release -GNinja ..
 # build the project

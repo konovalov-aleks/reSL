@@ -78,14 +78,20 @@ enum class ArchiveMenuAction {
 /* 15e8:063e */
 inline ArchiveMenuAction showArchiveMenu()
 {
-    for (bool showNextFile = true; showNextFile;) {
-        showNextFile = false;
+    bool worldChanged = false;
+    const auto returnToMainMenu = [&worldChanged]() {
+        if (worldChanged)
+            createNewWorld();
+        drawMainMenu();
+        return ArchiveMenuAction::ReturnToMainMenu;
+    };
 
+    for (;;) {
         if (int err = findNextSaveFile(); err) [[unlikely]] {
             alert("Can't open game files in current dir");
-            drawMainMenu();
-            return ArchiveMenuAction::ReturnToMainMenu;
+            return returnToMainMenu();
         }
+        worldChanged = true;
 
         FileInfo file = lastSearchResult();
         g_lastKeyPressed = 0;
@@ -114,7 +120,7 @@ inline ArchiveMenuAction showArchiveMenu()
                       fileName.c_str());
         drawWorld();
 
-        while (!showNextFile) {
+        for (bool showNextFile = false; !showNextFile;) {
             drawDialog(DialogType::Archive, 350);
             graphics::setVideoFrameOrigin(0, 350);
             graphics::copyScreenBufferTo(0);
@@ -122,8 +128,7 @@ inline ArchiveMenuAction showArchiveMenu()
             graphics::setVideoFrameOrigin(0, 0);
             drawWorld();
 
-            bool needRedrawDialog = false;
-            while (!showNextFile && !needRedrawDialog) {
+            for (bool needRedrawDialog = false; !showNextFile && !needRedrawDialog;) {
                 switch (handleDialog(DialogType::Archive)) {
                 case -1:
                     // Timeout
@@ -189,9 +194,7 @@ inline ArchiveMenuAction showArchiveMenu()
                 case 4:
                     /* 15e8:085c */
                     // [B]ye
-                    createNewWorld();
-                    drawMainMenu();
-                    return ArchiveMenuAction::ReturnToMainMenu;
+                    return returnToMainMenu();
 
                 default:
                     // unreachable
@@ -200,7 +203,6 @@ inline ArchiveMenuAction showArchiveMenu()
             }
         }
     }
-    return ArchiveMenuAction::ReturnToMainMenu;
 }
 
 /* 15e8:04c3 */

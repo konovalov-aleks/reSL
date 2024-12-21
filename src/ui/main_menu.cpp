@@ -9,7 +9,6 @@
 #include <game/demo.h>
 #include <game/drawing.h>
 #include <game/init.h>
-#include <game/io_status.h>
 #include <game/main_loop.h>
 #include <game/melody.h>
 #include <game/mouse/construction_mode.h>
@@ -96,8 +95,7 @@ inline ArchiveMenuAction showArchiveMenu()
         FileInfo file = lastSearchResult();
         g_lastKeyPressed = 0;
 
-        IOStatus status = loadSavedGame(file.fileName);
-        if (status != IOStatus::NoError) {
+        if (!loadSavedGame(file.fileName)) [[unlikely]] {
             alert("Load Error");
             continue;
         }
@@ -196,7 +194,7 @@ inline ArchiveMenuAction showArchiveMenu()
                     // [B]ye
                     return returnToMainMenu();
 
-                default:
+                [[unlikely]] default:
                     // unreachable
                     std::abort();
                 }
@@ -238,7 +236,7 @@ void mainMenu()
         case 1:
             /* 15e8:0590 */
             // [D]emo
-            if (loadDemo() == IOStatus::NoError) {
+            if (loadDemo()) [[likely]] {
                 g_isDemoMode = true;
                 drawWorld();
                 MenuButton::draw(350);
@@ -303,7 +301,7 @@ void mainMenu()
             // [B]ye
             exitWithMessage("Bye\n");
 
-        default:
+        [[unlikely]] default:
             // unreachable
             std::abort();
         };

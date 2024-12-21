@@ -6,7 +6,6 @@
 #include "header.h"
 #include "header_field.h"
 #include "init.h"
-#include "io_status.h"
 #include "melody.h"
 #include "mouse/construction_mode.h"
 #include "mouse/management_mode.h"
@@ -117,7 +116,7 @@ inline PauseMenuAction showPauseMenu()
         case 1:
             /* 16a6:01b9 */
             // [S]ave
-            if (saveGame() == IOStatus::NoError)
+            if (saveGame()) [[likely]]
                 pauseMenuShowOkItem();
             else
                 alert("Error");

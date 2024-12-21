@@ -18,7 +18,6 @@ set(sources
     src/game/header.cpp
     src/game/impasse.cpp
     src/game/init.cpp
-    src/game/io_status.cpp
     src/game/main_loop.cpp
     src/game/melody.cpp
     src/game/mouse/construction_mode.cpp
@@ -95,6 +94,25 @@ set(resources
     resources/play.7
     resources/GAMEOVER.7
     resources/demo_a
+    resources/demo_b
+    resources/demo_c
+    resources/demo_d
+    resources/demo_e
+    resources/demo_f
+    resources/demo_g
+    resources/demo_h
+    resources/demo_i
+    resources/demo_j
+    resources/demo_k
+    resources/demo_l
+    resources/demo_m
+    resources/demo_n
+    resources/demo_o
+    resources/demo_p
+    resources/demo_q
+    resources/demo_r
+    resources/demo_s
+    resources/demo_t
     resources/captions.7
     resources/poster.7
     resources/RULES.TXT

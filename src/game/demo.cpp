@@ -1,7 +1,6 @@
 #include "demo.h"
 
 #include "constants.h"
-#include "io_status.h"
 #include "mouse/management_mode.h"
 #include "mouse/mode.h"
 #include "mouse/mouse.h"
@@ -34,7 +33,7 @@ Task g_taskDemoAI;
 //-----------------------------------------------------------------------------
 
 /* 16a6:09f8 */
-IOStatus loadDemo()
+[[nodiscard]] bool loadDemo()
 {
     /* 1d77:0000 : 16 bytes */
     static char g_demoFileName[16] = "demo_a";
@@ -42,8 +41,8 @@ IOStatus loadDemo()
     char origPlayerName[std::size(g_playerName)];
     std::strcpy(origPlayerName, g_playerName);
 
-    IOStatus res = loadSavedGame(g_demoFileName);
-    if (res != IOStatus::NoError) {
+    bool res = loadSavedGame(g_demoFileName);
+    if (!res) [[unlikely]] {
         g_demoFileName[5] = 'a';
         res = loadSavedGame(g_demoFileName);
     }

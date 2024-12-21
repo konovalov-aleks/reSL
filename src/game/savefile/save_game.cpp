@@ -6,7 +6,6 @@
 #include <game/entrance.h>
 #include <game/header.h>
 #include <game/header_field.h>
-#include <game/io_status.h>
 #include <game/player_name.h>
 #include <game/rail.h>
 #include <game/rail_info.h>
@@ -25,6 +24,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <fstream>
 #include <limits>
 #include <type_traits>
 
@@ -58,26 +58,30 @@ namespace {
     class Writer {
     public:
 #ifndef NDEBUG
-        // debug helper to make sure we have written the correct number of bytes
+        // Debug helper to make sure we have written the correct number of bytes.
+        // It is only needed to make sure once again that the file will be
+        // compatible with the original game.
         class [[nodiscard]] ExpectedBlockSize {
         public:
-            ExpectedBlockSize(std::FILE* f, long expected)
+            ExpectedBlockSize(std::ofstream& f, std::ofstream::pos_type expected)
                 : m_expected(expected)
+                , m_startOffset(f.tellp())
                 , m_file(f)
             {
-                m_startOffset = std::ftell(m_file);
             }
 
             ~ExpectedBlockSize()
             {
-                long offset = std::ftell(m_file);
-                assert(offset - m_startOffset == m_expected);
+                if (m_file) {
+                    std::ofstream::pos_type offset = m_file.tellp();
+                    assert(offset - m_startOffset == m_expected);
+                }
             }
 
         private:
-            long m_expected;
-            long m_startOffset;
-            std::FILE* m_file;
+            std::ofstream::pos_type m_expected;
+            std::ofstream::pos_type m_startOffset;
+            std::ofstream& m_file;
         };
 
         ExpectedBlockSize expectedSize(long expected)
@@ -88,11 +92,11 @@ namespace {
 #else // NDEBUG
 
         class [[maybe_unused]] ExpectedBlockSize { };
-        ExpectedBlockSize expectedSize(long) { return {}; }
+        ExpectedBlockSize expectedSize(std::ofstream::pos_type) { return {}; }
 
 #endif // !NDEBUG
 
-        Writer(std::FILE* f)
+        Writer(std::ofstream& f)
             : m_file(f)
         {
         }
@@ -105,13 +109,17 @@ namespace {
 
         void writeBytes(const char* buf, std::size_t len)
         {
-            [[maybe_unused]] std::size_t res = std::fwrite(buf, 1, len, m_file);
-            // the original game also has no check if data was successfully written
-            assert(res == len);
+            m_file.write(buf, len);
+        }
+
+        bool finalize() const noexcept
+        {
+            m_file.flush();
+            return m_file.good();
         }
 
     private:
-        std::FILE* m_file;
+        std::ofstream& m_file;
     };
 
     template <typename T>
@@ -196,7 +204,7 @@ static void generateFileName(char* buf, std::size_t bufSize)
 }
 
 /* 1400:0245 */
-static void saveGameState(const char* fileName)
+[[nodiscard]] static bool saveGameState(const char* fileName)
 {
 #ifdef __EMSCRIPTEN__
     const std::string fullPathStr =
@@ -206,11 +214,9 @@ static void saveGameState(const char* fileName)
     const char* const fullPath = fileName;
 #endif
 
-    std::FILE* file = std::fopen(fullPath, "wb");
-    if (!file) [[unlikely]] {
-        g_ioStatus = IOStatus::OpenError;
-        return;
-    }
+    std::ofstream file(fullPath, std::ios::binary);
+    if (!file) [[unlikely]]
+        return false;
 
     /* The original game just writes entire structures.
        But this approach is obviously non-portable for a bunch of reasons, e.g:
@@ -372,22 +378,19 @@ static void saveGameState(const char* fileName)
     w.write<std::uint16_t>(g_semaphoreCount);
     w.writeBytes(data, g_semaphoreCount);
 
-    if (std::fclose(file) != 0)
-        g_ioStatus = IOStatus::CloseError;
+    return w.finalize();
 }
 
 /* 1400:0004 */
-IOStatus saveGame()
+[[nodiscard]] bool saveGame()
 {
     char fileName[16];
-    g_ioStatus = IOStatus::NoError;
     showStatusMessage("SAVING ...      ");
     generateFileName(fileName, sizeof(fileName));
-    saveGameState(fileName);
+    const bool res = saveGameState(fileName);
     showStatusMessage("SAVING ... DONE ");
-    updateKeyboardLeds(static_cast<std::int16_t>(g_ioStatus));
     drawStatusBarWithCopyright(0);
-    return g_ioStatus;
+    return res;
 }
 
 } // namespace resl

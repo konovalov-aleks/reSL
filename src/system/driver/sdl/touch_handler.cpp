@@ -1,6 +1,5 @@
 #include "touch_handler.h"
-
-// IWYU pragma: no_include <__math/trigonometric_functions.h>
+// IWYU pragma: no_include "system/driver/sdl/touch_context.h"
 
 #include "texture.h"
 #include <graphics/vga.h>

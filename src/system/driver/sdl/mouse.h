@@ -3,7 +3,8 @@
 #include <SDL_events.h>
 #include <SDL_render.h>
 
-#include "touch_context.h"
+// IWYU pragma: no_include "system/driver/sdl/touch_context.h"
+#include "touch_context.h" // IWYU pragma: export
 #include "touch_handler.h"
 #include <system/mouse.h>
 

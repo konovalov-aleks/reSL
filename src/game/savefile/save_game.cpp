@@ -13,7 +13,6 @@
 #include <game/static_object.h>
 #include <game/switch.h>
 #include <game/train.h>
-#include <system/keyboard.h>
 #include <system/random.h>
 #include <types/rectangle.h>
 #include <ui/components/status_bar.h>

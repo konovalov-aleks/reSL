@@ -16,21 +16,18 @@
 #include <game/train.h>
 #include <graphics/color.h>
 #include <system/filesystem.h>
-#include <system/keyboard.h>
 #include <system/time.h>
 #include <types/rectangle.h>
 #include <utility/endianness.h>
 
 #include <algorithm>
 #include <array>
-#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <optional>
-#include <string>
 #include <type_traits>
 
 namespace resl {

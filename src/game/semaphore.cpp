@@ -12,7 +12,6 @@
 #include <cassert>
 #include <cstdint>
 #include <cstdlib>
-// IWYU pragma: no_include <cmath>
 
 namespace resl {
 

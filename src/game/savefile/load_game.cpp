@@ -96,7 +96,7 @@ namespace {
         return false;
     }
 
-    template <typename T, typename Enable = void>
+    template <typename T>
     class DataReader;
 
     class Reader {
@@ -205,7 +205,8 @@ namespace {
     };
 
     template <typename T>
-    class DataReader<T, std::enable_if_t<std::is_integral_v<T>>> {
+    requires std::is_integral_v<T>
+    class DataReader<T> {
     public:
         static std::optional<T> read(Reader& r)
         {
@@ -230,7 +231,8 @@ namespace {
     };
 
     template <typename T>
-    class DataReader<T, std::enable_if_t<std::is_enum_v<T>>> {
+    requires std::is_enum_v<T>
+    class DataReader<T> {
     public:
         static std::optional<T> read(Reader& r)
         {

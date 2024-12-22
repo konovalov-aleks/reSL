@@ -52,7 +52,7 @@ namespace {
     static_assert(g_railsVirtualOffset + fileRailSize < g_entrancesVirtualOffset);
     static_assert(g_entrancesVirtualOffset + fileEntrancesArraySize <= std::numeric_limits<std::uint16_t>::max());
 
-    template <typename T, typename Enable = void>
+    template <typename T>
     class DataWriter;
 
     class Writer {
@@ -123,7 +123,8 @@ namespace {
     };
 
     template <typename T>
-    class DataWriter<T, std::enable_if_t<std::is_integral_v<T>>> {
+    requires std::is_integral_v<T>
+    class DataWriter<T> {
     public:
         static void write(Writer& w, T value)
         {
@@ -133,7 +134,8 @@ namespace {
     };
 
     template <typename T>
-    class DataWriter<T, std::enable_if_t<std::is_enum_v<T>>> {
+    requires std::is_enum_v<T>
+    class DataWriter<T> {
     public:
         static void write(Writer& w, T value)
         {

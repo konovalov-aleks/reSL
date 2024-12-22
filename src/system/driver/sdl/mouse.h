@@ -60,6 +60,8 @@ public:
     HandlerHolder addHandler(MouseHandler hdl);
     TouchContextProviderHolder setTouchContextProvider(TouchContextProvider&);
 
+    bool isTouchDevice() const noexcept { return m_isTouchDevice; }
+
 private:
     void handle(std::uint16_t flags, std::uint16_t btnState,
                 std::int16_t x, std::int16_t y);
@@ -81,7 +83,7 @@ private:
     int m_cursorY = 0;
 
     SDL_Texture* m_cursorTexture;
-    bool m_mouseConnected;
+    bool m_isTouchDevice = true;
     bool m_cursorVisible = false;
 
     friend class Driver;

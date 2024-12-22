@@ -29,12 +29,12 @@ void drawStatusBarWithCopyright(std::int16_t yOffset)
 }
 
 /* 12ba:0003 */
-void showStatusMessage(const char* msg)
+void showStatusMessage(const char* msg, std::int16_t yOffset)
 {
     g_footerMessageTimeout = 7;
-    graphics::filledRectangle(0, 335, 80, 15, 0xFF, Color::White);
+    graphics::filledRectangle(0, yOffset + 335, 80, 15, 0xFF, Color::White);
     const std::int16_t msgLen = static_cast<std::int16_t>(std::strlen(msg));
-    drawTextSmall((80 - msgLen) * 4, 336, msg, Color::Black);
+    drawTextSmall((80 - msgLen) * 4, yOffset + 336, msg, Color::Black);
 }
 
 /* 12ba:005c */

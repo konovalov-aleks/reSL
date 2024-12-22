@@ -170,7 +170,7 @@ MouseDriver::MouseDriver(SDL_Renderer* renderer)
           })
     , m_mouseButtonState(mouseButtonState())
     , m_cursorTexture(createTexture(renderer))
-    , m_mouseConnected(hasMouse())
+    , m_isTouchDevice(!hasMouse())
 {
 }
 
@@ -186,7 +186,7 @@ void MouseDriver::setCursorVisibility(bool visible)
 
 bool MouseDriver::cursorVisible() const noexcept
 {
-    return m_mouseConnected && m_cursorVisible;
+    return !m_isTouchDevice && m_cursorVisible;
 }
 
 void MouseDriver::setPosition(int x, int y)
@@ -252,7 +252,7 @@ MouseDriver::TouchContextProviderHolder MouseDriver::setTouchContextProvider(Tou
 
 void MouseDriver::drawCursor(SDL_Renderer* renderer)
 {
-    if (!m_mouseConnected) {
+    if (m_isTouchDevice) {
         const bool animationVisible = m_touchHandler.isAnimationVisible();
         m_touchHandler.draw(renderer);
         if (animationVisible)
@@ -290,7 +290,7 @@ void MouseDriver::handle(
 
 void MouseDriver::onMouseButtonEvent(const SDL_MouseButtonEvent& e)
 {
-    m_mouseConnected = true;
+    m_isTouchDevice = false;
 
     const std::uint16_t mouseEventFlags =
         e.type == SDL_MOUSEBUTTONDOWN ? mousePressedFlags(e)
@@ -312,7 +312,7 @@ void MouseDriver::onMouseButtonEvent(const SDL_MouseButtonEvent& e)
 
 void MouseDriver::onMouseMove(const SDL_MouseMotionEvent& e)
 {
-    m_mouseConnected = true;
+    m_isTouchDevice = false;
 
     if (cursorVisible())
         Driver::instance().vga().requestScreenUpdate();
@@ -335,7 +335,8 @@ void MouseDriver::onMouseMove(const SDL_MouseMotionEvent& e)
 
 void MouseDriver::onTouch(const SDL_TouchFingerEvent& e)
 {
-    m_mouseConnected = false;
+    m_isTouchDevice = true;
+
     const int x = static_cast<int>(e.x * SCREEN_WIDTH);
     const int y = static_cast<int>(e.y * SCREEN_HEIGHT);
     switch (e.type) {

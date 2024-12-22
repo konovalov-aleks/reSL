@@ -23,6 +23,7 @@
 #include <graphics/drawing.h>
 #include <graphics/vga.h>
 #include <system/buffer.h>
+#include <system/driver/driver.h>
 #include <system/exit.h>
 #include <system/filesystem.h>
 #include <system/keyboard.h>
@@ -136,18 +137,35 @@ inline ArchiveMenuAction showArchiveMenu()
                     /* 15e8:0785 */
                     // [V]iew
                     {
+                        const char* hintMessage = Driver::instance().mouse().isTouchDevice()
+                            ? "Touch anywhere on the screen to close the preview"
+                            : "Press any key or click the mouse to close the preview";
+                        showStatusMessage(hintMessage, 350);
+
+                        bool mouseClicked = false;
+                        Driver::instance().mouse().setCursorVisibility(false);
+                        MouseDriver::HandlerHolder mouseHandlerHolder =
+                            Driver::instance().mouse().addHandler(
+                                [&mouseClicked](MouseEvent& me) {
+                                    me.stopPropagation();
+                                    mouseClicked = me.flags() & (ME_LEFTRELEASED | ME_RIGHTRELEASED);
+                                });
+
                         graphics::setVideoFrameOrigin(0, 350);
                         const Dialog& dialog = g_dialogs[static_cast<int>(DialogType::Archive)];
                         std::int16_t itemY = dialog.itemY[0];
                         if (itemY > 350)
                             itemY -= 350;
                         toggleButtonState(dialog.x, itemY);
-                        // wait until the button is released
-                        while (!(g_lastKeyCode & g_keyReleasedFlag)) {
+
+                        // wait until a keyboard button is pressed or mouse clicked
+                        g_lastKeyPressed = 0;
+                        while (g_lastKeyPressed == 0 && !mouseClicked) {
                             // The original game uses busy-loop here (without sleep)
                             // I'm not so cruel :D
                             vga::waitVerticalRetrace();
                         }
+                        Driver::instance().mouse().setCursorVisibility(true);
                         graphics::setVideoFrameOrigin(0, 0);
                         g_lastKeyPressed = 0;
                     }

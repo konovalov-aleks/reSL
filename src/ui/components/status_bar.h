@@ -15,7 +15,7 @@ void drawCopyright(std::int16_t yOffset);
 void drawStatusBarWithCopyright(std::int16_t yOffset);
 
 /* 12ba:0003 */
-void showStatusMessage(const char* msg);
+void showStatusMessage(const char* msg, std::int16_t yOffset = 0);
 
 /* 12ba:005c */
 void updateStatusBar();

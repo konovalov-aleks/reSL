@@ -21,6 +21,7 @@
 #include <types/rectangle.h>
 #include <utility/endianness.h>
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -29,7 +30,6 @@
 #include <fstream>
 #include <iterator>
 #include <optional>
-#include <ranges>
 #include <string>
 #include <type_traits>
 

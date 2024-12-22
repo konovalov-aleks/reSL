@@ -54,6 +54,7 @@ namespace {
         case IconPosition::Right:
             return { g_r1, -g_iconHeight / 2 };
         };
+        [[unlikely]] std::abort(); // unreachable
     }
 
 } // namespace

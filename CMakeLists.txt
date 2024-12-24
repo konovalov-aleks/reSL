@@ -72,6 +72,7 @@ set(sources
     src/system/driver/sdl/video.cpp
     src/system/exit.cpp
     src/system/filesystem.cpp
+    src/system/input_file.cpp
     src/system/keyboard.cpp
     src/system/random.cpp
     src/system/sound.cpp
@@ -132,7 +133,14 @@ endmacro()
 
 GroupSources(src)
 
-add_executable(resl ${sources} ${headers})
+if (ANDROID)
+    add_library(resl SHARED ${sources} ${headers})
+
+    # https://developer.android.com/guide/practices/page-sizes#cmake
+    target_link_options(resl PRIVATE "-Wl,-z,max-page-size=16384")
+else()
+    add_executable(resl ${sources} ${headers})
+endif()
 
 set_property(TARGET resl PROPERTY CXX_STANDARD 20)
 
@@ -178,11 +186,13 @@ else()
             GIT_TAG         release-2.30.10
             GIT_PROGRESS    TRUE
         )
+        if (NOT ANDROID)
+            set(SDL_HAPTIC OFF)
+            set(SDL_HIDAPI OFF)
+        endif()
         set(SDL_CPUINFO OFF)
         set(SDL_FILE OFF)
         set(SDL_FILESYSTEM OFF)
-        set(SDL_HAPTIC OFF)
-        set(SDL_HIDAPI OFF)
         set(SDL_LOCALE OFF)
         set(SDL_MISC OFF)
         set(SDL_POWER OFF)

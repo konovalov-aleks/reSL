@@ -16,6 +16,7 @@
 #include <game/train.h>
 #include <graphics/color.h>
 #include <system/filesystem.h>
+#include <system/input_file.h>
 #include <system/time.h>
 #include <types/rectangle.h>
 #include <utility/endianness.h>
@@ -25,7 +26,6 @@
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
-#include <fstream>
 #include <iterator>
 #include <optional>
 #include <type_traits>
@@ -98,7 +98,7 @@ namespace {
 
     class Reader {
     public:
-        Reader(std::ifstream& f)
+        Reader(InputFile& f)
             : m_file(f)
         {
         }
@@ -132,8 +132,6 @@ namespace {
         void readBytes(char* dst, std::size_t n)
         {
             m_file.read(dst, n);
-            if (!m_file || static_cast<std::size_t>(m_file.gcount()) != n) [[unlikely]]
-                m_ok = false;
         }
 
         // The original game stores the pointers in the save file, but uses
@@ -163,7 +161,7 @@ namespace {
         // (just to make sure we read the same structure as the original game does)
         class [[nodiscard]] ExpectedBlockSize {
         public:
-            ExpectedBlockSize(std::ifstream& f, std::ifstream::pos_type expected)
+            ExpectedBlockSize(InputFile& f, InputFile::pos_type expected)
                 : m_expected(expected)
                 , m_startOffset(f.tellg())
                 , m_file(f)
@@ -173,15 +171,15 @@ namespace {
             ~ExpectedBlockSize()
             {
                 if (m_file) {
-                    std::ifstream::pos_type offset = m_file.tellg();
+                    InputFile::pos_type offset = m_file.tellg();
                     assert(offset - m_startOffset == m_expected);
                 }
             }
 
         private:
-            std::ifstream::pos_type m_expected;
-            std::ifstream::pos_type m_startOffset;
-            std::ifstream& m_file;
+            InputFile::pos_type m_expected;
+            InputFile::pos_type m_startOffset;
+            InputFile& m_file;
         };
 
         ExpectedBlockSize expectedSize(long expected)
@@ -197,12 +195,12 @@ namespace {
 #endif // !NDEBUG
 
     private:
-        std::ifstream& m_file;
+        InputFile& m_file;
         bool m_ok = true;
     };
 
     template <typename T>
-    requires std::is_integral_v<T>
+        requires std::is_integral_v<T>
     class DataReader<T> {
     public:
         static std::optional<T> read(Reader& r)
@@ -228,7 +226,7 @@ namespace {
     };
 
     template <typename T>
-    requires std::is_enum_v<T>
+        requires std::is_enum_v<T>
     class DataReader<T> {
     public:
         static std::optional<T> read(Reader& r)
@@ -333,7 +331,7 @@ namespace {
        field and convert the byte order from little endian to native
        representation.
     */
-    std::ifstream file(fileName, std::ios::binary);
+    InputFile file(fileName);
     if (!file) [[unlikely]]
         return false;
 

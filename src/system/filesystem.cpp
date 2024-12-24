@@ -1,12 +1,11 @@
 #include "filesystem.h"
 
 #include "buffer.h"
+#include "input_file.h"
 
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
-#include <cstdio>
-#include <cstring>
 
 #ifdef WIN32
 #   include <windows.h>
@@ -52,31 +51,14 @@ void initFS()
 /* 1abc:0005 */
 std::size_t readBinaryFile(const char* fileName, void* pagePtr)
 {
-    std::FILE* file = std::fopen(fileName, "rb");
-    std::size_t nBytes = 0;
-    if (file) {
-        nBytes = std::fread(pagePtr, 1, 0xFFFA, file);
-        std::fclose(file);
-    }
     std::strcpy(g_lastFileName, fileName);
-    return nBytes;
+    return InputFile(fileName).read(pagePtr, 0xFFFA);
 }
 
 /* 1400:067f */
 std::size_t readTextFile(const char* fileName)
 {
-    // The original game uses "text" mode here, which can perform
-    // system-dependent transformations.
-    // E.g: in this mode, DOS automatically replaces line endings with "\r\n".
-    // But reSL is portable, so we read files as is (in fact, this functions
-    // is only used to read RULES.TXT, which is already uses \r\n line endings)
-    std::FILE* file = std::fopen(fileName, "rb");
-    std::size_t nBytes = 0;
-    if (file) {
-        nBytes = std::fread(g_pageBuffer, 1, 0xFFDC, file);
-        std::fclose(file);
-    }
-    return nBytes;
+    return InputFile(fileName).read(g_pageBuffer, 0xFFDC);
 }
 
 /* 1abc:0064 */
@@ -150,7 +132,17 @@ namespace {
         HANDLE m_handle = INVALID_HANDLE_VALUE;
     };
 
-#else // WIN32
+#elif ANDROID
+
+    // TODO implement properly
+    class FileSearch {
+    public:
+        bool findFirst(const char*) { return false; }
+        bool findNext() { return false; }
+        FileInfo lastSearchResult() { return {}; }
+    };
+
+#else // !WIN32 && !ANDROID
 
     class FileSearch {
     public:

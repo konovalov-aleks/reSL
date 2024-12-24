@@ -12,7 +12,7 @@
 #else
 #   include <chrono>
 #   include <filesystem>
-#   include <glob.h>
+#   include <string>
 #   include <system_error>
 #endif
 
@@ -21,6 +21,10 @@
 
 #   include <tuple>
 #endif // __EMSCRIPTEN__
+
+#ifdef ANDROID
+#   include <SDL_system.h>
+#endif // ANDROID
 
 namespace resl {
 
@@ -137,49 +141,44 @@ namespace {
         HANDLE m_handle = INVALID_HANDLE_VALUE;
     };
 
-#elif ANDROID
-
-    // TODO implement properly
-    class FileSearch {
-    public:
-        bool findFirst(const char*) { return false; }
-        bool findNext() { return false; }
-        FileInfo lastSearchResult() { return {}; }
-    };
-
-#else // !WIN32 && !ANDROID
+#else // !WIN32
 
     class FileSearch {
     public:
-        ~FileSearch()
-        {
-            close();
-        }
-
         bool findFirst(const char* pattern)
         {
-            close();
-            m_glob = {};
-            m_curPath = 0;
-            return glob(pattern, 0, nullptr, &m_glob) == 0;
+        #ifdef ANDROID
+            std::filesystem::path p(pattern);
+            if (!p.is_absolute())
+                p = SDL_AndroidGetInternalStoragePath() / p;
+        #else
+            std::filesystem::path p(std::filesystem::absolute(pattern));
+        #endif
+            m_pattern = p.filename().string();
+            std::error_code ec;
+            m_dirIter = std::filesystem::directory_iterator(p.parent_path(), ec);
+            return ec == std::error_code() && findNextEntry();
         }
 
         bool findNext()
         {
-            ++m_curPath;
-            return m_curPath < m_glob.gl_pathc;
+            assert(std::filesystem::begin(m_dirIter) != std::filesystem::end(m_dirIter));
+            ++m_dirIter;
+            return std::filesystem::begin(m_dirIter) != std::filesystem::end(m_dirIter)
+                && findNextEntry();
         }
 
         FileInfo lastSearchResult()
         {
             using namespace std::chrono;
 
-            assert(m_curPath < m_glob.gl_pathc);
+            assert(std::filesystem::begin(m_dirIter) != std::filesystem::end(m_dirIter));
             FileInfo result;
 
-            result.fileName = m_glob.gl_pathv[m_curPath];
+            m_curFileName = m_dirIter->path().filename().string();
+            result.fileName = m_curFileName.c_str();
 
-            const std::filesystem::path p(m_glob.gl_pathv[m_curPath]);
+            const std::filesystem::path& p = m_dirIter->path();
             std::error_code ec;
             std::filesystem::file_time_type fileTime =
                 std::filesystem::last_write_time(p, ec);
@@ -211,13 +210,36 @@ namespace {
         }
 
     private:
-        void close()
+
+        bool findNextEntry()
         {
-            globfree(&m_glob);
+            for (const std::filesystem::directory_entry& e : m_dirIter) {
+                if (!e.is_regular_file())
+                    continue;
+                if (matchPattern(e.path().filename()))
+                    return true;
+            }
+            return false;
         }
 
-        glob_t m_glob;
-        std::size_t m_curPath;
+
+        bool matchPattern(const std::string& p)
+        {
+            // The simplified glob syntax is enough for reSL
+            // (only supports '?' placeholder and constant symbols)
+            if (p.size() != m_pattern.size())
+                return false;
+
+            for (std::size_t i = 0; i < m_pattern.size(); ++i) {
+                if (m_pattern[i] != '?' && m_pattern[i] != p[i])
+                    return false;
+            }
+            return true;
+        }
+
+        std::filesystem::directory_iterator m_dirIter;
+        std::string m_pattern;
+        std::string m_curFileName;
     };
 
 #endif // platform specific

@@ -15,8 +15,8 @@
 #include <game/switch.h>
 #include <game/train.h>
 #include <graphics/color.h>
+#include <system/file.h>
 #include <system/filesystem.h>
-#include <system/input_file.h>
 #include <system/time.h>
 #include <types/rectangle.h>
 #include <utility/endianness.h>
@@ -98,7 +98,7 @@ namespace {
 
     class Reader {
     public:
-        Reader(InputFile& f)
+        Reader(File& f)
             : m_file(f)
         {
         }
@@ -109,7 +109,7 @@ namespace {
             if (!ok()) [[unlikely]]
                 return false;
             // Extra data at the end is a sign that the file is damaged.
-            m_file.get();
+            m_file.ignore(1);
             return m_file.eof();
         }
 
@@ -127,6 +127,12 @@ namespace {
                 return {};
             }
             return *res;
+        }
+
+        template <typename T>
+        void ignore()
+        {
+            m_file.ignore(sizeof(T));
         }
 
         void readBytes(char* dst, std::size_t n)
@@ -161,9 +167,9 @@ namespace {
         // (just to make sure we read the same structure as the original game does)
         class [[nodiscard]] ExpectedBlockSize {
         public:
-            ExpectedBlockSize(InputFile& f, InputFile::pos_type expected)
+            ExpectedBlockSize(File& f, File::pos_type expected)
                 : m_expected(expected)
-                , m_startOffset(f.tellg())
+                , m_startOffset(f.tell())
                 , m_file(f)
             {
             }
@@ -171,15 +177,15 @@ namespace {
             ~ExpectedBlockSize()
             {
                 if (m_file) {
-                    InputFile::pos_type offset = m_file.tellg();
+                    File::pos_type offset = m_file.tell();
                     assert(offset - m_startOffset == m_expected);
                 }
             }
 
         private:
-            InputFile::pos_type m_expected;
-            InputFile::pos_type m_startOffset;
-            InputFile& m_file;
+            File::pos_type m_expected;
+            File::pos_type m_startOffset;
+            File& m_file;
         };
 
         ExpectedBlockSize expectedSize(long expected)
@@ -195,7 +201,7 @@ namespace {
 #endif // !NDEBUG
 
     private:
-        InputFile& m_file;
+        File& m_file;
         bool m_ok = true;
     };
 
@@ -331,7 +337,7 @@ namespace {
        field and convert the byte order from little endian to native
        representation.
     */
-    InputFile file(fileName);
+    File file(fileName, "rb");
     if (!file) [[unlikely]]
         return false;
 
@@ -411,14 +417,14 @@ namespace {
                     // The value is a garbage (broken pointer). This is not
                     // a problem since the value will be overwritten before
                     // use, but we won't store it for better safety
-                    [[maybe_unused]] std::uint16_t unused1 = r.read<std::uint16_t>();
+                    r.ignore<std::uint16_t>();
                     c.next = nullptr;
 
                     c.drawingPriority = r.read<std::int16_t>();
 
                     // This pointer is also not used after loading and
                     // contains a broken value.
-                    [[maybe_unused]] std::uint16_t unused2 = r.read<std::uint16_t>();
+                    r.ignore<std::uint16_t>();
                     c.train = nullptr;
 
                     c.dstEntranceIdx = r.read<std::uint8_t>();

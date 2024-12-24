@@ -1,7 +1,7 @@
 #include "filesystem.h"
 
 #include "buffer.h"
-#include "input_file.h"
+#include "file.h"
 
 #include <algorithm>
 #include <cassert>
@@ -52,13 +52,18 @@ void initFS()
 std::size_t readBinaryFile(const char* fileName, void* pagePtr)
 {
     std::strcpy(g_lastFileName, fileName);
-    return InputFile(fileName).read(pagePtr, 0xFFFA);
+    return File(fileName, "rb").read(pagePtr, 0xFFFA);
 }
 
 /* 1400:067f */
 std::size_t readTextFile(const char* fileName)
 {
-    return InputFile(fileName).read(g_pageBuffer, 0xFFDC);
+    // The original game uses "text" mode here, which can perform
+    // system-dependent transformations.
+    // E.g: in this mode, DOS automatically replaces line endings with "\r\n".
+    // But reSL is portable, so we read files as is (in fact, this functions
+    // is only used to read RULES.TXT, which is already uses \r\n line endings)
+    return File(fileName, "rb").read(g_pageBuffer, 0xFFDC);
 }
 
 /* 1abc:0064 */

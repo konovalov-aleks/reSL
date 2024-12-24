@@ -13,6 +13,7 @@
 #include <game/static_object.h>
 #include <game/switch.h>
 #include <game/train.h>
+#include <system/file.h>
 #include <system/random.h>
 #include <types/rectangle.h>
 #include <ui/components/status_bar.h>
@@ -22,7 +23,6 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <cstdio>
 #include <fstream>
 #include <limits>
 #include <type_traits>
@@ -62,9 +62,9 @@ namespace {
         // compatible with the original game.
         class [[nodiscard]] ExpectedBlockSize {
         public:
-            ExpectedBlockSize(std::ofstream& f, std::ofstream::pos_type expected)
+            ExpectedBlockSize(File& f, File::pos_type expected)
                 : m_expected(expected)
-                , m_startOffset(f.tellp())
+                , m_startOffset(f.tell())
                 , m_file(f)
             {
             }
@@ -72,15 +72,15 @@ namespace {
             ~ExpectedBlockSize()
             {
                 if (m_file) {
-                    std::ofstream::pos_type offset = m_file.tellp();
+                    File::pos_type offset = m_file.tell();
                     assert(offset - m_startOffset == m_expected);
                 }
             }
 
         private:
-            std::ofstream::pos_type m_expected;
-            std::ofstream::pos_type m_startOffset;
-            std::ofstream& m_file;
+            File::pos_type m_expected;
+            File::pos_type m_startOffset;
+            File& m_file;
         };
 
         ExpectedBlockSize expectedSize(long expected)
@@ -91,11 +91,11 @@ namespace {
 #else // NDEBUG
 
         class [[maybe_unused]] ExpectedBlockSize { };
-        ExpectedBlockSize expectedSize(std::ofstream::pos_type) { return {}; }
+        ExpectedBlockSize expectedSize(File::pos_type) { return {}; }
 
 #endif // !NDEBUG
 
-        Writer(std::ofstream& f)
+        Writer(File& f)
             : m_file(f)
         {
         }
@@ -111,18 +111,17 @@ namespace {
             m_file.write(buf, len);
         }
 
-        bool finalize() const noexcept
+        bool good() const noexcept
         {
-            m_file.flush();
             return m_file.good();
         }
 
     private:
-        std::ofstream& m_file;
+        File& m_file;
     };
 
     template <typename T>
-    requires std::is_integral_v<T>
+        requires std::is_integral_v<T>
     class DataWriter<T> {
     public:
         static void write(Writer& w, T value)
@@ -133,7 +132,7 @@ namespace {
     };
 
     template <typename T>
-    requires std::is_enum_v<T>
+        requires std::is_enum_v<T>
     class DataWriter<T> {
     public:
         static void write(Writer& w, T value)
@@ -215,7 +214,7 @@ static void generateFileName(char* buf, std::size_t bufSize)
     const char* const fullPath = fileName;
 #endif
 
-    std::ofstream file(fullPath, std::ios::binary);
+    File file(fullPath, "wb");
     if (!file) [[unlikely]]
         return false;
 
@@ -379,7 +378,7 @@ static void generateFileName(char* buf, std::size_t bufSize)
     w.write<std::uint16_t>(g_semaphoreCount);
     w.writeBytes(data, g_semaphoreCount);
 
-    return w.finalize();
+    return w.good();
 }
 
 /* 1400:0004 */

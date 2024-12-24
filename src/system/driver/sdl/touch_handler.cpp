@@ -129,6 +129,8 @@ void TouchHandler::draw(SDL_Renderer* renderer)
 {
     Uint64 time = SDL_GetTicks64();
     int dTime = static_cast<int>(time - m_lastFrameTime);
+    if (dTime == 0)
+        return;
     m_lastFrameTime = time;
 
     std::optional<StageT> newStage =

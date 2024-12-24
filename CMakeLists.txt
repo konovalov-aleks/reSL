@@ -71,8 +71,8 @@ set(sources
     src/system/driver/sdl/touch_handler.cpp
     src/system/driver/sdl/video.cpp
     src/system/exit.cpp
+    src/system/file.cpp
     src/system/filesystem.cpp
-    src/system/input_file.cpp
     src/system/keyboard.cpp
     src/system/random.cpp
     src/system/sound.cpp
@@ -177,6 +177,9 @@ else()
     else()
         include(FetchContent)
         set(FETCHCONTENT_QUIET FALSE)
+        if (ANDROID)
+            set(FETCHCONTENT_BASE_DIR "${CMAKE_SOURCE_DIR}/.fetch_content")
+        endif()
 
         set(BUILD_SHARED_LIBS OFF)
 
@@ -189,6 +192,7 @@ else()
         if (NOT ANDROID)
             set(SDL_HAPTIC OFF)
             set(SDL_HIDAPI OFF)
+            set(SDL_TIMERS OFF)
         endif()
         set(SDL_CPUINFO OFF)
         set(SDL_FILE OFF)
@@ -197,7 +201,6 @@ else()
         set(SDL_MISC OFF)
         set(SDL_POWER OFF)
         set(SDL_SENSOR OFF)
-        set(SDL_TIMERS OFF)
 
         FetchContent_Declare(
             SDL2_image

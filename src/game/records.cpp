@@ -10,12 +10,12 @@
 #include <graphics/drawing.h>
 #include <graphics/text.h>
 #include <system/buffer.h>
+#include <system/file.h>
 #include <system/filesystem.h>
 #include <utility/endianness.h>
 
 #include <cassert>
 #include <cstdint>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <iterator>
@@ -193,10 +193,10 @@ void writeRecords()
     /* 262d:6f52 : 8 bytes */
     static const RecordItem g_emptyRecordItem = {};
 
-    std::FILE* file = fopen(g_recordsFileName, "r+");
+    File file(g_recordsFileName, "r+");
     if (!file) {
         // initialize a new empty hash table
-        file = fopen(g_recordsFileName, "w+");
+        file.open(g_recordsFileName, "w+");
         if (!file) [[unlikely]]
             return;
 
@@ -208,15 +208,16 @@ void writeRecords()
         for (std::int16_t i = 0; i < g_recordsTableCapacity; ++i)
             std::memcpy(&g_pageBuffer[i * g_recordSize], &r, g_recordSize);
 
-        std::fwrite(g_pageBuffer, g_recordSize, g_recordsTableCapacity, file);
+        file.write(g_pageBuffer, g_recordSize * g_recordsTableCapacity);
     }
 
     const std::uint16_t hash = playerNameHash();
-    std::fseek(file, hash * g_recordSize, SEEK_SET);
+    file.seek(hash * g_recordSize);
 
     Record r;
-    [[maybe_unused]] std::size_t nRecords = std::fread(&r, g_recordSize, 1, file);
-    assert(nRecords == 1);
+    file.read(&r, g_recordSize);
+    if (!file) [[unlikely]]
+        return;
     convertByteOrderFileToNative(r);
 
     const std::int16_t curTrains =
@@ -240,13 +241,11 @@ void writeRecords()
 
     if (needUpdate) {
         std::strcpy(r.playerName, g_playerName);
-        std::fseek(file, -static_cast<long>(g_recordSize), SEEK_CUR);
+        file.seek(hash * g_recordSize);
 
         convertByteOrderNativeToFile(r);
-        std::fwrite(&r, g_recordSize, 1, file);
+        file.write(&r, g_recordSize);
     }
-
-    std::fclose(file);
 }
 
 /* 174e:052b */
@@ -258,13 +257,13 @@ std::int16_t readLevel()
     std::int16_t data[18];
     static_assert(sizeof(data) >= g_recordSize);
 
-    std::FILE* file = std::fopen(g_recordsFileName, "rb");
+    File file(g_recordsFileName, "rb");
     if (!file) [[unlikely]]
         return defaultLevel;
-    std::fseek(file, playerNameHash() * g_recordSize, SEEK_SET);
-    std::size_t nRecords = std::fread(data, g_recordSize, 1, file);
-    std::fclose(file);
-    if (nRecords != 1) [[unlikely]]
+    if (!file.seek(playerNameHash() * g_recordSize)) [[unlikely]]
+        return defaultLevel;
+    std::size_t nBytes = file.read(data, g_recordSize);
+    if (nBytes != g_recordSize) [[unlikely]]
         return defaultLevel;
 
     // The original game is not portable - it works only on LE systems.

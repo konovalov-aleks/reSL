@@ -105,7 +105,7 @@ namespace {
         FileInfo lastSearchResult()
         {
             FileInfo result = {};
-            result.fileName = m_data.cFileName;
+            result.filePath = m_data.cFileName;
 
             FILETIME localTime;
             SYSTEMTIME st;
@@ -175,13 +175,10 @@ namespace {
             assert(std::filesystem::begin(m_dirIter) != std::filesystem::end(m_dirIter));
             FileInfo result;
 
-            m_curFileName = m_dirIter->path().filename().string();
-            result.fileName = m_curFileName.c_str();
-
-            const std::filesystem::path& p = m_dirIter->path();
+            result.filePath = m_dirIter->path();
             std::error_code ec;
             std::filesystem::file_time_type fileTime =
-                std::filesystem::last_write_time(p, ec);
+                std::filesystem::last_write_time(result.filePath, ec);
             if (ec == std::error_code()) [[likely]] {
                 system_clock::time_point sysTime = time_point_cast<system_clock::duration>(
                     fileTime - std::filesystem::file_time_type::clock::now() + system_clock::now());
@@ -239,7 +236,6 @@ namespace {
 
         std::filesystem::directory_iterator m_dirIter;
         std::string m_pattern;
-        std::string m_curFileName;
     };
 
 #endif // platform specific

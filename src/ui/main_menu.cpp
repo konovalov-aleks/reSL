@@ -31,6 +31,8 @@
 #include <ui/components/button.h>
 #include <ui/components/menu_button.h>
 
+#include <SDL_log.h>
+
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
@@ -96,7 +98,7 @@ inline ArchiveMenuAction showArchiveMenu()
         FileInfo file = lastSearchResult();
         g_lastKeyPressed = 0;
 
-        if (!loadSavedGame(file.fileName)) [[unlikely]] {
+        if (!loadSavedGame(file.filePath.string().c_str())) [[unlikely]] {
             alert("Load Error");
             continue;
         }
@@ -106,8 +108,7 @@ inline ArchiveMenuAction showArchiveMenu()
         int year = (file.fileDate >> 9) + 80; // year since 1980
         if (year > 100)
             year -= 100;
-        const std::string fileName =
-            std::filesystem::path(file.fileName).filename().string();
+        const std::string fileName = file.filePath.filename().string();
         std::snprintf(buf, sizeof(buf),
                       "Player: %-18s Date: %02d-%3s-%02d  Time: %02d:%02d  File: %-s",
                       g_playerName,
@@ -199,7 +200,13 @@ inline ArchiveMenuAction showArchiveMenu()
                     g_lastKeyPressed = 0;
                     if (handleDialog(DialogType::Confirmation, 1) == 0) {
                         // Yes
-                        std::remove(file.fileName);
+                        std::error_code ec;
+                        std::filesystem::remove(file.filePath);
+                        if (ec != std::error_code()) [[unlikely]] {
+                            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                                         "unable to remove the file \"%s\"",
+                                         file.filePath.string().c_str());
+                        }
                         showNextFile = true;
                     } else {
                         // No

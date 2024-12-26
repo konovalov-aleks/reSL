@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <filesystem>
 
 namespace resl {
 
@@ -19,7 +20,7 @@ struct FileInfo {
     // https://www.stanislavs.org/helppc/file_attributes.html
     std::uint16_t fileTime = 0;
     std::uint16_t fileDate = 0;
-    const char* fileName;
+    std::filesystem::path filePath;
 };
 
 //-----------------------------------------------------------------------------

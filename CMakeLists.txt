@@ -239,6 +239,12 @@ else()
         target_link_libraries(resl PRIVATE ${SDL_LIBRARIES})
     endif()
 
+    if (ANDROID)
+        set(RESOURCE_DST_DIR ${CMAKE_SOURCE_DIR}/android-project/app/src/main/assets)
+    else()
+        set(RESOURCE_DST_DIR $<TARGET_FILE_DIR:resl>)
+    endif()
+
     install(TARGETS resl RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
     install(FILES
         ${resources}
@@ -252,14 +258,14 @@ else()
             POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_CURRENT_SOURCE_DIR}/${path}
-                $<TARGET_FILE_DIR:resl>/${fname}
+                ${RESOURCE_DST_DIR}/${fname}
 
             COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_CURRENT_SOURCE_DIR}/resources/reSL/build_rail_icon.png
-                $<TARGET_FILE_DIR:resl>/build_rail_icon.png
+                ${RESOURCE_DST_DIR}/build_rail_icon.png
             COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_CURRENT_SOURCE_DIR}/resources/reSL/call_server_icon.png
-                $<TARGET_FILE_DIR:resl>/call_server_icon.png
+                ${RESOURCE_DST_DIR}/call_server_icon.png
         )
     endforeach()
 

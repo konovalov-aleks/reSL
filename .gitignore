@@ -42,3 +42,14 @@ __pycache__
 
 # game extra resources
 resources/extra/*
+
+# FetchContent cache
+.fetch_content
+
+# for Android
+android-project/.gradle/
+android-project/.idea/
+android-project/app/.cxx/
+android-project/local.properties
+android-project/app/src/main/assets/
+

@@ -6,6 +6,7 @@
 
 #include <SDL_blendmode.h>
 #include <SDL_error.h>
+#include <SDL_hints.h>
 #include <SDL_mouse.h>
 #include <SDL_pixels.h>
 #include <SDL_rect.h>
@@ -20,10 +21,6 @@
 #include <iostream>
 #include <iterator>
 #include <limits>
-
-#ifdef __APPLE__
-#   include <SDL_hints.h>
-#endif // __APPLE__
 
 #ifdef __EMSCRIPTEN__
 #   include <emscripten.h>
@@ -176,6 +173,8 @@ void VGAEmulation::init()
 #ifdef __APPLE__
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
 #endif // __APPLE__
+
+    SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
 
     Uint32 flags = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI;
 #ifndef __EMSCRIPTEN__

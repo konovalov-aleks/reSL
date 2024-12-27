@@ -1,19 +1,18 @@
 #include "filesystem.h"
 
 #include "buffer.h"
+#include "file.h"
 
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
-#include <cstdio>
-#include <cstring>
 
 #ifdef WIN32
 #   include <windows.h>
 #else
 #   include <chrono>
 #   include <filesystem>
-#   include <glob.h>
+#   include <string>
 #   include <system_error>
 #endif
 
@@ -22,6 +21,10 @@
 
 #   include <tuple>
 #endif // __EMSCRIPTEN__
+
+#ifdef ANDROID
+#   include <SDL_system.h>
+#endif // ANDROID
 
 namespace resl {
 
@@ -52,14 +55,8 @@ void initFS()
 /* 1abc:0005 */
 std::size_t readBinaryFile(const char* fileName, void* pagePtr)
 {
-    std::FILE* file = std::fopen(fileName, "rb");
-    std::size_t nBytes = 0;
-    if (file) {
-        nBytes = std::fread(pagePtr, 1, 0xFFFA, file);
-        std::fclose(file);
-    }
     std::strcpy(g_lastFileName, fileName);
-    return nBytes;
+    return File(fileName, "rb").read(pagePtr, 0xFFFA);
 }
 
 /* 1400:067f */
@@ -70,13 +67,7 @@ std::size_t readTextFile(const char* fileName)
     // E.g: in this mode, DOS automatically replaces line endings with "\r\n".
     // But reSL is portable, so we read files as is (in fact, this functions
     // is only used to read RULES.TXT, which is already uses \r\n line endings)
-    std::FILE* file = std::fopen(fileName, "rb");
-    std::size_t nBytes = 0;
-    if (file) {
-        nBytes = std::fread(g_pageBuffer, 1, 0xFFDC, file);
-        std::fclose(file);
-    }
-    return nBytes;
+    return File(fileName, "rb").read(g_pageBuffer, 0xFFDC);
 }
 
 /* 1abc:0064 */
@@ -114,7 +105,7 @@ namespace {
         FileInfo lastSearchResult()
         {
             FileInfo result = {};
-            result.fileName = m_data.cFileName;
+            result.filePath = m_data.cFileName;
 
             FILETIME localTime;
             SYSTEMTIME st;
@@ -150,42 +141,44 @@ namespace {
         HANDLE m_handle = INVALID_HANDLE_VALUE;
     };
 
-#else // WIN32
+#else // !WIN32
 
     class FileSearch {
     public:
-        ~FileSearch()
-        {
-            close();
-        }
-
         bool findFirst(const char* pattern)
         {
-            close();
-            m_glob = {};
-            m_curPath = 0;
-            return glob(pattern, 0, nullptr, &m_glob) == 0;
+        #ifdef ANDROID
+            std::filesystem::path p(pattern);
+            if (!p.is_absolute())
+                p = SDL_AndroidGetInternalStoragePath() / p;
+        #else
+            std::filesystem::path p(std::filesystem::absolute(pattern));
+        #endif
+            m_pattern = p.filename().string();
+            std::error_code ec;
+            m_dirIter = std::filesystem::directory_iterator(p.parent_path(), ec);
+            return ec == std::error_code() && findNextEntry();
         }
 
         bool findNext()
         {
-            ++m_curPath;
-            return m_curPath < m_glob.gl_pathc;
+            assert(std::filesystem::begin(m_dirIter) != std::filesystem::end(m_dirIter));
+            ++m_dirIter;
+            return std::filesystem::begin(m_dirIter) != std::filesystem::end(m_dirIter)
+                && findNextEntry();
         }
 
         FileInfo lastSearchResult()
         {
             using namespace std::chrono;
 
-            assert(m_curPath < m_glob.gl_pathc);
+            assert(std::filesystem::begin(m_dirIter) != std::filesystem::end(m_dirIter));
             FileInfo result;
 
-            result.fileName = m_glob.gl_pathv[m_curPath];
-
-            const std::filesystem::path p(m_glob.gl_pathv[m_curPath]);
+            result.filePath = m_dirIter->path();
             std::error_code ec;
             std::filesystem::file_time_type fileTime =
-                std::filesystem::last_write_time(p, ec);
+                std::filesystem::last_write_time(result.filePath, ec);
             if (ec == std::error_code()) [[likely]] {
                 system_clock::time_point sysTime = time_point_cast<system_clock::duration>(
                     fileTime - std::filesystem::file_time_type::clock::now() + system_clock::now());
@@ -214,13 +207,35 @@ namespace {
         }
 
     private:
-        void close()
+
+        bool findNextEntry()
         {
-            globfree(&m_glob);
+            for (const std::filesystem::directory_entry& e : m_dirIter) {
+                if (!e.is_regular_file())
+                    continue;
+                if (matchPattern(e.path().filename()))
+                    return true;
+            }
+            return false;
         }
 
-        glob_t m_glob;
-        std::size_t m_curPath;
+
+        bool matchPattern(const std::string& p)
+        {
+            // The simplified glob syntax is enough for reSL
+            // (only supports '?' placeholder and constant symbols)
+            if (p.size() != m_pattern.size())
+                return false;
+
+            for (std::size_t i = 0; i < m_pattern.size(); ++i) {
+                if (m_pattern[i] != '?' && m_pattern[i] != p[i])
+                    return false;
+            }
+            return true;
+        }
+
+        std::filesystem::directory_iterator m_dirIter;
+        std::string m_pattern;
     };
 
 #endif // platform specific

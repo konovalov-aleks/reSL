@@ -15,6 +15,7 @@
 #include <game/switch.h>
 #include <game/train.h>
 #include <graphics/color.h>
+#include <system/file.h>
 #include <system/filesystem.h>
 #include <system/time.h>
 #include <types/rectangle.h>
@@ -25,7 +26,6 @@
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
-#include <fstream>
 #include <iterator>
 #include <optional>
 #include <type_traits>
@@ -98,7 +98,7 @@ namespace {
 
     class Reader {
     public:
-        Reader(std::ifstream& f)
+        Reader(File& f)
             : m_file(f)
         {
         }
@@ -109,7 +109,7 @@ namespace {
             if (!ok()) [[unlikely]]
                 return false;
             // Extra data at the end is a sign that the file is damaged.
-            m_file.get();
+            m_file.ignore(1);
             return m_file.eof();
         }
 
@@ -129,11 +129,15 @@ namespace {
             return *res;
         }
 
+        template <typename T>
+        void ignore()
+        {
+            m_file.ignore(sizeof(T));
+        }
+
         void readBytes(char* dst, std::size_t n)
         {
             m_file.read(dst, n);
-            if (!m_file || static_cast<std::size_t>(m_file.gcount()) != n) [[unlikely]]
-                m_ok = false;
         }
 
         // The original game stores the pointers in the save file, but uses
@@ -163,9 +167,9 @@ namespace {
         // (just to make sure we read the same structure as the original game does)
         class [[nodiscard]] ExpectedBlockSize {
         public:
-            ExpectedBlockSize(std::ifstream& f, std::ifstream::pos_type expected)
+            ExpectedBlockSize(File& f, File::pos_type expected)
                 : m_expected(expected)
-                , m_startOffset(f.tellg())
+                , m_startOffset(f.tell())
                 , m_file(f)
             {
             }
@@ -173,15 +177,15 @@ namespace {
             ~ExpectedBlockSize()
             {
                 if (m_file) {
-                    std::ifstream::pos_type offset = m_file.tellg();
+                    File::pos_type offset = m_file.tell();
                     assert(offset - m_startOffset == m_expected);
                 }
             }
 
         private:
-            std::ifstream::pos_type m_expected;
-            std::ifstream::pos_type m_startOffset;
-            std::ifstream& m_file;
+            File::pos_type m_expected;
+            File::pos_type m_startOffset;
+            File& m_file;
         };
 
         ExpectedBlockSize expectedSize(long expected)
@@ -197,12 +201,12 @@ namespace {
 #endif // !NDEBUG
 
     private:
-        std::ifstream& m_file;
+        File& m_file;
         bool m_ok = true;
     };
 
     template <typename T>
-    requires std::is_integral_v<T>
+        requires std::is_integral_v<T>
     class DataReader<T> {
     public:
         static std::optional<T> read(Reader& r)
@@ -228,7 +232,7 @@ namespace {
     };
 
     template <typename T>
-    requires std::is_enum_v<T>
+        requires std::is_enum_v<T>
     class DataReader<T> {
     public:
         static std::optional<T> read(Reader& r)
@@ -333,7 +337,7 @@ namespace {
        field and convert the byte order from little endian to native
        representation.
     */
-    std::ifstream file(fileName, std::ios::binary);
+    File file(fileName, "rb");
     if (!file) [[unlikely]]
         return false;
 
@@ -413,14 +417,14 @@ namespace {
                     // The value is a garbage (broken pointer). This is not
                     // a problem since the value will be overwritten before
                     // use, but we won't store it for better safety
-                    [[maybe_unused]] std::uint16_t unused1 = r.read<std::uint16_t>();
+                    r.ignore<std::uint16_t>();
                     c.next = nullptr;
 
                     c.drawingPriority = r.read<std::int16_t>();
 
                     // This pointer is also not used after loading and
                     // contains a broken value.
-                    [[maybe_unused]] std::uint16_t unused2 = r.read<std::uint16_t>();
+                    r.ignore<std::uint16_t>();
                     c.train = nullptr;
 
                     c.dstEntranceIdx = r.read<std::uint8_t>();

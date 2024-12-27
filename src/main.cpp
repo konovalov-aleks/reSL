@@ -11,6 +11,8 @@
 #include "tasks/task.h"
 #include <system/driver/driver.h>
 
+#include <SDL_main.h>
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -26,7 +28,7 @@ Task sdlLoop()
 {
     for (;;) {
         Driver::instance().vga().flush();
-        co_await sleep(2);
+        co_await resl::sleep(2);
     }
 }
 
@@ -111,6 +113,10 @@ int main(int argc, char* argv[])
 
 } // namespace resl
 
+#if defined(__IPHONEOS__) || defined(ANDROID)
+extern "C" {
+#endif
+
 int main(int argc, char* argv[])
 {
     bool debugGraphics = false;
@@ -146,3 +152,7 @@ int main(int argc, char* argv[])
     addTask(sdlLoop());
     return resl::main(origGameArgc, origGameArgv);
 }
+
+#if defined(__IPHONEOS__) || defined(ANDROID)
+} // extern "C"
+#endif

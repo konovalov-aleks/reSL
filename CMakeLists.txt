@@ -71,6 +71,7 @@ set(sources
     src/system/driver/sdl/touch_handler.cpp
     src/system/driver/sdl/video.cpp
     src/system/exit.cpp
+    src/system/file.cpp
     src/system/filesystem.cpp
     src/system/keyboard.cpp
     src/system/random.cpp
@@ -132,7 +133,14 @@ endmacro()
 
 GroupSources(src)
 
-add_executable(resl ${sources} ${headers})
+if (ANDROID)
+    add_library(resl SHARED ${sources} ${headers})
+
+    # https://developer.android.com/guide/practices/page-sizes#cmake
+    target_link_options(resl PRIVATE "-Wl,-z,max-page-size=16384")
+else()
+    add_executable(resl ${sources} ${headers})
+endif()
 
 set_property(TARGET resl PROPERTY CXX_STANDARD 20)
 
@@ -169,6 +177,9 @@ else()
     else()
         include(FetchContent)
         set(FETCHCONTENT_QUIET FALSE)
+        if (ANDROID)
+            set(FETCHCONTENT_BASE_DIR "${CMAKE_SOURCE_DIR}/.fetch_content")
+        endif()
 
         set(BUILD_SHARED_LIBS OFF)
 
@@ -178,16 +189,18 @@ else()
             GIT_TAG         release-2.30.10
             GIT_PROGRESS    TRUE
         )
+        if (NOT ANDROID)
+            set(SDL_HAPTIC OFF)
+            set(SDL_HIDAPI OFF)
+            set(SDL_TIMERS OFF)
+        endif()
         set(SDL_CPUINFO OFF)
         set(SDL_FILE OFF)
         set(SDL_FILESYSTEM OFF)
-        set(SDL_HAPTIC OFF)
-        set(SDL_HIDAPI OFF)
         set(SDL_LOCALE OFF)
         set(SDL_MISC OFF)
         set(SDL_POWER OFF)
         set(SDL_SENSOR OFF)
-        set(SDL_TIMERS OFF)
 
         FetchContent_Declare(
             SDL2_image
@@ -226,6 +239,12 @@ else()
         target_link_libraries(resl PRIVATE ${SDL_LIBRARIES})
     endif()
 
+    if (ANDROID)
+        set(RESOURCE_DST_DIR ${CMAKE_SOURCE_DIR}/android-project/app/src/main/assets)
+    else()
+        set(RESOURCE_DST_DIR $<TARGET_FILE_DIR:resl>)
+    endif()
+
     install(TARGETS resl RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
     install(FILES
         ${resources}
@@ -239,14 +258,14 @@ else()
             POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_CURRENT_SOURCE_DIR}/${path}
-                $<TARGET_FILE_DIR:resl>/${fname}
+                ${RESOURCE_DST_DIR}/${fname}
 
             COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_CURRENT_SOURCE_DIR}/resources/reSL/build_rail_icon.png
-                $<TARGET_FILE_DIR:resl>/build_rail_icon.png
+                ${RESOURCE_DST_DIR}/build_rail_icon.png
             COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_CURRENT_SOURCE_DIR}/resources/reSL/call_server_icon.png
-                $<TARGET_FILE_DIR:resl>/call_server_icon.png
+                ${RESOURCE_DST_DIR}/call_server_icon.png
         )
     endforeach()
 

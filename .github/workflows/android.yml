@@ -30,6 +30,6 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: resl.apk
-        path: android-project/app/build/outputs/apk/release/app-release-unsigned.apk
+        path: ./android-project/app/build/outputs/apk/release/app-release-unsigned.apk
         overwrite: true
         if-no-files-found: error

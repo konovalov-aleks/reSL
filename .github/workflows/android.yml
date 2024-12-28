@@ -26,10 +26,16 @@ jobs:
     - name: Build with Gradle
       working-directory: ./android-project
       run: ./gradlew buildRelease
+    - name: debug
+      uses: actions/upload-artifact@v4
+      with:
+        name: files
+        path: ${{ github.workspace }}/
+        overwrite: true
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: resl.apk
-        path: ./android-project/app/build/outputs/apk/release/app-release-unsigned.apk
+        path: ${{ github.workspace }}/android-project/app/build/outputs/apk/release/app-release-unsigned.apk
         overwrite: true
         if-no-files-found: error

@@ -25,4 +25,9 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       working-directory: ./android-project
-      run: ./gradlew build
+      run: ./gradlew buildRelease
+    - name: Upload APK
+      uses: actions/upload-artifact@v2
+      with:
+        name: resl.apk
+        path: android-project/app/build/outputs/apk/release/app-release-unsigned.apk

@@ -29,7 +29,7 @@ jobs:
       run: |
         KEYSTORE_FILE_PATH=./android-project/app/keystore
         mkdir "${KEYSTORE_FILE_PATH}"
-        echo $ENCODED_STRING | base64 -di > "{KEYSTORE_FILE_PATH}"/resl_keystore.jks
+        echo $ENCODED_STRING | base64 -di > "${KEYSTORE_FILE_PATH}"/resl_keystore.jks
     - name: Build with Gradle
       working-directory: ./android-project
       run: |

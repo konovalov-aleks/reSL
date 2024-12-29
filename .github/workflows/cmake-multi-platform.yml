@@ -73,3 +73,18 @@ jobs:
       # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest --build-config ${{ matrix.build_type }}
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: resl-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}.zip
+        path: |
+          ${{ steps.strings.outputs.build-output-dir }}/resl*
+          ${{ steps.strings.outputs.build-output-dir }}/demo_*
+          ${{ steps.strings.outputs.build-output-dir }}/play.7
+          ${{ steps.strings.outputs.build-output-dir }}/GAMEOVER.7
+          ${{ steps.strings.outputs.build-output-dir }}/RULES.TXT
+          ${{ steps.strings.outputs.build-output-dir }}/captions.7
+          ${{ steps.strings.outputs.build-output-dir }}/play.7
+          ${{ steps.strings.outputs.build-output-dir }}/poster.7
+        if-no-files-found: error

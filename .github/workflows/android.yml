@@ -26,12 +26,6 @@ jobs:
     - name: Build with Gradle
       working-directory: ./android-project
       run: ./gradlew assembleRelease
-    - name: debug
-      uses: actions/upload-artifact@v4
-      with:
-        name: files
-        path: ./
-        overwrite: true
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
@@ -39,3 +33,12 @@ jobs:
         path: ./android-project/app/build/outputs/apk/release/app-release-unsigned.apk
         overwrite: true
         if-no-files-found: error
+    - name: Update Nightly Release
+      uses: andelf/nightly-release@main
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: latest
+        name: 'Latest development version $$'
+        prerelease: true
+        files: ./android-project/app/build/outputs/apk/release/app-release-unsigned.apk

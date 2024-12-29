@@ -2,9 +2,9 @@ name: Android CI
 
 on:
   push:
-    branches: [ "android-pipeline" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "android-pipeline" ]
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -44,12 +44,10 @@ jobs:
       with:
         name: resl.apk
         path: ./android-project/app/build/outputs/apk/release/app-release.apk
-        overwrite: true
         if-no-files-found: error
     - name: Upload AAB bundle
       uses: actions/upload-artifact@v4
       with:
-        name: resl.apk
+        name: resl.aab
         path: ./android-project/app/build/outputs/bundle/release/app-release.aab
-        overwrite: true
         if-no-files-found: error

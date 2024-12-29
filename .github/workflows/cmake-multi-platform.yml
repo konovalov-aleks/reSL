@@ -46,7 +46,7 @@ jobs:
             c_compiler: clang
           - os: macos-latest
             c_compiler: cl
-          - os: ubuntu-latest
+          - os: macos-latest
             c_compiler: gcc
           - os: ubuntu-latest
             c_compiler: cl
@@ -82,19 +82,19 @@ jobs:
       run: ctest --build-config ${{ matrix.build_type }}
 
     - name: Upload windows artifacts
+      if: "${{ matrix.os == 'windows-latest' }}"
       uses: actions/upload-artifact@v4
       with:
         name: resl-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ github.run_id }}
-        if: "${{ matrix.os == 'windows-latest' }}"
         path: |
           ${{ steps.strings.outputs.build-output-dir }}
         if-no-files-found: error
 
     - name: Upload artifacts
+      if: "${{ matrix.os != 'windows-latest' }}"
       uses: actions/upload-artifact@v4
       with:
         name: resl-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ github.run_id }}
-        if: "${{ matrix.os != 'windows-latest' }}"
         path: |
           ${{ steps.strings.outputs.build-output-dir }}/resl*
           ${{ steps.strings.outputs.build-output-dir }}/demo_*

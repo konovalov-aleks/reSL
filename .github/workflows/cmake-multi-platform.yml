@@ -85,7 +85,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: resl-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ github.run_id }}
-        if: "${{ matrix.os == 'windows-latest }}"
+        if: "${{ matrix.os == 'windows-latest' }}"
         path: |
           ${{ steps.strings.outputs.build-output-dir }}
         if-no-files-found: error
@@ -94,7 +94,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: resl-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ github.run_id }}
-        if: "${{ matrix.os != 'windows-latest }}"
+        if: "${{ matrix.os != 'windows-latest' }}"
         path: |
           ${{ steps.strings.outputs.build-output-dir }}/resl*
           ${{ steps.strings.outputs.build-output-dir }}/demo_*

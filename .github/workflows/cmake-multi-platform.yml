@@ -23,7 +23,7 @@ jobs:
       #
       # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         build_type: [Release, Debug]
         c_compiler: [gcc, clang, cl]
         include:
@@ -36,11 +36,18 @@ jobs:
           - os: ubuntu-latest
             c_compiler: clang
             cpp_compiler: clang++
+          - os: macos-latest
+            c_compiler: clang
+            cpp_compiler: clang++
         exclude:
           - os: windows-latest
             c_compiler: gcc
           - os: windows-latest
             c_compiler: clang
+          - os: macos-latest
+            c_compiler: cl
+          - os: ubuntu-latest
+            c_compiler: gcc
           - os: ubuntu-latest
             c_compiler: cl
 
@@ -74,10 +81,20 @@ jobs:
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest --build-config ${{ matrix.build_type }}
 
+    - name: Upload windows artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: resl-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ github.run_id }}
+        if: "${{ matrix.os == 'windows-latest }}"
+        path: |
+          ${{ steps.strings.outputs.build-output-dir }}
+        if-no-files-found: error
+
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: resl-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}.zip
+        name: resl-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ github.run_id }}
+        if: "${{ matrix.os != 'windows-latest }}"
         path: |
           ${{ steps.strings.outputs.build-output-dir }}/resl*
           ${{ steps.strings.outputs.build-output-dir }}/demo_*

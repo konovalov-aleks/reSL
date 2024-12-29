@@ -1,6 +1,6 @@
 # This starter workflow is for a CMake project running on multiple platforms. There is a different starter workflow if you just want a single platform.
 # See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-single-platform.yml
-name: CMake on multiple platforms
+name: Desktop CI
 
 on:
   push:
@@ -86,8 +86,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: resl-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ github.run_id }}
-        path: |
-          ${{ steps.strings.outputs.build-output-dir }}
+        path: ${{ steps.strings.outputs.build-output-dir }}/${{ matrix.build_type }}/
         if-no-files-found: error
 
     - name: Upload artifacts
@@ -96,12 +95,9 @@ jobs:
       with:
         name: resl-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ github.run_id }}
         path: |
-          ${{ steps.strings.outputs.build-output-dir }}/resl*
+          ${{ steps.strings.outputs.build-output-dir }}/resl
           ${{ steps.strings.outputs.build-output-dir }}/demo_*
-          ${{ steps.strings.outputs.build-output-dir }}/play.7
-          ${{ steps.strings.outputs.build-output-dir }}/GAMEOVER.7
+          ${{ steps.strings.outputs.build-output-dir }}/*.7
           ${{ steps.strings.outputs.build-output-dir }}/RULES.TXT
-          ${{ steps.strings.outputs.build-output-dir }}/captions.7
-          ${{ steps.strings.outputs.build-output-dir }}/play.7
-          ${{ steps.strings.outputs.build-output-dir }}/poster.7
+          ${{ steps.strings.outputs.build-output-dir }}/*.png
         if-no-files-found: error

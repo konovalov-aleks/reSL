@@ -23,19 +23,33 @@ jobs:
     - name: Grant execute permission for gradlew
       working-directory: ./android-project
       run: chmod +x gradlew
+    - name: Decode Keystore
+      env:
+        ENCODED_STRING: ${{ secrets.KEYSTORE }}
+      run: |
+        TMP_KEYSTORE_FILE_PATH="${RUNNER_TEMP}"/keystore
+        mkdir "${TMP_KEYSTORE_FILE_PATH}"
+        echo $ENCODED_STRING | base64 -di > "${TMP_KEYSTORE_FILE_PATH}"/resl_keystore.jks
     - name: Build with Gradle
       working-directory: ./android-project
-      run: ./gradlew assembleRelease
+      run: |
+        ./gradlew assembleRelease
+        ./gradlew bundleRelease
+      env:
+        SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+        SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: resl.apk
-        path: ./android-project/app/build/outputs/apk/release/app-release-unsigned.apk
+        path: ./android-project/app/build/outputs/apk/release/app-release.apk
         overwrite: true
         if-no-files-found: error
-    - name: Release
-      uses: softprops/action-gh-release@v1
+    - name: Upload AAB bundle
+      uses: actions/upload-artifact@v4
       with:
-        files: ./android-project/app/build/outputs/apk/release/app-release-unsigned.apk
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: resl.apk
+        path: ./android-project/app/build/outputs/bundle/release/app-release.aab
+        overwrite: true
+        if-no-files-found: error

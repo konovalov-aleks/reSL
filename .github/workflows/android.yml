@@ -33,12 +33,9 @@ jobs:
         path: ./android-project/app/build/outputs/apk/release/app-release-unsigned.apk
         overwrite: true
         if-no-files-found: error
-    - name: Update Nightly Release
-      uses: andelf/nightly-release@main
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ./android-project/app/build/outputs/apk/release/app-release-unsigned.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: latest
-        name: 'Latest development version $$'
-        prerelease: true
-        files: ./android-project/app/build/outputs/apk/release/app-release-unsigned.apk

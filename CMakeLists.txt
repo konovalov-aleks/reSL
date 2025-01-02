@@ -6,7 +6,10 @@ if (NOT EMSCRIPTEN)
     option(USE_SYSTEM_SDL2 "use SDL2 library from the system" OFF)
 endif()
 
+set (APP_VERSION "1.1.1")
+
 option(USE_IWYU "enable include-what-you-use tool" OFF)
+option(BUILD_NUMBER "build version number" "1")
 
 file(GLOB_RECURSE headers "*.h")
 
@@ -142,6 +145,19 @@ else()
     add_executable(resl ${sources} ${headers})
 endif()
 
+if(IOS)
+    set_target_properties(resl PROPERTIES
+        BUNDLE TRUE
+        MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/ios/config/iOSBundleInfo.plist.in
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_BUNDLE_VERSION ${BUILD_NUMBER}
+        MACOSX_BUNDLE_SHORT_VERSION_STRING ${APP_VERSION}
+        MACOSX_BUNDLE_LONG_VERSION_STRING "${APP_VERSION} (${BUILD_NUMBER})"
+        MACOSX_BUNDLE_GUI_IDENTIFIER com.konovalovaleks.resl
+        #MACOSX_BUNDLE_ICON_FILE
+    )
+endif()
+
 set_property(TARGET resl PROPERTY CXX_STANDARD 20)
 
 include(GNUInstallDirs)
@@ -245,11 +261,13 @@ else()
         set(RESOURCE_DST_DIR $<TARGET_FILE_DIR:resl>)
     endif()
 
-    install(TARGETS resl RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-    install(FILES
-        ${resources}
-        DESTINATION ${CMAKE_INSTALL_BINDIR}
-    )
+    if (NOT IOS)
+        install(TARGETS resl RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+        install(FILES
+            ${resources}
+            DESTINATION ${CMAKE_INSTALL_BINDIR}
+        )
+    endif()
 
     foreach (path ${resources})
         get_filename_component(fname ${path} NAME)

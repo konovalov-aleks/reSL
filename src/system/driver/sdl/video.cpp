@@ -170,7 +170,7 @@ void VGAEmulation::setFullscreenMode(bool fullscreen)
 
 void VGAEmulation::init()
 {
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(IOS)
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
 #endif // __APPLE__
 

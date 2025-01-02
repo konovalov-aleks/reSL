@@ -69,6 +69,7 @@ jobs:
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DBUILD_NUMBER=${{ github.run_number }}
         -S ${{ github.workspace }}
 
     - name: Build
@@ -85,7 +86,7 @@ jobs:
       if: "${{ matrix.os == 'windows-latest' }}"
       uses: actions/upload-artifact@v4
       with:
-        name: resl-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ github.run_id }}
+        name: resl-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ github.run_number }}
         path: ${{ steps.strings.outputs.build-output-dir }}/${{ matrix.build_type }}/
         if-no-files-found: error
 
@@ -93,7 +94,7 @@ jobs:
       if: "${{ matrix.os != 'windows-latest' }}"
       uses: actions/upload-artifact@v4
       with:
-        name: resl-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ github.run_id }}
+        name: resl-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ github.run_number }}
         path: |
           ${{ steps.strings.outputs.build-output-dir }}/resl
           ${{ steps.strings.outputs.build-output-dir }}/demo_*

@@ -73,7 +73,7 @@ jobs:
 
     - name: Build
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }} -DBUILD_NUMBER ${{ github.run_number }}
 
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
@@ -85,7 +85,7 @@ jobs:
       if: "${{ matrix.os == 'windows-latest' }}"
       uses: actions/upload-artifact@v4
       with:
-        name: resl-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ github.run_id }}
+        name: resl-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ github.run_number }}
         path: ${{ steps.strings.outputs.build-output-dir }}/${{ matrix.build_type }}/
         if-no-files-found: error
 
@@ -93,7 +93,7 @@ jobs:
       if: "${{ matrix.os != 'windows-latest' }}"
       uses: actions/upload-artifact@v4
       with:
-        name: resl-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ github.run_id }}
+        name: resl-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ github.run_number }}
         path: |
           ${{ steps.strings.outputs.build-output-dir }}/resl
           ${{ steps.strings.outputs.build-output-dir }}/demo_*

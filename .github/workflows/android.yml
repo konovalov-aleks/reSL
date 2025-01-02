@@ -39,16 +39,16 @@ jobs:
         SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
         SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
         SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
-        VERSION_CODE: ${{github.run_number}}
+        VERSION_CODE: ${{ github.run_number }}
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: resl.apk
+        name: resl-${{ github.run_number }}.apk
         path: ./android-project/app/build/outputs/apk/release/app-release.apk
         if-no-files-found: error
     - name: Upload AAB bundle
       uses: actions/upload-artifact@v4
       with:
-        name: resl.aab
+        name: resl-${{ github.run_number }}.aab
         path: ./android-project/app/build/outputs/bundle/release/app-release.aab
         if-no-files-found: error

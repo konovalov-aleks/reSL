@@ -1,15 +1,15 @@
-name: Android CI
+name: Android CI - Release
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
     branches: [ "main" ]
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
+
+    if: github.repository == 'konovalov-aleks/reSL'
 
     steps:
     - uses: actions/checkout@v4

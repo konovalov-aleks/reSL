@@ -44,7 +44,7 @@ Therefore, the existing differences between reSL and the original game are due t
 
 1. Ability use mouse/touch in all menus (main menu, pause menu, records, archive, etc.).
 2. Ability to control the game without a mouse (long touch instead of right mouse button click, swipe instead of simultaneous pressing of both mouse buttons).
-3. Ability to use <space> button instead of simultaneous pressing of both mouse buttons on PC.
+3. Ability to use `<space>` button instead of simultaneous pressing of both mouse buttons on PC.
 4. Grid lines in construction mode to simplify the positioning especially on touch devices.
 5. Animation when closing the "Records" screen (the same animation as other screens have).
 6. Better error handling (the original game could crash or reach an unpredictable state when trying to read a broken save file). ([issue #17](https://github.com/konovalov-aleks/reSL/issues/17))

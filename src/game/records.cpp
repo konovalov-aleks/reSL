@@ -50,7 +50,13 @@ struct Record {
     char playerName[20];
 };
 
+#ifdef __EMSCRIPTEN__
+static const std::string g_recordsFilePathStr =
+    (std::filesystem::path(g_persistentFolder) / "results.tbl").generic_string();
+static const char* const g_recordsFileName = g_recordsFilePathStr.c_str();
+#else
 static constexpr char g_recordsFileName[] = "results.tbl";
+#endif
 static constexpr std::int16_t g_recordsTableCapacity = 833;
 static constexpr std::size_t g_recordSize = 36;
 

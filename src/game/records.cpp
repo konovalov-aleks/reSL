@@ -116,12 +116,14 @@ static int recordCompareByLevelAndYear(const void* a, const void* b)
 /* 174e:0266 */
 void showRecordsScreen()
 {
+    static constexpr std::size_t maxItemsToShow = 10;
+
     std::size_t bytesRead = readBinaryFile(g_recordsFileName, g_pageBuffer);
+    std::size_t nRecords = 0;
+    Record* records = reinterpret_cast<Record*>(g_pageBuffer);
     if (bytesRead) {
         // The data can contain an empty records
         // Normalize the representation - move all non-empty records to the head
-        Record* records = (Record*)g_pageBuffer;
-        std::size_t nRecords = 0;
         while (nRecords < g_recordsTableCapacity && *records[nRecords].playerName)
             ++nRecords;
 
@@ -132,43 +134,45 @@ void showRecordsScreen()
                 convertByteOrderFileToNative(records[i]);
             }
         }
+    }
 
-        /* fill entire area with red color */
-        graphics::filledRectangle(0, 350, 80, 350, 0xFF, Color::Red);
-        /* first block */
-        graphics::dialogFrame(98, 367, 56, 151, Color::Gray);
-        /* second block */
-        graphics::dialogFrame(98, 545, 56, 151, Color::Gray);
+    /* fill entire area with red color */
+    graphics::filledRectangle(0, 350, 80, 350, 0xFF, Color::Red);
+    /* first block */
+    graphics::dialogFrame(98, 367, 56, 151, Color::Gray);
+    /* second block */
+    graphics::dialogFrame(98, 545, 56, 151, Color::Gray);
 
-        g_textSpacing = 2;
-        drawText(153, 352, "* THE BEST DISPATCHERS *", Color::Black);
-        drawTextSmall(114, 370,
-                      " #  Name           Trains   Money   Year   Level", Color::Black);
-        drawText(169, 530, "* THE BEST MANAGERS *", Color::Black);
-        drawTextSmall(114, 548,
-                      " #  Name        Level : Year   Money   Trains", Color::Black);
-        std::qsort(records, nRecords, sizeof(Record), &recordCompareByTrains);
-        for (std::uint16_t i = 0; i < 10 && records[i].byTrains.trains; ++i) {
-            char buf[80];
-            const RecordItem& ri = records[i].byTrains;
-            std::snprintf(
-                buf, sizeof(buf), "%2d. %-14s %6u %4u,000 %6u %2u", i + 1,
-                records[i].playerName, static_cast<unsigned>(ri.trains),
-                static_cast<unsigned>(ri.money), static_cast<unsigned>(ri.year),
-                static_cast<unsigned>(ri.level));
-            drawTextSmall(114, (i + 2) * 12 + 370, buf, Color::Black);
-        }
+    g_textSpacing = 2;
+    drawText(153, 352, "* THE BEST DISPATCHERS *", Color::Black);
+    drawTextSmall(114, 370,
+                  " #  Name           Trains   Money   Year   Level", Color::Black);
+    drawText(169, 530, "* THE BEST MANAGERS *", Color::Black);
+    drawTextSmall(114, 548,
+                  " #  Name        Level : Year   Money   Trains", Color::Black);
+    std::qsort(records, nRecords, sizeof(Record), &recordCompareByTrains);
 
-        std::qsort(records, nRecords, sizeof(Record), &recordCompareByLevelAndYear);
-        for (std::uint16_t i = 0; i < 10 && records[i].byYears.level; ++i) {
-            char buf[80];
-            const RecordItem& ri = records[i].byYears;
-            std::snprintf(
-                buf, sizeof(buf), "%2d. %-14s %2u : %4u %4u,000 %5u", i + 1,
-                records[i].playerName, static_cast<unsigned>(ri.level), static_cast<unsigned>(ri.year),
-                static_cast<unsigned>(ri.money), static_cast<unsigned>(ri.trains));
-            drawTextSmall(114, (i + 2) * 12 + 548, buf, Color::Black);
-        }
+    const std::size_t nItemsToShow = std::min(maxItemsToShow, nRecords);
+    for (std::size_t i = 0; i < nItemsToShow && records[i].byTrains.trains; ++i) {
+        char buf[80];
+        const RecordItem& ri = records[i].byTrains;
+        std::snprintf(
+            buf, sizeof(buf), "%2zu. %-14s %6u %4u,000 %6u %2u", i + 1,
+            records[i].playerName, static_cast<unsigned>(ri.trains),
+            static_cast<unsigned>(ri.money), static_cast<unsigned>(ri.year),
+            static_cast<unsigned>(ri.level));
+        drawTextSmall(114, (i + 2) * 12 + 370, buf, Color::Black);
+    }
+
+    std::qsort(records, nRecords, sizeof(Record), &recordCompareByLevelAndYear);
+    for (std::size_t i = 0; i < nItemsToShow && records[i].byYears.level; ++i) {
+        char buf[80];
+        const RecordItem& ri = records[i].byYears;
+        std::snprintf(
+            buf, sizeof(buf), "%2zu. %-14s %2u : %4u %4u,000 %5u", i + 1,
+            records[i].playerName, static_cast<unsigned>(ri.level), static_cast<unsigned>(ri.year),
+            static_cast<unsigned>(ri.money), static_cast<unsigned>(ri.trains));
+        drawTextSmall(114, (i + 2) * 12 + 548, buf, Color::Black);
     }
 }
 

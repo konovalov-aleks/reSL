@@ -40,9 +40,6 @@ build*/
 # python cache
 __pycache__
 
-# game extra resources
-resources/extra/*
-
 # FetchContent cache
 .fetch_content
 

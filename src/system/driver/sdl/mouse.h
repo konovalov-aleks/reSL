@@ -72,6 +72,7 @@ private:
 
     void handleTouchAction(TouchHandler::Action, int x, int y);
 
+    bool updateAnimation();
     void drawCursor(SDL_Renderer*);
 
     TouchHandler m_touchHandler;

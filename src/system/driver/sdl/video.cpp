@@ -58,7 +58,8 @@ void VGAEmulation::flush()
         return;
     m_nextFrameTime = now + std::chrono::microseconds(1000000 / s_FPS);
 
-    if (updatePicture() || m_needRedraw) {
+    bool mouseAnimationUpdated = Driver::instance().mouse().updateAnimation();
+    if (updatePicture() || m_needRedraw || mouseAnimationUpdated) {
         m_needRedraw = false;
 
         SDL_SetRenderDrawColor(m_renderer, 0x00, 0x00, 0x00, 0xFF);

@@ -125,25 +125,36 @@ void TouchHandler::onMove(int x, int y)
         m_stage);
 }
 
-void TouchHandler::draw(SDL_Renderer* renderer)
+bool TouchHandler::updateAnimation()
 {
     Uint64 time = SDL_GetTicks64();
     int dTime = static_cast<int>(time - m_lastFrameTime);
     if (dTime == 0)
-        return;
+        return false;
     m_lastFrameTime = time;
 
     std::optional<StageT> newStage =
         std::visit(
-            [this, renderer, dTime](auto& stage) {
-                return stage.handle(renderer, dTime, m_context);
+            [this, dTime](auto& stage) {
+                return stage.update(dTime, m_context);
             },
             m_stage);
-    if (newStage) {
+    const bool stageChanged = newStage != std::nullopt;
+    if (stageChanged) {
         if (m_handler && std::holds_alternative<FinishedStage>(*newStage))
             m_handler(Action::LongTap, m_context.x, m_context.y);
         m_stage = std::move(*newStage);
     }
+    return stageChanged || isAnimationVisible();
+}
+
+void TouchHandler::draw(SDL_Renderer* renderer)
+{
+    std::visit(
+        [this, renderer](auto& stage) {
+            return stage.draw(renderer, m_context);
+        },
+        m_stage);
 }
 
 bool TouchHandler::isAnimationVisible() const noexcept
@@ -160,8 +171,8 @@ void TouchHandler::setTouchContextProvider(TouchContextProvider* tcp)
     m_context.touchContextProvider = tcp;
 }
 
-std::optional<TouchHandler::StageT> TouchHandler::WaitStage::handle(
-    SDL_Renderer*, int dTime, AnimationContext& ctx)
+std::optional<TouchHandler::StageT> TouchHandler::WaitStage::update(
+    int dTime, AnimationContext& ctx)
 {
     const LongTouchAction longTouchAction = ctx.touchContextProvider
         ? ctx.touchContextProvider->recognizeTouchAction(ctx.x, ctx.y)
@@ -181,8 +192,8 @@ std::optional<TouchHandler::StageT> TouchHandler::WaitStage::handle(
     return std::nullopt;
 }
 
-std::optional<TouchHandler::StageT> TouchHandler::TimerStage::handle(
-    SDL_Renderer* renderer, int dTime, AnimationContext& ctx)
+std::optional<TouchHandler::StageT> TouchHandler::TimerStage::update(
+    int dTime, AnimationContext& ctx)
 {
     if (ctx.pressed) {
         m_angle += (3 * M_PI / g_fillTimeMs) * dTime;
@@ -194,32 +205,34 @@ std::optional<TouchHandler::StageT> TouchHandler::TimerStage::handle(
             return WaitStage();
     }
 
-    int nPoints;
-    int nIndices;
     if (m_angle - 2 * M_PI >= 0) {
         // entire circle
-        nPoints = static_cast<int>(ctx.points.size());
-        nIndices = static_cast<int>(ctx.indices.size());
+        m_nPoints = static_cast<int>(ctx.points.size());
+        m_nIndices = static_cast<int>(ctx.indices.size());
     } else {
         const int steps = static_cast<int>(m_angle / g_angleStep);
         if (!steps)
             return std::nullopt;
 
-        nPoints = (steps + 1) * 2;
-        assert(nPoints <= static_cast<int>(ctx.points.size()));
+        m_nPoints = (steps + 1) * 2;
+        assert(m_nPoints <= static_cast<int>(ctx.points.size()));
 
-        nIndices = steps * 6;
-        assert(nIndices <= static_cast<int>(ctx.indices.size()));
+        m_nIndices = steps * 6;
+        assert(m_nIndices <= static_cast<int>(ctx.indices.size()));
     }
+    fillColors(m_nPoints);
 
-    fillColors(nPoints);
+    return std::nullopt;
+}
 
+void TouchHandler::TimerStage::draw(SDL_Renderer* renderer, const AnimationContext& ctx)
+{
     int res = SDL_RenderGeometryRaw(
         renderer, nullptr,
         reinterpret_cast<const float*>(ctx.points.data()), sizeof(ctx.points[0]),
         m_colors.data(), sizeof(m_colors[0]),
-        nullptr, 0, nPoints,
-        ctx.indices.data(), nIndices, sizeof(ctx.indices[0]));
+        nullptr, 0, m_nPoints,
+        ctx.indices.data(), m_nIndices, sizeof(ctx.indices[0]));
     if (res) [[unlikely]]
         std::cerr << "SDL_RenderGeometryRaw failed: " << SDL_GetError() << std::endl;
 
@@ -229,10 +242,8 @@ std::optional<TouchHandler::StageT> TouchHandler::TimerStage::handle(
 
     SDL_Rect dstRect = { adjX + iconXOffset, adjY + iconYOffset, g_iconWidth, g_iconHeight };
     assert(ctx.curIcon);
-    SDL_SetTextureAlphaMod(*ctx.curIcon, static_cast<Uint8>(200 * nPoints / ctx.points.size()));
+    SDL_SetTextureAlphaMod(*ctx.curIcon, static_cast<Uint8>(200 * m_nPoints / ctx.points.size()));
     SDL_RenderCopy(renderer, *ctx.curIcon, nullptr, &dstRect);
-
-    return std::nullopt;
 }
 
 void TouchHandler::TimerStage::fillColors(int nPoints)
@@ -263,16 +274,22 @@ void TouchHandler::TimerStage::fillColors(int nPoints)
     }
 }
 
-std::optional<TouchHandler::StageT> TouchHandler::ConfirmationStage::handle(
-    SDL_Renderer* renderer, int dTime, AnimationContext& ctx)
+std::optional<TouchHandler::StageT> TouchHandler::ConfirmationStage::update(
+    int dTime, AnimationContext&)
+{
+    m_time += dTime;
+
+    if (m_time > s_maxScaleTimeMs)
+        return FinishedStage();
+
+    return std::nullopt;
+}
+
+void TouchHandler::ConfirmationStage::draw(SDL_Renderer* renderer, const AnimationContext& ctx)
 {
     // scale function: scale(x) = 1 - ((x - 100) ^ 2) / (200^2);
-
-    constexpr float maxScaleTimeMs = 200;
-
     const int x = m_time - 100;
-    const float scale = 1 - x * x / (maxScaleTimeMs * maxScaleTimeMs);
-    m_time += dTime;
+    const float scale = 1 - x * x / (s_maxScaleTimeMs * s_maxScaleTimeMs);
 
     const int width = g_iconWidth * scale;
     const int height = g_iconHeight * scale;
@@ -285,17 +302,13 @@ std::optional<TouchHandler::StageT> TouchHandler::ConfirmationStage::handle(
         width, height
     };
     assert(ctx.curIcon);
-    SDL_SetTextureAlphaMod(*ctx.curIcon, static_cast<Uint8>(200 * (maxScaleTimeMs - scale) / maxScaleTimeMs));
+
+    SDL_SetTextureAlphaMod(*ctx.curIcon, static_cast<Uint8>(200 * (s_maxScaleTimeMs - scale) / s_maxScaleTimeMs));
     SDL_RenderCopy(renderer, *ctx.curIcon, nullptr, &dstRect);
-
-    if (m_time >= maxScaleTimeMs)
-        return FinishedStage();
-
-    return std::nullopt;
 }
 
-std::optional<TouchHandler::StageT> TouchHandler::SwipeStage::handle(
-    SDL_Renderer*, int dTime, const AnimationContext&)
+std::optional<TouchHandler::StageT> TouchHandler::SwipeStage::update(
+    int dTime, const AnimationContext&)
 {
     m_time += dTime;
     if (m_time > g_maxSwipeTimeMs)

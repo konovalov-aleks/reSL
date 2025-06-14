@@ -250,13 +250,17 @@ MouseDriver::TouchContextProviderHolder MouseDriver::setTouchContextProvider(Tou
     return { m_touchHandler };
 }
 
+bool MouseDriver::updateAnimation()
+{
+    if (m_isTouchDevice)
+        return m_touchHandler.updateAnimation();
+    return false;
+}
+
 void MouseDriver::drawCursor(SDL_Renderer* renderer)
 {
     if (m_isTouchDevice) {
-        const bool animationVisible = m_touchHandler.isAnimationVisible();
         m_touchHandler.draw(renderer);
-        if (animationVisible)
-            Driver::instance().vga().requestScreenUpdate();
         return;
     }
 

@@ -34,8 +34,8 @@ public:
     void onPressEnd();
     void onMove(int x, int y);
 
+    bool updateAnimation();
     void draw(SDL_Renderer*);
-    bool isAnimationVisible() const noexcept;
 
     void setTouchContextProvider(TouchContextProvider*);
 
@@ -82,7 +82,8 @@ private:
     };
 
     struct WaitStage {
-        std::optional<StageT> handle(SDL_Renderer*, int dTime, AnimationContext&);
+        std::optional<StageT> update(int dTime, AnimationContext&);
+        void draw(SDL_Renderer*, const AnimationContext&) { }
         bool isAnimationVisible() const noexcept { return false; }
 
         static constexpr int g_animationDelayMs = 200;
@@ -91,27 +92,34 @@ private:
 
     class TimerStage {
     public:
-        std::optional<StageT> handle(SDL_Renderer*, int dTime, AnimationContext&);
+        std::optional<StageT> update(int dTime, AnimationContext&);
+        void draw(SDL_Renderer*, const AnimationContext&);
         bool isAnimationVisible() const noexcept { return true; }
 
     private:
         void fillColors(int nPoints);
 
+        int m_nPoints;
+        int m_nIndices;
         std::array<SDL_Color, (g_nSteps + 1) * 4> m_colors;
         float m_angle = 0;
     };
 
     class ConfirmationStage {
     public:
-        std::optional<StageT> handle(SDL_Renderer*, int dTime, AnimationContext&);
+        std::optional<StageT> update(int dTime, AnimationContext&);
+        void draw(SDL_Renderer*, const AnimationContext&);
         bool isAnimationVisible() const noexcept { return true; }
 
     private:
+        static constexpr float s_maxScaleTimeMs = 200;
+
         int m_time = 0;
     };
 
     struct SwipeStage {
-        std::optional<StageT> handle(SDL_Renderer*, int dTime, const AnimationContext&);
+        std::optional<StageT> update(int dTime, const AnimationContext&);
+        void draw(SDL_Renderer*, const AnimationContext&) { }
         bool isAnimationVisible() const noexcept { return false; }
 
         int m_time;
@@ -119,12 +127,15 @@ private:
 
     class FinishedStage {
     public:
-        std::optional<StageT> handle(SDL_Renderer*, int /*dTime*/, const AnimationContext&)
+        std::optional<StageT> update(int /*dTime*/, const AnimationContext&)
         {
             return std::nullopt;
         }
+        void draw(SDL_Renderer*, const AnimationContext&) { }
         bool isAnimationVisible() const noexcept { return false; }
     };
+
+    bool isAnimationVisible() const noexcept;
 
     void computePoints();
     void moveTo(int x, int y);

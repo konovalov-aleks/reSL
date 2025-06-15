@@ -99,7 +99,6 @@ SDL_Texture* GridOverlay::texture(SDL_Renderer* renderer)
             }
         }
 
-        SDL_RenderPresent(renderer);
         SDL_RenderSetClipRect(renderer, nullptr);
         if (SDL_SetRenderTarget(renderer, oldTarget)) [[unlikely]] {
             std::cerr << "SDL_SetRenderTarget failed. "

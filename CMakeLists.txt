@@ -6,7 +6,7 @@ if (NOT EMSCRIPTEN)
     option(USE_SYSTEM_SDL2 "use SDL2 library from the system" OFF)
 endif()
 
-set (APP_VERSION "1.1.1")
+set (APP_VERSION "1.1.2")
 
 option(USE_IWYU "enable include-what-you-use tool" OFF)
 option(BUILD_NUMBER "build version number" "1")

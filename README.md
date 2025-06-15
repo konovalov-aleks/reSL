@@ -2,7 +2,7 @@
 
 # reSL
 
-The reverse engineered DOS game ShortLine v1.1. (DOKA 1992)
+The reverse engineered DOS game ShortLine v1.1 (DOKA 1992)
 
 <img width="640" alt="reSL" src="https://github.com/user-attachments/assets/774774a4-c3c7-41d5-a76e-4183ece09393">
 
@@ -55,6 +55,7 @@ Therefore, the existing differences between reSL and the original game are due t
 2. The loading screen is momentarily drawn in incorrect colors.
 3. The interface was corrupted if the user deleted the last file in the "Archive" menu. ([issue #7](https://github.com/konovalov-aleks/reSL/issues/7))
 4. The yellow entrance never spawns if the user removes the last archive file and runs a new game. ([issue #15](https://github.com/konovalov-aleks/reSL/issues/15))
+5. The record screen was not drawn if there was no RECORDS.TBL file ([issue #37](https://github.com/konovalov-aleks/reSL/issues/37))
 
 ## Reverse engineering process
 

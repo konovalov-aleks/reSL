@@ -22,5 +22,6 @@ void disableTimer();
 void enableTimer();
 
 void setTimeAcceleration(int);
+int getTimeAcceleration();
 
 } // namespace resl

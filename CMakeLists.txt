@@ -286,6 +286,12 @@ else()
             COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_CURRENT_SOURCE_DIR}/resources/reSL/call_server_icon.png
                 ${RESOURCE_DST_DIR}/call_server_icon.png
+            COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/resources/reSL/time_fast2.png
+                ${RESOURCE_DST_DIR}/time_fast2.png
+            COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/resources/reSL/time_fast3.png
+                ${RESOURCE_DST_DIR}/time_fast3.png
         )
     endforeach()
 

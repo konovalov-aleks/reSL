@@ -1,6 +1,10 @@
 #include "time.h"
 
+#include "driver/driver.h"
+
+#include <cassert>
 #include <chrono>
+#include <optional>
 
 namespace resl {
 
@@ -50,8 +54,8 @@ public:
 
         ClockT::time_point now = ClockT::now();
         const auto ms =
-            std::chrono::duration_cast<std::chrono::milliseconds>(now - m_startTime);
-        return static_cast<std::uint16_t>(m_startValue + ms.count() / MsPerTick);
+            std::chrono::duration_cast<std::chrono::milliseconds>(now - m_startTime).count();
+        return static_cast<std::uint16_t>(m_startValue + ms * m_multiplier / MsPerTick);
     }
 
     void start()
@@ -70,13 +74,59 @@ public:
         }
     }
 
+    void setTimeAcceleration(int multiplier)
+    {
+        stop();
+        m_multiplier = multiplier;
+        start();
+    }
+
 private:
-    Timer() = default;
+    Timer()
+    {
+        Driver::instance().vga().addOverlay([this](SDL_Renderer* r, int) {
+            Texture* texture = nullptr;;
+            switch (m_multiplier) {
+            case 2:
+                if (!m_textureFast2)
+                    m_textureFast2 = Texture(r, "time_fast2.png");
+                texture = &*m_textureFast2;
+                break;
+            case 3:
+                if (!m_textureFast3)
+                    m_textureFast3 = Texture(r, "time_fast3.png");
+                texture = &*m_textureFast3;
+                break;
+            default:
+                return;
+            }
+
+            int texW = 0;
+            int texH = 0;
+            SDL_QueryTexture(*texture, nullptr, nullptr, &texW, &texH);
+
+            static constexpr int MARGIN_X = 20;
+            static constexpr int MARGIN_Y = 50;
+
+            assert(texture);
+            SDL_Rect dst;
+            dst.w = texW;
+            dst.h = texH;
+            dst.x = MARGIN_X;
+            dst.y = SCREEN_HEIGHT - MARGIN_Y;
+            SDL_RenderCopy(r, *texture, nullptr, &dst);
+        });
+    }
+
     Timer(const Timer&) = delete;
     Timer& operator=(const Timer&) = delete;
 
+    std::optional<Texture> m_textureFast2;
+    std::optional<Texture> m_textureFast3;
+
     TimeT m_startValue = 0;
     ClockT::time_point m_startTime;
+    int m_multiplier = 1;
     bool m_enabled = false;
 };
 
@@ -106,6 +156,11 @@ void enableTimer()
 {
     // In the original game, the INT8 vector is set here.
     Timer::instance().start();
+}
+
+void setTimeAcceleration(int multiplier)
+{
+    Timer::instance().setTimeAcceleration(multiplier);
 }
 
 } // namespace resl

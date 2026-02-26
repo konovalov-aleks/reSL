@@ -106,7 +106,7 @@ private:
                 return;
             }
 
-            assert(m_texture);
+            assert(texture);
 
             int texW = 0;
             int texH = 0;

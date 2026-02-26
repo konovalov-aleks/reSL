@@ -91,7 +91,6 @@ private:
     {
         Driver::instance().vga().addOverlay([this](SDL_Renderer* r, int) {
             Texture* texture = nullptr;
-            ;
             switch (m_multiplier) {
             case 2:
                 if (!m_textureFast2)
@@ -106,6 +105,8 @@ private:
             default:
                 return;
             }
+
+            assert(m_texture);
 
             int texW = 0;
             int texH = 0;

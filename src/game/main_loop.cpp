@@ -237,12 +237,27 @@ Task taskGameMainLoop()
 
                 if (g_lastKeyPressed) {
                     // use <space> as a hot key to switch mouse modes
-                    if (g_lastKeyPressed == g_keySpace) {
+                    switch (g_lastKeyPressed) {
+                    case g_keySpace:
                         mouse::toggleMode();
                         Driver::instance().vga().requestScreenUpdate();
                         g_lastKeyPressed = 0;
-                    } else
+                        break;
+                    case g_key1:
+                        setTimeAcceleration(1);
+                        g_lastKeyPressed = 0;
+                        break;
+                    case g_key2:
+                        setTimeAcceleration(2);
+                        g_lastKeyPressed = 0;
+                        break;
+                    case g_key3:
+                        setTimeAcceleration(3);
+                        g_lastKeyPressed = 0;
+                        break;
+                    default:
                         menuButton.click();
+                    }
                 }
                 if (menuButton.clicked()) {
                     menuButton.reset();
@@ -349,6 +364,7 @@ Task taskGameMainLoop()
                 };
             }
         }
+        setTimeAcceleration(1);
     }
 }
 

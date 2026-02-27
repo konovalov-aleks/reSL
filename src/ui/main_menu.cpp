@@ -287,7 +287,7 @@ void mainMenu()
 void drawMainMenuBackground(std::int16_t yOffset)
 {
     readBinaryFile("play.7", g_pageBuffer);
-    graphics::imageDot7(0, yOffset, SCREEN_WIDTH, SCREEN_HEIGHT, g_pageBuffer);
+    graphics::imageDot7(0, yOffset, LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT, g_pageBuffer);
     drawStaticObjects(yOffset);
     drawCopyright(yOffset);
 }

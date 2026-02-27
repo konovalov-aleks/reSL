@@ -194,8 +194,8 @@ void Driver::onMouseMove(const SDL_MouseMotionEvent& e)
         return;
 
     // limit mouse movement if the debug graphics is active
-    const Sint32 x = std::min(e.x, SCREEN_WIDTH);
-    const Sint32 y = std::min(e.y, SCREEN_HEIGHT);
+    const Sint32 x = std::min(e.x, LOGICAL_SCREEN_WIDTH);
+    const Sint32 y = std::min(e.y, LOGICAL_SCREEN_HEIGHT);
 
     // window is small => coordinates can't be large
     assert(x - m_lastCursorX <= std::numeric_limits<std::int16_t>::max());

@@ -32,7 +32,7 @@ std::uint8_t g_cuttingDownStaticObjectsByKind[4];
 /* 1530:0203 */
 inline bool isInsideGameField(int x, int y)
 {
-    return y >= g_headerHeight && y < g_footerYPos && x >= 0 && x < SCREEN_WIDTH;
+    return y >= g_headerHeight && y < g_footerYPos && x >= 0 && x < LOGICAL_SCREEN_WIDTH;
 }
 
 /* 1530:013e */

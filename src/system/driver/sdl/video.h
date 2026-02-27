@@ -27,6 +27,7 @@ public:
     void waitVerticalRetrace();
 
     void setDebugMode(bool debug);
+    bool isDebugMode() const { return m_wndWidth != PHYSICAL_SCREEN_WIDTH; };
     void setFullscreenMode(bool fullscreen);
 
     [[nodiscard]] std::uint8_t read(vga::VideoMemPtr);
@@ -110,8 +111,8 @@ private:
     SDL_Renderer* m_renderer = nullptr;
     SDL_Texture* m_screen = nullptr;
 
-    int m_wndWidth = SCREEN_WIDTH;
-    int m_wndHeight = SCREEN_HEIGHT;
+    int m_wndWidth = PHYSICAL_SCREEN_WIDTH;
+    int m_wndHeight = PHYSICAL_SCREEN_HEIGHT;
 
     VGAState m_vgaState;
     Uint32 m_pixelFormat = 0;

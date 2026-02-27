@@ -34,7 +34,7 @@ void drawHeaderFieldFontTexture()
 void drawHeaderBackground(std::int16_t yOffset)
 {
     readIfNotLoaded("play.7", g_pageBuffer);
-    graphics::imageDot7(0, yOffset, SCREEN_WIDTH, g_headerHeight, g_pageBuffer);
+    graphics::imageDot7(0, yOffset, LOGICAL_SCREEN_WIDTH, g_headerHeight, g_pageBuffer);
 }
 
 /* 12c5:01d7 */

@@ -49,8 +49,8 @@ private:
     static constexpr int g_fillTimeMs = 700;
     static constexpr int g_clearTimeMs = 400;
 
-    static constexpr int g_maxTapDistance = SCREEN_HEIGHT / 5;
-    static constexpr int g_minSwipeDistance = SCREEN_HEIGHT / 3;
+    static constexpr int g_maxTapDistance = LOGICAL_SCREEN_HEIGHT / 5;
+    static constexpr int g_minSwipeDistance = LOGICAL_SCREEN_HEIGHT / 3;
     static constexpr int g_maxSwipeTimeMs = 500;
 
     struct WaitStage;

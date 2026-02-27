@@ -274,7 +274,16 @@ void MouseDriver::drawCursor(SDL_Renderer* renderer)
 
     assert(m_cursorTexture);
 
-    SDL_Rect dstRect = { m_cursorX, m_cursorY, cursorW, cursorH };
+    SDL_Rect dstRect;
+    if (Driver::instance().vga().isDebugMode())
+        dstRect = { m_cursorX, m_cursorY, cursorW, cursorH };
+    else {
+        dstRect = {
+            m_cursorX * PHYSICAL_SCREEN_WIDTH / LOGICAL_SCREEN_WIDTH,
+            m_cursorY * PHYSICAL_SCREEN_HEIGHT / LOGICAL_SCREEN_HEIGHT,
+            cursorW, cursorH
+        };
+    }
     SDL_RenderCopy(renderer, m_cursorTexture, nullptr, &dstRect);
 }
 
@@ -322,8 +331,8 @@ void MouseDriver::onMouseMove(const SDL_MouseMotionEvent& e)
         Driver::instance().vga().requestScreenUpdate();
 
     // limit mouse movement if the debug graphics is active
-    const Sint32 x = std::min(e.x, SCREEN_WIDTH);
-    const Sint32 y = std::min(e.y, SCREEN_HEIGHT);
+    const Sint32 x = std::min(e.x, LOGICAL_SCREEN_WIDTH);
+    const Sint32 y = std::min(e.y, LOGICAL_SCREEN_HEIGHT);
 
     // window is small => coordinates can't be large
     assert(x <= std::numeric_limits<std::int16_t>::max());
@@ -341,8 +350,8 @@ void MouseDriver::onTouch(const SDL_TouchFingerEvent& e)
 {
     m_isTouchDevice = true;
 
-    const int x = static_cast<int>(e.x * SCREEN_WIDTH);
-    const int y = static_cast<int>(e.y * SCREEN_HEIGHT);
+    const int x = static_cast<int>(e.x * LOGICAL_SCREEN_WIDTH);
+    const int y = static_cast<int>(e.y * LOGICAL_SCREEN_HEIGHT);
     switch (e.type) {
     case SDL_FINGERMOTION:
         m_touchHandler.onMove(x, y);

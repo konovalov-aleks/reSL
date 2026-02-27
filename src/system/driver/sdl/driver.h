@@ -64,8 +64,8 @@ private:
     KeyboardHandler m_keyboardHandler = nullptr;
 
     MouseHandler m_mouseHandler = nullptr;
-    Sint32 m_lastCursorX = SCREEN_WIDTH / 2;
-    Sint32 m_lastCursorY = SCREEN_HEIGHT / 2;
+    Sint32 m_lastCursorX = LOGICAL_SCREEN_WIDTH / 2;
+    Sint32 m_lastCursorY = LOGICAL_SCREEN_HEIGHT / 2;
     std::uint16_t m_mouseButtonState;
 };
 

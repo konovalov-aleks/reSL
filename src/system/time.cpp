@@ -120,7 +120,7 @@ private:
             dst.w = texW;
             dst.h = texH;
             dst.x = MARGIN_X;
-            dst.y = SCREEN_HEIGHT - MARGIN_Y;
+            dst.y = PHYSICAL_SCREEN_HEIGHT - MARGIN_Y;
             SDL_RenderCopy(r, *texture, nullptr, &dst);
         });
     }

@@ -39,7 +39,7 @@ SDL_Texture* GridOverlay::texture(SDL_Renderer* renderer)
     if (!m_texture) {
         m_texture = SDL_CreateTexture(renderer,
                                       Driver::instance().vga().preferredPixelFormat(),
-                                      SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT);
+                                      SDL_TEXTUREACCESS_TARGET, LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT);
         if (!m_texture) [[unlikely]] {
             std::cerr << "Unable to create a texture. SDL error: "
                       << SDL_GetError() << std::endl;
@@ -116,7 +116,7 @@ void GridOverlay::draw(SDL_Renderer* renderer, int yOffset)
 
     SDL_Rect dstRect = {
         0, yOffset,
-        SCREEN_WIDTH, SCREEN_HEIGHT
+        PHYSICAL_SCREEN_WIDTH, PHYSICAL_SCREEN_HEIGHT
     };
     SDL_RenderCopy(renderer, texture(renderer), nullptr, &dstRect);
 }

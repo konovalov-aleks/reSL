@@ -6,8 +6,16 @@
 
 namespace resl {
 
-inline static constexpr int SCREEN_WIDTH = 640;
-inline static constexpr int SCREEN_HEIGHT = 350;
+// The original game used a screen resolution 640x480 (aspect ratio is ~1.8),
+// but the screen had the ratio 4:3 (~1.33).
+// This resulted in vertical scaling. We emulate this distortion to avoid
+// displaying a vertically shrunk image.
+
+inline static constexpr int LOGICAL_SCREEN_WIDTH = 640;
+inline static constexpr int LOGICAL_SCREEN_HEIGHT = 350;
+
+inline static constexpr int PHYSICAL_SCREEN_WIDTH = 640;
+inline static constexpr int PHYSICAL_SCREEN_HEIGHT = 480;
 
 } // namespace resl
 

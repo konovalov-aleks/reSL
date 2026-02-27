@@ -74,8 +74,8 @@ void clampRectToGameFieldBoundaries(Rectangle& r)
         r.y2 = g_footerYPos;
     if (r.x1 < 0)
         r.x1 = 0;
-    if (r.x2 > SCREEN_WIDTH)
-        r.x2 = SCREEN_WIDTH;
+    if (r.x2 > LOGICAL_SCREEN_WIDTH)
+        r.x2 = LOGICAL_SCREEN_WIDTH;
 }
 
 /* 137c:006f */
@@ -207,7 +207,7 @@ void drawEraseTrainFinishedExclamation(std::int16_t entranceX, std::int16_t entr
 void drawGameField(std::int16_t yOffset)
 {
     readIfNotLoaded("play.7", g_pageBuffer);
-    graphics::imageDot7(0, yOffset, SCREEN_WIDTH, SCREEN_HEIGHT, g_pageBuffer);
+    graphics::imageDot7(0, yOffset, LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT, g_pageBuffer);
     drawStaticObjects(yOffset);
     drawCopyright(yOffset);
 }

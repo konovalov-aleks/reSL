@@ -39,8 +39,8 @@ namespace {
         if (y - g_r1 - g_iconHeight >= 0)
             return IconPosition::Top;
 
-        return x > SCREEN_WIDTH / 2 ? IconPosition::Left
-                                    : IconPosition::Right;
+        return x > PHYSICAL_SCREEN_WIDTH / 2 ? IconPosition::Left
+                                             : IconPosition::Right;
     }
 
     std::pair<int, int> iconOffset(int x, int y)
@@ -364,8 +364,8 @@ int TouchHandler::adjustXForAnimation(int x)
 {
     if (x < g_r1)
         return g_r1;
-    if (x > SCREEN_WIDTH - g_r1)
-        return SCREEN_WIDTH - g_r1;
+    if (x > PHYSICAL_SCREEN_WIDTH - g_r1)
+        return PHYSICAL_SCREEN_WIDTH - g_r1;
     return x;
 }
 
@@ -373,8 +373,8 @@ int TouchHandler::adjustYForAnimation(int y)
 {
     if (y < g_r1)
         return g_r1;
-    if (y > SCREEN_HEIGHT - g_r1)
-        return SCREEN_HEIGHT - g_r1;
+    if (y > PHYSICAL_SCREEN_HEIGHT - g_r1)
+        return PHYSICAL_SCREEN_HEIGHT - g_r1;
     return y;
 }
 

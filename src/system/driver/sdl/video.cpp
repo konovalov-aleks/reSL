@@ -68,14 +68,13 @@ void VGAEmulation::flush()
         const SDL_Rect screenRect = { 0, 0, m_wndWidth, m_wndHeight };
         SDL_RenderFillRect(m_renderer, &screenRect);
         for (Overlay& ov : m_overlays) {
-            const int yOffset = m_vgaState.overflowLineCompare < SCREEN_HEIGHT
+            const int yOffset = m_vgaState.overflowLineCompare < LOGICAL_SCREEN_HEIGHT
                 ? m_vgaState.overflowLineCompare
                 : 0;
             ov(m_renderer, yOffset);
         }
 
-        const bool isDebugGraphicsMode = m_wndWidth != SCREEN_WIDTH;
-        if (isDebugGraphicsMode) [[unlikely]] {
+        if (isDebugMode()) [[unlikely]] {
             SDL_Rect srcRect = { 0, 0, m_wndWidth, m_wndHeight };
             SDL_RenderCopy(m_renderer, m_screen, &srcRect, nullptr);
 
@@ -83,43 +82,48 @@ void VGAEmulation::flush()
             SDL_SetRenderDrawColor(m_renderer, 51, 204, 204, 255);
             SDL_Rect frameRect = {
                 0, m_vgaState.yOrigin,
-                m_wndWidth, std::min<int>(m_vgaState.overflowLineCompare, SCREEN_HEIGHT)
+                m_wndWidth, std::min<int>(m_vgaState.overflowLineCompare, LOGICAL_SCREEN_HEIGHT)
             };
             SDL_RenderDrawRect(m_renderer, &frameRect);
 
-            if (m_vgaState.overflowLineCompare < SCREEN_HEIGHT) {
+            if (m_vgaState.overflowLineCompare < LOGICAL_SCREEN_HEIGHT) {
                 SDL_SetRenderDrawColor(m_renderer, 153, 204, 0, 255);
                 frameRect = {
                     0, 0,
-                    m_wndWidth, SCREEN_HEIGHT - m_vgaState.overflowLineCompare
+                    m_wndWidth, LOGICAL_SCREEN_HEIGHT - m_vgaState.overflowLineCompare
                 };
                 SDL_RenderDrawRect(m_renderer, &frameRect);
             }
 
         } else {
-            if (m_vgaState.overflowLineCompare < SCREEN_HEIGHT) {
+            if (m_vgaState.overflowLineCompare < LOGICAL_SCREEN_HEIGHT) {
                 SDL_Rect srcRect = {
                     0, m_vgaState.yOrigin,
-                    SCREEN_WIDTH, m_vgaState.overflowLineCompare
+                    LOGICAL_SCREEN_WIDTH, m_vgaState.overflowLineCompare
                 };
                 SDL_Rect dstRect = {
-                    0, 0,
-                    SCREEN_WIDTH, m_vgaState.overflowLineCompare
+                    0,
+                    0,
+                    m_wndWidth,
+                    m_vgaState.overflowLineCompare * m_wndHeight / LOGICAL_SCREEN_HEIGHT,
                 };
                 SDL_RenderCopy(m_renderer, m_screen, &srcRect, &dstRect);
 
-                dstRect = {
-                    0, m_vgaState.overflowLineCompare,
-                    SCREEN_WIDTH, SCREEN_HEIGHT - m_vgaState.overflowLineCompare
-                };
                 srcRect = {
                     0, 0,
-                    SCREEN_WIDTH, SCREEN_HEIGHT - m_vgaState.overflowLineCompare
+                    LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT - m_vgaState.overflowLineCompare
+                };
+                dstRect = {
+                    0,
+                    m_vgaState.overflowLineCompare * m_wndHeight / LOGICAL_SCREEN_HEIGHT,
+                    m_wndWidth,
+                    (LOGICAL_SCREEN_HEIGHT - m_vgaState.overflowLineCompare) * m_wndHeight / LOGICAL_SCREEN_HEIGHT,
                 };
                 SDL_RenderCopy(m_renderer, m_screen, &srcRect, &dstRect);
             } else {
-                SDL_Rect srcRect = { 0, m_vgaState.yOrigin, m_wndWidth, m_wndHeight };
-                SDL_RenderCopy(m_renderer, m_screen, &srcRect, nullptr);
+                SDL_Rect srcRect = { 0, m_vgaState.yOrigin, LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT };
+                SDL_Rect dstRect = { 0, 0, m_wndWidth, m_wndHeight };
+                SDL_RenderCopy(m_renderer, m_screen, &srcRect, &dstRect);
             }
         }
 
@@ -153,8 +157,8 @@ void VGAEmulation::setDebugMode(bool debug)
         m_wndWidth = vga::VIDEO_MEM_ROW_BYTES * 8;
         m_wndHeight = vga::VIDEO_MEM_N_ROWS;
     } else {
-        m_wndWidth = SCREEN_WIDTH;
-        m_wndHeight = SCREEN_HEIGHT;
+        m_wndWidth = LOGICAL_SCREEN_WIDTH;
+        m_wndHeight = LOGICAL_SCREEN_HEIGHT;
     }
     SDL_SetWindowSize(m_window, m_wndWidth, m_wndHeight);
     if (SDL_RenderSetLogicalSize(m_renderer, m_wndWidth, m_wndHeight) != 0) [[unlikely]] {
@@ -188,13 +192,14 @@ void VGAEmulation::init()
         close();
         std::exit(EXIT_FAILURE);
     }
+
     if (SDL_RenderSetLogicalSize(m_renderer, m_wndWidth, m_wndHeight) != 0) [[unlikely]] {
         std::cerr << "SDL_RenderSetLogicalSize failed: " << SDL_GetError() << std::endl;
         close();
         std::exit(EXIT_FAILURE);
     }
     SDL_SetWindowTitle(m_window, g_windowTitle);
-    SDL_WarpMouseInWindow(m_window, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+    SDL_WarpMouseInWindow(m_window, PHYSICAL_SCREEN_WIDTH / 2, PHYSICAL_SCREEN_HEIGHT / 2);
 
     m_pixelFormat = choosePixelFormat();
     std::cout << "Pixel format: " << SDL_GetPixelFormatName(m_pixelFormat)

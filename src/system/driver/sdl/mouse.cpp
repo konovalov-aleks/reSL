@@ -166,6 +166,10 @@ MouseDriver::MouseDriver(SDL_Renderer* renderer)
     : m_touchHandler(
           renderer,
           [this](TouchHandler::Action a, int x, int y) {
+              // touch handler works in physical coordinates,
+              // need to convert to logical to handle the action
+              x = (x * LOGICAL_SCREEN_WIDTH) / PHYSICAL_SCREEN_WIDTH;
+              y = (y * LOGICAL_SCREEN_HEIGHT) / PHYSICAL_SCREEN_HEIGHT;
               handleTouchAction(a, x, y);
           })
     , m_mouseButtonState(mouseButtonState())
@@ -350,8 +354,8 @@ void MouseDriver::onTouch(const SDL_TouchFingerEvent& e)
 {
     m_isTouchDevice = true;
 
-    const int x = static_cast<int>(e.x * LOGICAL_SCREEN_WIDTH);
-    const int y = static_cast<int>(e.y * LOGICAL_SCREEN_HEIGHT);
+    const int x = static_cast<int>(e.x * PHYSICAL_SCREEN_WIDTH);
+    const int y = static_cast<int>(e.y * PHYSICAL_SCREEN_HEIGHT);
     switch (e.type) {
     case SDL_FINGERMOTION:
         m_touchHandler.onMove(x, y);

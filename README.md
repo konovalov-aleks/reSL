@@ -56,6 +56,7 @@ Therefore, the existing differences between reSL and the original game are due t
 3. The interface was corrupted if the user deleted the last file in the "Archive" menu. ([issue #7](https://github.com/konovalov-aleks/reSL/issues/7))
 4. The yellow entrance never spawns if the user removes the last archive file and runs a new game. ([issue #15](https://github.com/konovalov-aleks/reSL/issues/15))
 5. The record screen was not drawn if there was no RECORDS.TBL file ([issue #37](https://github.com/konovalov-aleks/reSL/issues/37))
+6. The header messed up if the user started a new game without 'results.tbl' file and completed a level with no interruptions (even without opening the pause menu) ([issue #53](https://github.com/konovalov-aleks/reSL/issues/53))
 
 ## Reverse engineering process
 

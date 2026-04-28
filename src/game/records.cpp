@@ -9,7 +9,6 @@
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/text.h>
-#include <system/buffer.h>
 #include <system/file.h>
 #include <system/filesystem.h>
 #include <utility/endianness.h>
@@ -118,11 +117,11 @@ void showRecordsScreen()
 {
     static constexpr std::size_t maxItemsToShow = 10;
 
-    std::size_t bytesRead = readBinaryFile(g_recordsFileName, g_pageBuffer);
+    std::span<std::byte> fileData = readBinaryFile(g_recordsFileName);
     std::size_t nRecords = 0;
-    Record* records = reinterpret_cast<Record*>(g_pageBuffer);
-    if (bytesRead) {
-        // The data can contain an empty records
+    Record* records = reinterpret_cast<Record*>(fileData.data());
+    if (!fileData.empty()) {
+        // The data can contain empty records
         // Normalize the representation - move all non-empty records to the head
         while (nRecords < g_recordsTableCapacity && *records[nRecords].playerName)
             ++nRecords;
@@ -200,9 +199,6 @@ void fillRecordItem(RecordItem& ri)
 /* 174e:00cc */
 void writeRecords()
 {
-    /* 262d:6f52 : 8 bytes */
-    static const RecordItem g_emptyRecordItem = {};
-
     File file(g_recordsFileName, "r+");
     if (!file) {
         // initialize a new empty hash table
@@ -210,15 +206,8 @@ void writeRecords()
         if (!file) [[unlikely]]
             return;
 
-        Record r;
-        r.byTrains = g_emptyRecordItem;
-        r.byYears = g_emptyRecordItem;
-        r.playerName[0] = '\0';
-
-        for (std::int16_t i = 0; i < g_recordsTableCapacity; ++i)
-            std::memcpy(&g_pageBuffer[i * g_recordSize], &r, g_recordSize);
-
-        file.write(g_pageBuffer, g_recordSize * g_recordsTableCapacity);
+        char emptyTableData[g_recordSize * g_recordsTableCapacity] = {};
+        file.write(emptyTableData, g_recordSize * g_recordsTableCapacity);
     }
 
     const std::uint16_t hash = playerNameHash();

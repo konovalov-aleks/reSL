@@ -10,10 +10,10 @@
 #include <graphics/glyph.h>
 #include <graphics/text.h>
 #include <graphics/vga.h>
-#include <system/buffer.h>
 #include <system/filesystem.h>
 
 #include <cstdio>
+#include <iostream>
 
 namespace resl {
 
@@ -33,8 +33,13 @@ void drawHeaderFieldFontTexture()
 /* 132d:0086 */
 void drawHeaderBackground(std::int16_t yOffset)
 {
-    readIfNotLoaded("play.7", g_pageBuffer);
-    graphics::imageDot7(0, yOffset, LOGICAL_SCREEN_WIDTH, g_headerHeight, g_pageBuffer);
+    std::span<std::byte> fileData = readBinaryFile("play.7");
+    if (fileData.empty()) [[unlikely]]
+        std::cerr << "unable to read file 'play.7'" << std::endl;
+    else {
+        graphics::imageDot7(0, yOffset, LOGICAL_SCREEN_WIDTH, g_headerHeight,
+                            reinterpret_cast<std::uint8_t*>(fileData.data()));
+    }
 }
 
 /* 12c5:01d7 */

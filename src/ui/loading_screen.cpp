@@ -2,13 +2,13 @@
 
 #include <graphics/drawing.h>
 #include <graphics/vga.h>
-#include <system/buffer.h>
 #include <system/driver/driver.h>
 #include <system/filesystem.h>
 #include <system/keyboard.h>
 #include <system/mouse.h>
 
 #include <cstdint>
+#include <iostream>
 
 namespace resl {
 
@@ -57,11 +57,21 @@ void showLoadingScreen()
 {
     g_lastKeyPressed = 0;
 
-    readBinaryFile("poster.7", g_pageBuffer);
-    graphics::imageDot7(0, 0, 640, 350, g_pageBuffer);
+    std::span<std::byte> fileData = readBinaryFile("poster.7");
+    if (fileData.empty()) [[unlikely]]
+        std::cerr << "unable to read file 'poster.7'" << std::endl;
+    else {
+        graphics::imageDot7(0, 0, 640, 350,
+                            reinterpret_cast<std::uint8_t*>(fileData.data()));
+    }
 
-    readBinaryFile("captions.7", g_pageBuffer);
-    graphics::imageDot7(0, 350, 400, 350, g_pageBuffer);
+    fileData = readBinaryFile("captions.7");
+    if (fileData.empty()) [[unlikely]]
+        std::cerr << "unable to read file 'captions.7'" << std::endl;
+    else {
+        graphics::imageDot7(0, 350, 400, 350,
+                            reinterpret_cast<std::uint8_t*>(fileData.data()));
+    }
 
     drawLoadingScreenTitle(0);
 

@@ -6,7 +6,6 @@
 #include <graphics/drawing.h>
 #include <graphics/text.h>
 #include <graphics/vga.h>
-#include <system/buffer.h>
 #include <system/driver/driver.h>
 #include <system/filesystem.h>
 #include <system/keyboard.h>
@@ -23,12 +22,12 @@ void showManual()
 {
     constexpr int maxPages = 20;
 
-    std::size_t nBytes = readTextFile("RULES.TXT");
+    std::span<std::byte> fileData = readTextFile("RULES.TXT");
 
     // split the text with pages 25 lines each
     std::int16_t pageCnt = 0;
-    char* buf = reinterpret_cast<char*>(g_pageBuffer);
-    const char* const bufEnd = buf + nBytes;
+    char* buf = reinterpret_cast<char*>(fileData.data());
+    const char* const bufEnd = buf + fileData.size();
     const char* pages[maxPages];
     while (buf < bufEnd) {
         assert(pageCnt < maxPages);

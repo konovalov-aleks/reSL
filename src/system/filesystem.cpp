@@ -1,12 +1,13 @@
 #include "filesystem.h"
 
-#include "buffer.h"
 #include "file.h"
 
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <span>
 
 #ifdef WIN32
 #   include <windows.h>
@@ -29,8 +30,26 @@
 
 namespace resl {
 
-/* 262d:7378 - 14 bytes */
-static char g_lastFileName[14];
+class CachedFile {
+public:
+    [[nodiscard]] std::span<std::byte> read(const char* fileName)
+    {
+        if (strcmp(m_lastFileName, fileName))
+            m_lastRead = File(fileName, "rb").read(m_cachedData, 0xFFFA);
+        return { m_cachedData, m_lastRead };
+    }
+
+private:
+    /* 262d:7378 - 14 bytes */
+    char m_lastFileName[14] = "";
+
+    /* 262d:21d8 */
+    std::byte m_cachedData[0xFFFF];
+
+    std::size_t m_lastRead = 0;
+};
+
+static CachedFile g_cachedFile;
 
 void initFS()
 {
@@ -54,30 +73,20 @@ void initFS()
 }
 
 /* 1abc:0005 */
-std::size_t readBinaryFile(const char* fileName, void* pagePtr)
+std::span<std::byte> readBinaryFile(const char* fileName)
 {
-    std::strcpy(g_lastFileName, fileName);
-    return File(fileName, "rb").read(pagePtr, 0xFFFA);
+    return g_cachedFile.read(fileName);
 }
 
 /* 1400:067f */
-std::size_t readTextFile(const char* fileName)
+std::span<std::byte> readTextFile(const char* fileName)
 {
     // The original game uses "text" mode here, which can perform
     // system-dependent transformations.
     // E.g: in this mode, DOS automatically replaces line endings with "\r\n".
     // But reSL is portable, so we read files as is (in fact, this functions
     // is only used to read RULES.TXT, which is already uses \r\n line endings)
-    return File(fileName, "rb").read(g_pageBuffer, 0xFFDC);
-}
-
-/* 1abc:0064 */
-void readIfNotLoaded(const char* fileName, void* pagePtr)
-{
-    if (std::strcmp(fileName, g_lastFileName)) {
-        readBinaryFile(fileName, pagePtr);
-        std::strcpy(g_lastFileName, fileName);
-    }
+    return readBinaryFile(fileName);
 }
 
 namespace {
@@ -148,13 +157,13 @@ namespace {
     public:
         bool findFirst(const char* pattern)
         {
-        #ifdef ANDROID
+#   ifdef ANDROID
             std::filesystem::path p(pattern);
             if (!p.is_absolute())
                 p = SDL_AndroidGetInternalStoragePath() / p;
-        #else
+#   else
             std::filesystem::path p(std::filesystem::absolute(pattern));
-        #endif
+#   endif
             m_pattern = p.filename().string();
             std::error_code ec;
             m_dirIter = std::filesystem::directory_iterator(p.parent_path(), ec);
@@ -165,8 +174,7 @@ namespace {
         {
             assert(std::filesystem::begin(m_dirIter) != std::filesystem::end(m_dirIter));
             ++m_dirIter;
-            return std::filesystem::begin(m_dirIter) != std::filesystem::end(m_dirIter)
-                && findNextEntry();
+            return std::filesystem::begin(m_dirIter) != std::filesystem::end(m_dirIter) && findNextEntry();
         }
 
         FileInfo lastSearchResult()
@@ -208,7 +216,6 @@ namespace {
         }
 
     private:
-
         bool findNextEntry()
         {
             for (const std::filesystem::directory_entry& e : m_dirIter) {
@@ -219,7 +226,6 @@ namespace {
             }
             return false;
         }
-
 
         bool matchPattern(const std::string& p)
         {

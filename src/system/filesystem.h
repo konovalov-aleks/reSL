@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
+#include <span>
 
 namespace resl {
 
@@ -28,13 +29,10 @@ struct FileInfo {
 void initFS();
 
 /* 1abc:0005 */
-std::size_t readBinaryFile(const char* fileName, void* pagePtr);
+[[nodiscard]] std::span<std::byte> readBinaryFile(const char* fileName);
 
 /* 1400:067f */
-std::size_t readTextFile(const char* fileName);
-
-/* 1abc:0064 */
-void readIfNotLoaded(const char* fileName, void* pagePtr);
+[[nodiscard]] std::span<std::byte> readTextFile(const char* fileName);
 
 /* 12b1:0006 */
 int findFirst(const char* pattern, std::uint8_t attrs);

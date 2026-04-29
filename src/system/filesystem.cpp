@@ -25,7 +25,7 @@
 #endif // __EMSCRIPTEN__
 
 #ifdef ANDROID
-#   include <SDL_system.h>
+#   include <SDL3/SDL_system.h>
 #endif // ANDROID
 
 namespace resl {
@@ -160,7 +160,7 @@ namespace {
 #   ifdef ANDROID
             std::filesystem::path p(pattern);
             if (!p.is_absolute())
-                p = SDL_AndroidGetInternalStoragePath() / p;
+                p = SDL_GetAndroidInternalStoragePath() / p;
 #   else
             std::filesystem::path p(std::filesystem::absolute(pattern));
 #   endif

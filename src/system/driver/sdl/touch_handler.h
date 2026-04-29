@@ -41,7 +41,7 @@ public:
 
 private:
     static constexpr int g_nSteps = 32;
-    static constexpr float g_angleStep = 2 * M_PI / g_nSteps;
+    static constexpr float g_angleStep = 2 * SDL_PI_F / g_nSteps;
 
     static constexpr SDL_FColor g_startColor = { 0.333f, 0.333f, 0.333f, 1.0f };
     static constexpr SDL_FColor g_endColor = { 0.667f, 0.667f, 0.667f, 0.5f };

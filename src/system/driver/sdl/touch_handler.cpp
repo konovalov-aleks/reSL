@@ -196,16 +196,16 @@ std::optional<TouchHandler::StageT> TouchHandler::TimerStage::update(
     int dTime, AnimationContext& ctx)
 {
     if (ctx.pressed) {
-        m_angle += (3 * M_PI / g_fillTimeMs) * dTime;
-        if (m_angle > 3 * M_PI)
+        m_angle += (3 * SDL_PI_F / g_fillTimeMs) * dTime;
+        if (m_angle > 3 * SDL_PI_F)
             return ConfirmationStage();
     } else {
-        m_angle -= (3 * M_PI / g_clearTimeMs) * dTime;
+        m_angle -= (3 * SDL_PI_F / g_clearTimeMs) * dTime;
         if (m_angle <= 0)
             return WaitStage();
     }
 
-    if (m_angle - 2 * M_PI >= 0) {
+    if (m_angle - 2 * SDL_PI_F >= 0) {
         // entire circle
         m_nPoints = static_cast<int>(ctx.points.size());
         m_nIndices = static_cast<int>(ctx.indices.size());
@@ -253,8 +253,8 @@ void TouchHandler::TimerStage::fillColors(int nPoints)
 
     for (int i = 0; i < nPoints; i += 2) {
         int dist = nPoints - i;
-        if (m_angle > 2 * M_PI)
-            dist = std::min<int>(dist + (m_angle - 2 * M_PI) * 15, nPoints);
+        if (m_angle > 2 * SDL_PI_F)
+            dist = std::min<int>(dist + (m_angle - 2 * SDL_PI_F) * 15, nPoints);
 
         const int kStart = dist;
         const int kEnd = nPoints - dist;
@@ -319,7 +319,7 @@ std::optional<TouchHandler::StageT> TouchHandler::SwipeStage::update(
 void TouchHandler::computePoints()
 {
     static_assert(g_nSteps * 2 <= std::numeric_limits<std::uint8_t>::max());
-    float angle = -M_PI / 2.0f;
+    float angle = -SDL_PI_F / 2.0f;
 
     m_context.x = g_r1;
     m_context.y = g_r1;

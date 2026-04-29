@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SDL_rwops.h>
+#include <SDL3/SDL_iostream.h>
 
 #include <cstddef>
 
@@ -20,7 +20,7 @@ public:
     void open(const char* fileName, const char* mode) noexcept;
     void close() noexcept;
 
-    bool isOpen() const noexcept { return m_ops; }
+    bool isOpen() const noexcept { return m_stream; }
 
     void clear() noexcept;
 
@@ -38,7 +38,8 @@ public:
     bool eof() const noexcept { return m_eofBit; }
 
 private:
-    SDL_RWops* m_ops = nullptr;
+    SDL_IOStream* m_stream = nullptr;
+
     bool m_eofBit : 1 = false;
     bool m_failBit : 1 = false;
     bool m_badBit : 1 = false;

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 project(reSL)
 
 if (NOT EMSCRIPTEN)
-    option(USE_SYSTEM_SDL2 "use SDL2 library from the system" OFF)
+    option(USE_SYSTEM_SDL3 "use SDL3 library from the system" OFF)
 endif()
 
 set (APP_VERSION "1.1.2")
@@ -162,13 +162,10 @@ set_property(TARGET resl PROPERTY CXX_STANDARD 20)
 include(GNUInstallDirs)
 
 if (EMSCRIPTEN)
-    target_compile_options(resl PRIVATE
-        "--use-port=sdl2"
-        "--use-port=sdl2_image:formats=png")
+    target_compile_options(resl PRIVATE "--use-port=sdl3")
     target_link_options(resl PRIVATE
         "-sASYNCIFY"
-        "--use-port=sdl2"
-        "--use-port=sdl2_image:formats=png"
+        "--use-port=sdl3"
         "-sINVOKE_RUN=0"
         "-sEXIT_RUNTIME=1"
         "-sMODULARIZE=1"
@@ -187,10 +184,9 @@ if (EMSCRIPTEN)
         target_link_options(resl PRIVATE "--embed-file=${path}@${fname}")
     endforeach()
 else()
-    if (${USE_SYSTEM_SDL2})
-        find_package(SDL2 CONFIG REQUIRED)
-        find_package(SDL2_image REQUIRED)
-        target_link_libraries(resl PRIVATE SDL2::SDL2 SDL2_image::SDL2_image)
+    if (${USE_SYSTEM_SDL3})
+        find_package(SDL3 CONFIG REQUIRED)
+        target_link_libraries(resl PRIVATE SDL3::SDL3)
     else()
         include(FetchContent)
         set(FETCHCONTENT_QUIET FALSE)
@@ -201,9 +197,9 @@ else()
         set(BUILD_SHARED_LIBS OFF)
 
         FetchContent_Declare(
-            SDL2
+            SDL3
             GIT_REPOSITORY  https://github.com/libsdl-org/SDL
-            GIT_TAG         release-2.30.10
+            GIT_TAG         release-3.4.4
             GIT_PROGRESS    TRUE
         )
         if (NOT ANDROID)
@@ -219,40 +215,9 @@ else()
         set(SDL_POWER OFF)
         set(SDL_SENSOR OFF)
 
-        FetchContent_Declare(
-            SDL2_image
-            GIT_REPOSITORY  https://github.com/libsdl-org/SDL_image
-            GIT_TAG         release-2.8.2
-            GIT_PROGRESS    TRUE
-        )
+        FetchContent_MakeAvailable(SDL3)
 
-        set(SDL2IMAGE_PNG ON)
-
-        set(SDL2IMAGE_JPG_SAVE OFF)
-        set(SDL2IMAGE_PNG_SAVE OFF)
-        set(SDL2IMAGE_AVIF OFF)
-        set(SDL2IMAGE_BMP OFF)
-        set(SDL2IMAGE_GIF OFF)
-        set(SDL2IMAGE_JPG OFF)
-        set(SDL2IMAGE_JXL OFF)
-        set(SDL2IMAGE_LBM OFF)
-        set(SDL2IMAGE_PCX OFF)
-        set(SDL2IMAGE_PNM OFF)
-        set(SDL2IMAGE_QOI OFF)
-        set(SDL2IMAGE_SVG OFF)
-        set(SDL2IMAGE_TGA OFF)
-        set(SDL2IMAGE_TIF OFF)
-        set(SDL2IMAGE_WEBP OFF)
-        set(SDL2IMAGE_XCF OFF)
-        set(SDL2IMAGE_XPM OFF)
-        set(SDL2IMAGE_XV OFF)
-
-        set(SDL2IMAGE_DEPS_SHARED OFF)
-        set(SDL2IMAGE_TESTS OFF)
-
-        FetchContent_MakeAvailable(SDL2 SDL2_IMAGE)
-
-        set(SDL_LIBRARIES ${SDL_LIBRARIES} SDL2main SDL2-static SDL2_image::SDL2_image-static)
+        set(SDL_LIBRARIES ${SDL_LIBRARIES} SDL3-static)
         target_link_libraries(resl PRIVATE ${SDL_LIBRARIES})
     endif()
 

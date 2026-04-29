@@ -1,6 +1,7 @@
 #include "audio.h"
 
-#include <SDL_error.h>
+#include <SDL3/SDL_error.h>
+#include <SDL3/SDL_init.h>
 
 #include <cassert>
 #include <iostream>
@@ -9,26 +10,6 @@ namespace resl {
 
 namespace {
 
-    class AudioLock {
-    public:
-        AudioLock(SDL_AudioDeviceID devID)
-            : m_id(devID)
-        {
-            SDL_LockAudioDevice(m_id);
-        }
-
-        ~AudioLock()
-        {
-            SDL_UnlockAudioDevice(m_id);
-        }
-
-    private:
-        AudioLock(const AudioLock&) = delete;
-        AudioLock& operator=(const AudioLock&) = delete;
-
-        SDL_AudioDeviceID m_id;
-    };
-
     constexpr float g_volume = 0.2f;
     constexpr int g_sampleRate = 22050;
 
@@ -36,18 +17,15 @@ namespace {
 
 AudioDriver::AudioDriver()
 {
-    SDL_AudioSpec desired;
-    SDL_zero(desired);
-    desired.freq = g_sampleRate;
-    desired.format = AUDIO_F32;
-    desired.channels = 1;
-    desired.samples = 256;
-    desired.callback = &fillBuffer;
-    desired.userdata = this;
+    if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) [[unlikely]] {
+        std::cerr << "Unable to initialize audio subsystem. Continue without sound.\n"
+                  << SDL_GetError() << std::endl;
+        return;
+    }
 
-    m_device = SDL_OpenAudioDevice(nullptr, 0, &desired, nullptr, SDL_AUDIO_ALLOW_FORMAT_CHANGE);
-    if (!m_device) [[unlikely]] {
-        // Failure to initialize an audio device is not critical - just continue without sound
+    const SDL_AudioSpec spec = { SDL_AUDIO_F32LE, 1, g_sampleRate };
+    m_stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, &fillBuffer, this);
+    if (!m_stream) [[unlikely]] {
         std::cerr << "WARNING: unable to initialize an audio device! Continue without sound.\n"
                   << SDL_GetError() << std::endl;
         return;
@@ -56,57 +34,60 @@ AudioDriver::AudioDriver()
 
 AudioDriver::~AudioDriver()
 {
-    if (m_device)
-        SDL_CloseAudioDevice(m_device);
+    if (m_stream)
+        SDL_DestroyAudioStream(m_stream);
+    SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
 void AudioDriver::startSound(std::uint16_t frequency)
 {
     assert(frequency * 2 <= g_sampleRate);
 
-    if (!m_device) [[unlikely]]
+    if (!m_stream) [[unlikely]]
         return;
 
-    {
-        // SDL calls the callback in a separate thread => we have to protect m_frequency
-        AudioLock lock(m_device);
-        m_frequency = frequency;
-    }
-    SDL_PauseAudioDevice(m_device, 0);
+    m_frequency.store(frequency, std::memory_order_relaxed);
+    SDL_ResumeAudioDevice(SDL_GetAudioStreamDevice(m_stream));
 }
 
 void AudioDriver::stopSound()
 {
-    if (!m_device) [[unlikely]]
+    if (!m_stream) [[unlikely]]
         return;
 
-    SDL_PauseAudioDevice(m_device, 1);
+    SDL_PauseAudioDevice(SDL_GetAudioStreamDevice(m_stream));
 }
 
-void AudioDriver::fillBuffer(void* userData, Uint8* data, int len)
+void AudioDriver::fillBuffer(void* userData, SDL_AudioStream* stream, int additionalAmount, int totalAmount)
 {
     AudioDriver* drv = reinterpret_cast<AudioDriver*>(userData);
-    drv->fill(reinterpret_cast<float*>(data), len / sizeof(float));
+    drv->fill(stream, additionalAmount, totalAmount);
 }
 
-void AudioDriver::fill(float* buf, int len)
+void AudioDriver::fill(SDL_AudioStream* stream, int additionalAmount, int /* totalAmount */)
 {
-    std::uint16_t frequency;
-    {
-        // SDL calls the callback in a separate thread => we have to protect m_frequency
-        AudioLock lock(m_device);
-        frequency = m_frequency;
-    }
+    if (additionalAmount <= 0)
+        return;
+
+    const int sampleCount = additionalAmount / sizeof(float);
+    float* data = SDL_stack_alloc(float, sampleCount);
+    if (!data) [[unlikely]]
+        return;
+
+    std::uint16_t frequency = m_frequency.load(std::memory_order_relaxed);
 
     const float phaseStep =
         static_cast<float>(frequency) / static_cast<float>(g_sampleRate);
 
-    for (int i = 0; i < len; ++i) {
-        buf[i] = m_phase > 0.5f ? g_volume : -g_volume;
+    for (int i = 0; i < sampleCount; ++i) {
+        data[i] = m_phase > 0.5f ? g_volume : -g_volume;
         m_phase += phaseStep;
         if (m_phase >= 1.0f)
             m_phase -= 1.0f;
     }
+
+    SDL_PutAudioStreamData(stream, data, sampleCount * sizeof(float));
+    SDL_stack_free(data);
 }
 
 } // namespace resl

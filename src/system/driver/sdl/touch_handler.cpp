@@ -4,8 +4,8 @@
 #include "texture.h"
 #include <graphics/vga.h>
 
-#include <SDL_error.h>
-#include <SDL_timer.h>
+#include <SDL3/SDL_error.h>
+#include <SDL3/SDL_timer.h>
 
 #include <algorithm>
 #include <cassert>
@@ -70,7 +70,7 @@ void TouchHandler::onPressStart(int x, int y)
 {
     if (!m_context.pressed) {
         m_context.pressed = true;
-        m_lastFrameTime = SDL_GetTicks64();
+        m_lastFrameTime = SDL_GetTicks();
     }
 
     if (std::holds_alternative<WaitStage>(m_stage)) {
@@ -127,7 +127,7 @@ void TouchHandler::onMove(int x, int y)
 
 bool TouchHandler::updateAnimation()
 {
-    Uint64 time = SDL_GetTicks64();
+    Uint64 time = SDL_GetTicks();
     int dTime = static_cast<int>(time - m_lastFrameTime);
     if (dTime == 0)
         return false;
@@ -240,10 +240,10 @@ void TouchHandler::TimerStage::draw(SDL_Renderer* renderer, const AnimationConte
     const int adjY = adjustYForAnimation(ctx.y);
     const auto [iconXOffset, iconYOffset] = iconOffset(adjX, adjY);
 
-    SDL_Rect dstRect = { adjX + iconXOffset, adjY + iconYOffset, g_iconWidth, g_iconHeight };
+    SDL_FRect dstRect(adjX + iconXOffset, adjY + iconYOffset, g_iconWidth, g_iconHeight);
     assert(ctx.curIcon);
     SDL_SetTextureAlphaMod(*ctx.curIcon, static_cast<Uint8>(200 * m_nPoints / ctx.points.size()));
-    SDL_RenderCopy(renderer, *ctx.curIcon, nullptr, &dstRect);
+    SDL_RenderTexture(renderer, *ctx.curIcon, nullptr, &dstRect);
 }
 
 void TouchHandler::TimerStage::fillColors(int nPoints)
@@ -259,16 +259,16 @@ void TouchHandler::TimerStage::fillColors(int nPoints)
         const int kStart = dist;
         const int kEnd = nPoints - dist;
 
-        std::uint8_t r = (g_startColor.r * kStart + g_endColor.r * kEnd) / nPoints;
-        std::uint8_t g = (g_startColor.g * kStart + g_endColor.g * kEnd) / nPoints;
-        std::uint8_t b = (g_startColor.b * kStart + g_endColor.b * kEnd) / nPoints;
-        std::uint8_t a = (g_startColor.a * kStart + g_endColor.a * kEnd) / nPoints;
+        float r = (g_startColor.r * kStart + g_endColor.r * kEnd) / nPoints;
+        float g = (g_startColor.g * kStart + g_endColor.g * kEnd) / nPoints;
+        float b = (g_startColor.b * kStart + g_endColor.b * kEnd) / nPoints;
+        float a = (g_startColor.a * kStart + g_endColor.a * kEnd) / nPoints;
 
         m_colors[i] = { r, g, b, a };
         m_colors[i + 1] = {
-            static_cast<Uint8>(r * 4 / 5),
-            static_cast<Uint8>(r * 4 / 5),
-            static_cast<Uint8>(b * 4 / 5),
+            r * 4.0f / 5.0f,
+            r * 4.0f / 5.0f,
+            b * 4.0f / 5.0f,
             a
         };
     }
@@ -296,15 +296,14 @@ void TouchHandler::ConfirmationStage::draw(SDL_Renderer* renderer, const Animati
     const int adjX = adjustXForAnimation(ctx.x);
     const int adjY = adjustYForAnimation(ctx.y);
     const auto [iconXOffset, iconYOffset] = iconOffset(adjX, adjY);
-    SDL_Rect dstRect = {
-        static_cast<int>(adjX + iconXOffset * scale),
-        static_cast<int>(adjY + iconYOffset * scale),
-        width, height
-    };
+    SDL_FRect dstRect(
+        adjX + iconXOffset * scale,
+        adjY + iconYOffset * scale,
+        width, height);
     assert(ctx.curIcon);
 
     SDL_SetTextureAlphaMod(*ctx.curIcon, static_cast<Uint8>(200 * (s_maxScaleTimeMs - scale) / s_maxScaleTimeMs));
-    SDL_RenderCopy(renderer, *ctx.curIcon, nullptr, &dstRect);
+    SDL_RenderTexture(renderer, *ctx.curIcon, nullptr, &dstRect);
 }
 
 std::optional<TouchHandler::StageT> TouchHandler::SwipeStage::update(

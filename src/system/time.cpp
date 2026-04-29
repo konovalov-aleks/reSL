@@ -108,20 +108,20 @@ private:
 
             assert(texture);
 
-            int texW = 0;
-            int texH = 0;
-            SDL_QueryTexture(*texture, nullptr, nullptr, &texW, &texH);
+            SDL_PropertiesID props = SDL_GetTextureProperties(*texture);
+            Sint64 texW = SDL_GetNumberProperty(props, SDL_PROP_TEXTURE_WIDTH_NUMBER, 0);
+            Sint64 texH = SDL_GetNumberProperty(props, SDL_PROP_TEXTURE_HEIGHT_NUMBER, 0);
 
             static constexpr int MARGIN_X = 20;
             static constexpr int MARGIN_Y = 50;
 
             assert(texture);
-            SDL_Rect dst;
+            SDL_FRect dst;
             dst.w = texW;
             dst.h = texH;
             dst.x = MARGIN_X;
             dst.y = PHYSICAL_SCREEN_HEIGHT - MARGIN_Y;
-            SDL_RenderCopy(r, *texture, nullptr, &dst);
+            SDL_RenderTexture(r, *texture, nullptr, &dst);
         });
     }
 

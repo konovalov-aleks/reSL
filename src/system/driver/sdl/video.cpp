@@ -176,9 +176,9 @@ void VGAEmulation::init()
 
     SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
 
-    Uint32 flags = SDL_WINDOW_HIGH_PIXEL_DENSITY;
+    Uint32 flags = 0;
 #ifndef __EMSCRIPTEN__
-    flags |= SDL_WINDOW_RESIZABLE;
+    flags |= SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
 #endif // !__EMSCRIPTEN__
     if (!SDL_CreateWindowAndRenderer(g_windowTitle, m_wndWidth, m_wndHeight,
                                      flags, &m_window, &m_renderer)) [[unlikely]] {

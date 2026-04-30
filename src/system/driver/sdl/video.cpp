@@ -96,33 +96,28 @@ void VGAEmulation::flush()
             }
 
         } else {
+            const int overflowLinePhysicalY =
+                m_vgaState.overflowLineCompare * m_wndHeight / LOGICAL_SCREEN_HEIGHT;
             if (m_vgaState.overflowLineCompare < LOGICAL_SCREEN_HEIGHT) {
-                SDL_Rect srcRect = {
-                    0, m_vgaState.yOrigin,
-                    LOGICAL_SCREEN_WIDTH, m_vgaState.overflowLineCompare
-                };
-                SDL_Rect dstRect = {
-                    0,
-                    0,
-                    m_wndWidth,
-                    m_vgaState.overflowLineCompare * m_wndHeight / LOGICAL_SCREEN_HEIGHT,
-                };
-                SDL_RenderCopy(m_renderer, m_screen, &srcRect, &dstRect);
+                SDL_Rect clipRect = { 0, 0, m_wndWidth, overflowLinePhysicalY };
+                SDL_RenderSetClipRect(m_renderer, &clipRect);
+            }
 
+            SDL_Rect srcRect = { 0, m_vgaState.yOrigin, LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT };
+            SDL_RenderCopy(m_renderer, m_screen, &srcRect, nullptr);
+
+            SDL_RenderSetClipRect(m_renderer, nullptr);
+
+            if (m_vgaState.overflowLineCompare < LOGICAL_SCREEN_HEIGHT) {
                 srcRect = {
                     0, 0,
                     LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT - m_vgaState.overflowLineCompare
                 };
-                dstRect = {
-                    0,
-                    m_vgaState.overflowLineCompare * m_wndHeight / LOGICAL_SCREEN_HEIGHT,
+                SDL_Rect dstRect = {
+                    0, overflowLinePhysicalY,
                     m_wndWidth,
                     (LOGICAL_SCREEN_HEIGHT - m_vgaState.overflowLineCompare) * m_wndHeight / LOGICAL_SCREEN_HEIGHT,
                 };
-                SDL_RenderCopy(m_renderer, m_screen, &srcRect, &dstRect);
-            } else {
-                SDL_Rect srcRect = { 0, m_vgaState.yOrigin, LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT };
-                SDL_Rect dstRect = { 0, 0, m_wndWidth, m_wndHeight };
                 SDL_RenderCopy(m_renderer, m_screen, &srcRect, &dstRect);
             }
         }

@@ -67,16 +67,16 @@ void VGAEmulation::flush()
         SDL_SetRenderDrawColor(m_renderer, 0x55, 0xAA, 0x00, 0xFF);
         const SDL_FRect screenRect(0, 0, m_wndWidth, m_wndHeight);
         SDL_RenderFillRect(m_renderer, &screenRect);
-        for (Overlay& ov : m_overlays) {
-            const int yOffset = m_vgaState.overflowLineCompare < LOGICAL_SCREEN_HEIGHT
-                ? m_vgaState.overflowLineCompare
-                : 0;
-            ov(m_renderer, yOffset);
-        }
+
+        const auto drawOverlays = [this](int yOffset) {
+            for (Overlay& ov : m_overlays)
+                ov(m_renderer, yOffset);
+        };
+
+        const bool splitScreen = m_vgaState.overflowLineCompare < LOGICAL_SCREEN_HEIGHT;
 
         if (isDebugMode()) [[unlikely]] {
-            SDL_FRect srcRect(0, 0, m_wndWidth, m_wndHeight);
-            SDL_RenderTexture(m_renderer, m_screen, &srcRect, nullptr);
+            drawOverlays(splitScreen ? m_vgaState.overflowLineCompare : 0);
 
             SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_MUL);
             SDL_SetRenderDrawColor(m_renderer, 51, 204, 204, 255);
@@ -85,7 +85,7 @@ void VGAEmulation::flush()
                 m_wndWidth, std::min<int>(m_vgaState.overflowLineCompare, LOGICAL_SCREEN_HEIGHT));
             SDL_RenderRect(m_renderer, &frameRect);
 
-            if (m_vgaState.overflowLineCompare < LOGICAL_SCREEN_HEIGHT) {
+            if (splitScreen) {
                 SDL_SetRenderDrawColor(m_renderer, 153, 204, 0, 255);
                 frameRect = SDL_FRect(
                     0, 0,
@@ -94,29 +94,29 @@ void VGAEmulation::flush()
             }
 
         } else {
-            if (m_vgaState.overflowLineCompare < LOGICAL_SCREEN_HEIGHT) {
-                SDL_FRect srcRect(
-                    0, m_vgaState.yOrigin,
-                    LOGICAL_SCREEN_WIDTH, m_vgaState.overflowLineCompare);
-                SDL_FRect dstRect(
-                    0,
-                    0,
-                    m_wndWidth,
-                    m_vgaState.overflowLineCompare * m_wndHeight / LOGICAL_SCREEN_HEIGHT);
-                SDL_RenderTexture(m_renderer, m_screen, &srcRect, &dstRect);
+            const int overflowLinePhysicalY =
+                m_vgaState.overflowLineCompare * m_wndHeight / LOGICAL_SCREEN_HEIGHT;
 
+            drawOverlays(splitScreen ? overflowLinePhysicalY : 0);
+
+            if (splitScreen) {
+                SDL_Rect clipRect = { 0, 0, m_wndWidth, overflowLinePhysicalY };
+                SDL_SetRenderClipRect(m_renderer, &clipRect);
+            }
+
+            SDL_FRect srcRect(0, m_vgaState.yOrigin, LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT);
+            SDL_RenderTexture(m_renderer, m_screen, &srcRect, nullptr);
+
+            SDL_SetRenderClipRect(m_renderer, nullptr);
+
+            if (splitScreen) {
                 srcRect = SDL_FRect(
                     0, 0,
                     LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT - m_vgaState.overflowLineCompare);
-                dstRect = SDL_FRect(
-                    0,
-                    m_vgaState.overflowLineCompare * m_wndHeight / LOGICAL_SCREEN_HEIGHT,
+                SDL_FRect dstRect(
+                    0, overflowLinePhysicalY,
                     m_wndWidth,
-                    (LOGICAL_SCREEN_HEIGHT - m_vgaState.overflowLineCompare) * m_wndHeight / LOGICAL_SCREEN_HEIGHT);
-                SDL_RenderTexture(m_renderer, m_screen, &srcRect, &dstRect);
-            } else {
-                SDL_FRect srcRect(0, m_vgaState.yOrigin, LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT);
-                SDL_FRect dstRect(0, 0, m_wndWidth, m_wndHeight);
+                    m_wndHeight - overflowLinePhysicalY);
                 SDL_RenderTexture(m_renderer, m_screen, &srcRect, &dstRect);
             }
         }

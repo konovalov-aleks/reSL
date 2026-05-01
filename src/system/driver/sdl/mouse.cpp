@@ -1,17 +1,17 @@
 #include "mouse.h"
 
-#include "system/driver/sdl/driver.h"
-#include "system/driver/sdl/video.h"
+#include "driver.h"
 #include "touch_handler.h"
+#include "video.h"
 #include <graphics/vga.h>
 #include <system/mouse.h>
 
-#include <SDL_error.h>
-#include <SDL_mouse.h>
-#include <SDL_pixels.h>
-#include <SDL_rect.h>
-#include <SDL_stdinc.h>
-#include <SDL_surface.h>
+#include <SDL3/SDL_error.h>
+#include <SDL3/SDL_mouse.h>
+#include <SDL3/SDL_pixels.h>
+#include <SDL3/SDL_rect.h>
+#include <SDL3/SDL_stdinc.h>
+#include <SDL3/SDL_surface.h>
 
 #include <algorithm>
 #include <cassert>
@@ -73,10 +73,9 @@ namespace {
                 }
             }
         }
-        SDL_Surface* surf = SDL_CreateRGBSurfaceWithFormatFrom(
-            data, cursorW, cursorH, sizeof(std::uint32_t) * 8,
-            cursorW * sizeof(std::uint32_t),
-            SDL_PIXELFORMAT_ARGB8888);
+        SDL_Surface* surf = SDL_CreateSurfaceFrom(
+            cursorW, cursorH, SDL_PIXELFORMAT_ARGB8888,
+            data, cursorW * sizeof(std::uint32_t));
         if (!surf) [[unlikely]] {
             std::cerr << "SDL_CreateSurfaceFrom failed: "
                       << SDL_GetError() << std::endl;
@@ -89,7 +88,7 @@ namespace {
                       << SDL_GetError() << std::endl;
             std::abort();
         }
-        SDL_FreeSurface(surf);
+        SDL_DestroySurface(surf);
 
         return texture;
     }
@@ -99,11 +98,11 @@ namespace {
         Uint32 state = SDL_GetMouseState(nullptr, nullptr);
         std::uint16_t res = 0;
 
-        if (state & SDL_BUTTON(SDL_BUTTON_LEFT))
+        if (state & SDL_BUTTON_MASK(SDL_BUTTON_LEFT))
             res |= MouseButton::MB_LEFT;
-        if (state & SDL_BUTTON(SDL_BUTTON_RIGHT))
+        if (state & SDL_BUTTON_MASK(SDL_BUTTON_RIGHT))
             res |= MouseButton::MB_RIGHT;
-        if (state & SDL_BUTTON(SDL_BUTTON_MIDDLE))
+        if (state & SDL_BUTTON_MASK(SDL_BUTTON_MIDDLE))
             res |= MouseButton::MB_MIDDLE;
         return res;
     }
@@ -113,7 +112,7 @@ namespace {
         // https://discourse.libsdl.org/t/detect-if-the-mouse-is-available-on-the-current-platform/25081
         SDL_Cursor* c = SDL_GetDefaultCursor();
         if (c) {
-            SDL_FreeCursor(c);
+            SDL_DestroyCursor(c);
             return true;
         }
         return false;
@@ -134,7 +133,7 @@ namespace {
 
     std::uint16_t mousePressedFlags(const SDL_MouseButtonEvent& e)
     {
-        assert(e.type == SDL_MOUSEBUTTONDOWN);
+        assert(e.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
         switch (e.button) {
         case SDL_BUTTON_LEFT:
             return MouseEventType::ME_LEFTPRESSED;
@@ -148,7 +147,7 @@ namespace {
 
     std::uint16_t mouseReleasedFlags(const SDL_MouseButtonEvent& e)
     {
-        assert(e.type == SDL_MOUSEBUTTONUP);
+        assert(e.type == SDL_EVENT_MOUSE_BUTTON_UP);
         switch (e.button) {
         case SDL_BUTTON_LEFT:
             return MouseEventType::ME_LEFTRELEASED;
@@ -278,17 +277,16 @@ void MouseDriver::drawCursor(SDL_Renderer* renderer)
 
     assert(m_cursorTexture);
 
-    SDL_Rect dstRect;
+    SDL_FRect dstRect;
     if (Driver::instance().vga().isDebugMode())
-        dstRect = { m_cursorX, m_cursorY, cursorW, cursorH };
+        dstRect = SDL_FRect(m_cursorX, m_cursorY, cursorW, cursorH);
     else {
-        dstRect = {
+        dstRect = SDL_FRect(
             m_cursorX * PHYSICAL_SCREEN_WIDTH / LOGICAL_SCREEN_WIDTH,
             m_cursorY * PHYSICAL_SCREEN_HEIGHT / LOGICAL_SCREEN_HEIGHT,
-            cursorW, cursorH
-        };
+            cursorW, cursorH);
     }
-    SDL_RenderCopy(renderer, m_cursorTexture, nullptr, &dstRect);
+    SDL_RenderTexture(renderer, m_cursorTexture, nullptr, &dstRect);
 }
 
 void MouseDriver::handle(
@@ -310,8 +308,8 @@ void MouseDriver::onMouseButtonEvent(const SDL_MouseButtonEvent& e)
     m_isTouchDevice = false;
 
     const std::uint16_t mouseEventFlags =
-        e.type == SDL_MOUSEBUTTONDOWN ? mousePressedFlags(e)
-                                      : mouseReleasedFlags(e);
+        e.type == SDL_EVENT_MOUSE_BUTTON_DOWN ? mousePressedFlags(e)
+                                              : mouseReleasedFlags(e);
     if (!mouseEventFlags) [[unlikely]]
         return;
 
@@ -319,7 +317,7 @@ void MouseDriver::onMouseButtonEvent(const SDL_MouseButtonEvent& e)
     if (btn == MouseButton::MB_NONE) [[unlikely]]
         return;
 
-    if (e.type == SDL_MOUSEBUTTONDOWN)
+    if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
         m_mouseButtonState |= btn;
     else
         m_mouseButtonState &= (~btn);
@@ -335,8 +333,8 @@ void MouseDriver::onMouseMove(const SDL_MouseMotionEvent& e)
         Driver::instance().vga().requestScreenUpdate();
 
     // limit mouse movement if the debug graphics is active
-    const Sint32 x = std::min(e.x, LOGICAL_SCREEN_WIDTH);
-    const Sint32 y = std::min(e.y, LOGICAL_SCREEN_HEIGHT);
+    const Sint32 x = std::min(static_cast<Sint32>(e.x), LOGICAL_SCREEN_WIDTH);
+    const Sint32 y = std::min(static_cast<Sint32>(e.y), LOGICAL_SCREEN_HEIGHT);
 
     // window is small => coordinates can't be large
     assert(x <= std::numeric_limits<std::int16_t>::max());
@@ -357,14 +355,14 @@ void MouseDriver::onTouch(const SDL_TouchFingerEvent& e)
     const int x = static_cast<int>(e.x * PHYSICAL_SCREEN_WIDTH);
     const int y = static_cast<int>(e.y * PHYSICAL_SCREEN_HEIGHT);
     switch (e.type) {
-    case SDL_FINGERMOTION:
+    case SDL_EVENT_FINGER_MOTION:
         m_touchHandler.onMove(x, y);
         break;
-    case SDL_FINGERDOWN: {
+    case SDL_EVENT_FINGER_DOWN: {
         m_touchHandler.onPressStart(x, y);
         break;
     }
-    case SDL_FINGERUP:
+    case SDL_EVENT_FINGER_UP:
         m_touchHandler.onPressEnd();
         break;
     [[unlikely]] default:

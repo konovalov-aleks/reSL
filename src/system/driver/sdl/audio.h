@@ -1,8 +1,9 @@
 #pragma once
 
-#include <SDL_audio.h>
-#include <SDL_stdinc.h>
+#include <SDL3/SDL_audio.h>
+#include <SDL3/SDL_stdinc.h>
 
+#include <atomic>
 #include <cstdint>
 
 namespace resl {
@@ -19,11 +20,12 @@ public:
     void stopSound();
 
 private:
-    static void fillBuffer(void*, Uint8*, int);
-    void fill(float*, int);
+    static void fillBuffer(void*, SDL_AudioStream*,
+                           int additionalAmount, int totalAmount);
+    void fill(SDL_AudioStream*, int additionalAmount, int totalAmount);
 
-    std::uint16_t m_frequency = 0;
-    SDL_AudioDeviceID m_device = 0;
+    std::atomic<std::uint16_t> m_frequency = 0;
+    SDL_AudioStream* m_stream = nullptr;
     float m_phase = 0;
 };
 

@@ -1,6 +1,6 @@
 #include "texture.h"
 
-#include <SDL_image.h>
+#include <SDL3/SDL_surface.h>
 
 #include <cstdlib>
 #include <iostream>
@@ -9,12 +9,19 @@
 namespace resl {
 
 Texture::Texture(SDL_Renderer* renderer, const char* filePath) noexcept
-    : m_texture(IMG_LoadTexture(renderer, filePath))
 {
-    if (!m_texture) [[unlikely]] {
+    SDL_Surface* surface = SDL_LoadPNG(filePath);
+    if (!surface) [[unlikely]] {
         std::cerr << "Unable to load the image \"" << filePath << '"' << std::endl;
         std::abort();
     }
+
+    m_texture = SDL_CreateTextureFromSurface(renderer, surface);
+    if (!m_texture) [[unlikely]] {
+        std::cerr << "Unable to create a texture object" << std::endl;
+        std::abort();
+    }
+    SDL_DestroySurface(surface);
 }
 
 Texture::~Texture()

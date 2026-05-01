@@ -2,10 +2,10 @@
 
 #include <graphics/vga.h>
 
-#include <SDL_rect.h>
-#include <SDL_render.h>
-#include <SDL_stdinc.h>
-#include <SDL_video.h>
+#include <SDL3/SDL_rect.h>
+#include <SDL3/SDL_render.h>
+#include <SDL3/SDL_stdinc.h>
+#include <SDL3/SDL_video.h>
 
 #include <array>
 #include <chrono>
@@ -64,7 +64,7 @@ public:
         m_overlays.push_back(std::move(ov));
     }
 
-    Uint32 preferredPixelFormat() const { return m_pixelFormat; }
+    SDL_PixelFormat preferredPixelFormat() const { return m_pixelFormat; }
 
     SDL_Renderer* renderer() const noexcept { return m_renderer; }
 
@@ -114,7 +114,7 @@ private:
     void init();
     void close();
 
-    Uint32 choosePixelFormat();
+    SDL_PixelFormat choosePixelFormat();
     void generatePalette();
     std::uint32_t argbToPreferred(std::uint32_t) const;
 
@@ -131,7 +131,7 @@ private:
     int m_wndHeight = PHYSICAL_SCREEN_HEIGHT;
 
     VGAState m_vgaState;
-    Uint32 m_pixelFormat = 0;
+    SDL_PixelFormat m_pixelFormat = SDL_PIXELFORMAT_UNKNOWN;
 
     ClockT::time_point m_nextFrameTime = {};
 

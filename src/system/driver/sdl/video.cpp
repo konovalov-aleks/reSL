@@ -1,15 +1,15 @@
 #include "video.h"
 
+#include "driver.h"
 #include "graphics/vga.h"
-#include "system/driver/sdl/driver.h"
-#include "system/driver/sdl/mouse.h"
+#include "mouse.h"
 
-#include <SDL_blendmode.h>
-#include <SDL_error.h>
-#include <SDL_hints.h>
-#include <SDL_mouse.h>
-#include <SDL_pixels.h>
-#include <SDL_rect.h>
+#include <SDL3/SDL_blendmode.h>
+#include <SDL3/SDL_error.h>
+#include <SDL3/SDL_hints.h>
+#include <SDL3/SDL_mouse.h>
+#include <SDL3/SDL_pixels.h>
+#include <SDL3/SDL_rect.h>
 
 #include <algorithm>
 #include <array>
@@ -34,7 +34,7 @@ namespace resl {
 
 static const char g_windowTitle[] = "reSL - reverse engineered ShortLine game";
 
-static constexpr Uint32 g_supportedPixelFormats[] = {
+static constexpr SDL_PixelFormat g_supportedPixelFormats[] = {
     SDL_PIXELFORMAT_ARGB8888,
     SDL_PIXELFORMAT_ABGR8888,
     SDL_PIXELFORMAT_RGBA8888,
@@ -65,7 +65,7 @@ void VGAEmulation::flush()
         SDL_SetRenderDrawColor(m_renderer, 0x00, 0x00, 0x00, 0xFF);
         SDL_RenderClear(m_renderer);
         SDL_SetRenderDrawColor(m_renderer, 0x55, 0xAA, 0x00, 0xFF);
-        const SDL_Rect screenRect = { 0, 0, m_wndWidth, m_wndHeight };
+        const SDL_FRect screenRect(0, 0, m_wndWidth, m_wndHeight);
         SDL_RenderFillRect(m_renderer, &screenRect);
 
         const auto drawOverlays = [this](int yOffset) {
@@ -78,24 +78,19 @@ void VGAEmulation::flush()
         if (isDebugMode()) [[unlikely]] {
             drawOverlays(splitScreen ? m_vgaState.overflowLineCompare : 0);
 
-            SDL_Rect srcRect = { 0, 0, m_wndWidth, m_wndHeight };
-            SDL_RenderCopy(m_renderer, m_screen, &srcRect, nullptr);
-
             SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_MUL);
             SDL_SetRenderDrawColor(m_renderer, 51, 204, 204, 255);
-            SDL_Rect frameRect = {
+            SDL_FRect frameRect(
                 0, m_vgaState.yOrigin,
-                m_wndWidth, std::min<int>(m_vgaState.overflowLineCompare, LOGICAL_SCREEN_HEIGHT)
-            };
-            SDL_RenderDrawRect(m_renderer, &frameRect);
+                m_wndWidth, std::min<int>(m_vgaState.overflowLineCompare, LOGICAL_SCREEN_HEIGHT));
+            SDL_RenderRect(m_renderer, &frameRect);
 
             if (splitScreen) {
                 SDL_SetRenderDrawColor(m_renderer, 153, 204, 0, 255);
-                frameRect = {
+                frameRect = SDL_FRect(
                     0, 0,
-                    m_wndWidth, LOGICAL_SCREEN_HEIGHT - m_vgaState.overflowLineCompare
-                };
-                SDL_RenderDrawRect(m_renderer, &frameRect);
+                    m_wndWidth, LOGICAL_SCREEN_HEIGHT - m_vgaState.overflowLineCompare);
+                SDL_RenderRect(m_renderer, &frameRect);
             }
 
         } else {
@@ -106,25 +101,23 @@ void VGAEmulation::flush()
 
             if (splitScreen) {
                 SDL_Rect clipRect = { 0, 0, m_wndWidth, overflowLinePhysicalY };
-                SDL_RenderSetClipRect(m_renderer, &clipRect);
+                SDL_SetRenderClipRect(m_renderer, &clipRect);
             }
 
-            SDL_Rect srcRect = { 0, m_vgaState.yOrigin, LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT };
-            SDL_RenderCopy(m_renderer, m_screen, &srcRect, nullptr);
+            SDL_FRect srcRect(0, m_vgaState.yOrigin, LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT);
+            SDL_RenderTexture(m_renderer, m_screen, &srcRect, nullptr);
 
-            SDL_RenderSetClipRect(m_renderer, nullptr);
+            SDL_SetRenderClipRect(m_renderer, nullptr);
 
             if (splitScreen) {
-                srcRect = {
+                srcRect = SDL_FRect(
                     0, 0,
-                    LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT - m_vgaState.overflowLineCompare
-                };
-                SDL_Rect dstRect = {
+                    LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT - m_vgaState.overflowLineCompare);
+                SDL_FRect dstRect(
                     0, overflowLinePhysicalY,
                     m_wndWidth,
-                    m_wndHeight - overflowLinePhysicalY
-                };
-                SDL_RenderCopy(m_renderer, m_screen, &srcRect, &dstRect);
+                    m_wndHeight - overflowLinePhysicalY);
+                SDL_RenderTexture(m_renderer, m_screen, &srcRect, &dstRect);
             }
         }
 
@@ -162,8 +155,9 @@ void VGAEmulation::setDebugMode(bool debug)
         m_wndHeight = LOGICAL_SCREEN_HEIGHT;
     }
     SDL_SetWindowSize(m_window, m_wndWidth, m_wndHeight);
-    if (SDL_RenderSetLogicalSize(m_renderer, m_wndWidth, m_wndHeight) != 0) [[unlikely]] {
-        std::cerr << "SDL_RenderSetLogicalSize failed: " << SDL_GetError() << std::endl;
+    if (!SDL_SetRenderLogicalPresentation(m_renderer, m_wndWidth, m_wndHeight,
+                                          SDL_LOGICAL_PRESENTATION_LETTERBOX)) [[unlikely]] {
+        std::cerr << "SDL_SetRenderLogicalPresentation failed: " << SDL_GetError() << std::endl;
         close();
         std::exit(EXIT_FAILURE);
     }
@@ -171,7 +165,7 @@ void VGAEmulation::setDebugMode(bool debug)
 
 void VGAEmulation::setFullscreenMode(bool fullscreen)
 {
-    SDL_SetWindowFullscreen(m_window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+    SDL_SetWindowFullscreen(m_window, fullscreen);
 }
 
 void VGAEmulation::init()
@@ -182,24 +176,23 @@ void VGAEmulation::init()
 
     SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
 
-    Uint32 flags = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI;
+    Uint32 flags = 0;
 #ifndef __EMSCRIPTEN__
-    flags |= SDL_WINDOW_RESIZABLE;
+    flags |= SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY;
 #endif // !__EMSCRIPTEN__
-    int err = SDL_CreateWindowAndRenderer(
-        m_wndWidth, m_wndHeight, flags, &m_window, &m_renderer);
-    if (err) [[unlikely]] {
+    if (!SDL_CreateWindowAndRenderer(g_windowTitle, m_wndWidth, m_wndHeight,
+                                     flags, &m_window, &m_renderer)) [[unlikely]] {
         std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError() << std::endl;
         close();
         std::exit(EXIT_FAILURE);
     }
 
-    if (SDL_RenderSetLogicalSize(m_renderer, m_wndWidth, m_wndHeight) != 0) [[unlikely]] {
-        std::cerr << "SDL_RenderSetLogicalSize failed: " << SDL_GetError() << std::endl;
+    if (!SDL_SetRenderLogicalPresentation(m_renderer, m_wndWidth, m_wndHeight,
+                                          SDL_LOGICAL_PRESENTATION_LETTERBOX)) [[unlikely]] {
+        std::cerr << "SDL_SetRenderLogicalPresentation failed: " << SDL_GetError() << std::endl;
         close();
         std::exit(EXIT_FAILURE);
     }
-    SDL_SetWindowTitle(m_window, g_windowTitle);
     SDL_WarpMouseInWindow(m_window, PHYSICAL_SCREEN_WIDTH / 2, PHYSICAL_SCREEN_HEIGHT / 2);
 
     m_pixelFormat = choosePixelFormat();
@@ -214,6 +207,7 @@ void VGAEmulation::init()
         m_renderer, m_pixelFormat, SDL_TEXTUREACCESS_STREAMING,
         vga::VIDEO_MEM_ROW_BYTES * 8, nRows);
     SDL_SetTextureBlendMode(m_screen, SDL_BLENDMODE_BLEND);
+    SDL_SetTextureScaleMode(m_screen, SDL_SCALEMODE_NEAREST);
     if (!m_screen) [[unlikely]] {
         std::cerr << "Unable to create SDL texture! SDL_Error: " << SDL_GetError() << std::endl;
         close();
@@ -235,26 +229,30 @@ void VGAEmulation::close()
     m_screen = nullptr;
 }
 
-Uint32 VGAEmulation::choosePixelFormat()
+SDL_PixelFormat VGAEmulation::choosePixelFormat()
 {
-    SDL_RendererInfo rInfo;
-    if (SDL_GetRendererInfo(m_renderer, &rInfo)) [[unlikely]] {
-        std::cerr << "WARNING: SDL_GetRendererInfo failed. SDL_Error: " << SDL_GetError()
-                  << "\nWill use the default pixel format" << std::endl;
-        return g_supportedPixelFormats[0];
+    SDL_PropertiesID props = SDL_GetRendererProperties(m_renderer);
+    const SDL_PixelFormat* formats = reinterpret_cast<const SDL_PixelFormat*>(
+        SDL_GetPointerProperty(
+            props, SDL_PROP_RENDERER_TEXTURE_FORMATS_POINTER, nullptr));
+
+    const char* rendererName = SDL_GetRendererName(m_renderer);
+    std::cout << "Renderer: " << (rendererName ? rendererName : "Unknown") << "\nSupported pixel formats:\n";
+    int num_formats = 0;
+    if (formats) {
+        while (formats[num_formats] != SDL_PIXELFORMAT_UNKNOWN) {
+            std::cout << '\t' << SDL_GetPixelFormatName(formats[num_formats]) << std::endl;
+            num_formats++;
+        }
     }
 
-    std::cout << "Renderer: " << rInfo.name << "\nSupported pixel formats:\n";
-    for (Uint32 i = 0; i < rInfo.num_texture_formats; ++i) {
-        std::cout << '\t'
-                  << SDL_GetPixelFormatName(rInfo.texture_formats[i])
-                  << std::endl;
+    if (num_formats) {
+        auto iter = std::find_first_of(
+            formats, formats + num_formats,
+            std::begin(g_supportedPixelFormats), std::end(g_supportedPixelFormats));
+        if (iter != formats + num_formats)
+            return *iter;
     }
-    auto iter = std::find_first_of(
-        rInfo.texture_formats, rInfo.texture_formats + rInfo.num_texture_formats,
-        std::begin(g_supportedPixelFormats), std::end(g_supportedPixelFormats));
-    if (iter != rInfo.texture_formats + rInfo.num_texture_formats)
-        return *iter;
 
     std::cerr << "WARNING: no one preferred pixel format suits, "
                  "the default format will be used instead"
@@ -327,14 +325,14 @@ std::uint32_t VGAEmulation::argbToPreferred(std::uint32_t argb) const
 bool VGAEmulation::updatePicture()
 {
     SDL_Rect screenRect = { 0, 0, m_wndWidth, vga::VIDEO_MEM_N_ROWS };
-    SDL_IntersectRect(&m_dirtyRect, &screenRect, &m_dirtyRect);
-    if (SDL_RectEmpty(&m_dirtyRect))
+    if (!SDL_GetRectIntersection(&m_dirtyRect, &screenRect, &m_dirtyRect) ||
+        SDL_RectEmpty(&m_dirtyRect))
         return false;
 
     std::uint32_t* dst = nullptr;
     int pitch = 0;
-    int err = SDL_LockTexture(m_screen, &m_dirtyRect, reinterpret_cast<void**>(&dst), &pitch);
-    if (err) [[unlikely]] {
+    if (!SDL_LockTexture(m_screen, &m_dirtyRect,
+                         reinterpret_cast<void**>(&dst), &pitch)) [[unlikely]] {
         std::cerr << "Unable to lock the texture! SDL_Error: " << SDL_GetError() << std::endl;
         std::exit(EXIT_FAILURE);
     }
@@ -376,7 +374,7 @@ void VGAEmulation::updateVideoMemory(unsigned srcByte)
         return;
 
     SDL_Rect r = { x, y, 8, 1 };
-    SDL_UnionRect(&m_dirtyRect, &r, &m_dirtyRect);
+    SDL_GetRectUnion(&m_dirtyRect, &r, &m_dirtyRect);
 }
 
 void VGAEmulation::write(vga::VideoMemPtr memPtr, std::uint8_t color)
@@ -536,7 +534,7 @@ void VGAEmulation::setPaletteItem(std::uint8_t idx, std::uint32_t argb)
     if (x2 >= x1) {
         assert(y2 >= y1);
         SDL_Rect r = { x1, y1, x2 - x1 + 1, y2 - y1 + 1 };
-        SDL_UnionRect(&m_dirtyRect, &r, &m_dirtyRect);
+        SDL_GetRectUnion(&m_dirtyRect, &r, &m_dirtyRect);
     }
 }
 

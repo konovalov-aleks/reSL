@@ -1,7 +1,7 @@
 #pragma once
 
-#include <SDL_events.h>
-#include <SDL_render.h>
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_render.h>
 
 // IWYU pragma: no_include "system/driver/sdl/touch_context.h"
 #include "touch_context.h" // IWYU pragma: export

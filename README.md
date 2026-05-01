@@ -79,7 +79,7 @@ In the second stage, I adapted the game for touch controls, optimized the code a
 
 ## Building reSL
 
-reSL only uses the standard C and C++ libraries, and the cross-platform SDL2 library. Thus, it can be easily compiled for many platforms without any difficulties. This chapter describes the build process for the most popular platforms. But the list of supported platforms is not limited to this set.
+reSL only uses the standard C and C++ libraries, and the cross-platform SDL3 library. Thus, it can be easily compiled for many platforms without any difficulties. This chapter describes the build process for the most popular platforms. But the list of supported platforms is not limited to this set.
 
 To build reSL you will need:
 * modern C++ compiler with C++20 support (modern clang, GCC, MSVC)
@@ -131,7 +131,7 @@ resl.exe
 4. Run the following commands:
 ```
 mkdir build_ios && cd build_ios
-cmake .. -DCMAKE_TOOLCHAIN_FILE=../ios/cmake/ios.toolchain.cmake -G Xcode -DSDL2IMAGE_BACKEND_IMAGEIO=OFF -DPLATFORM=OS64COMBINED
+cmake .. -DCMAKE_TOOLCHAIN_FILE=../ios/cmake/ios.toolchain.cmake -G Xcode -DPLATFORM=OS64COMBINED
 ```
 5. Open the project `build_ios` in Xcode
 6. Select the `resl` target, choose your device or emulator and click `Run` button

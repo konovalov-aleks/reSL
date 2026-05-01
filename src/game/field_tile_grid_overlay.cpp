@@ -5,9 +5,9 @@
 #include <system/driver/driver.h>
 #include <ui/components/draw_header.h>
 
-#include <SDL_blendmode.h>
-#include <SDL_error.h>
-#include <SDL_rect.h>
+#include <SDL3/SDL_blendmode.h>
+#include <SDL3/SDL_error.h>
+#include <SDL3/SDL_rect.h>
 
 #include <cstdlib>
 #include <iostream>
@@ -45,14 +45,15 @@ SDL_Texture* GridOverlay::texture(SDL_Renderer* renderer)
                       << SDL_GetError() << std::endl;
             std::abort();
         }
-        if (SDL_SetTextureBlendMode(m_texture, SDL_BLENDMODE_BLEND)) [[unlikely]] {
+        if (!SDL_SetTextureBlendMode(m_texture, SDL_BLENDMODE_BLEND)) [[unlikely]] {
             std::cerr << "SDL_SetTextureBlendMode failed. "
                       << SDL_GetError() << std::endl;
             std::abort();
         }
+        SDL_SetTextureScaleMode(m_texture, SDL_SCALEMODE_NEAREST);
 
         SDL_Texture* oldTarget = SDL_GetRenderTarget(renderer);
-        if (SDL_SetRenderTarget(renderer, m_texture)) [[unlikely]] {
+        if (!SDL_SetRenderTarget(renderer, m_texture)) [[unlikely]] {
             std::cerr << "SDL_SetRenderTarget failed. "
                       << SDL_GetError() << std::endl;
             std::abort();
@@ -65,7 +66,7 @@ SDL_Texture* GridOverlay::texture(SDL_Renderer* renderer)
             10, g_headerHeight + 30,
             GAME_FIELD_WIDTH - 20, GAME_FIELD_HEIGHT - 40
         };
-        SDL_RenderSetClipRect(renderer, &clipRect);
+        SDL_SetRenderClipRect(renderer, &clipRect);
 
         SDL_SetRenderDrawColor(renderer, 0x64, 0x8B, 0x3C, 0xFF);
         for (int tileX1 = 0; tileX1 < 11; ++tileX1) {
@@ -77,7 +78,7 @@ SDL_Texture* GridOverlay::texture(SDL_Renderer* renderer)
             const int y1 = (tileX1 + tileY1) * 21 - 22;
             const int x2 = (tileX2 - tileY2) * 88 + 320;
             const int y2 = (tileX2 + tileY2) * 21 - 22;
-            SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+            SDL_RenderLine(renderer, x1, y1, x2, y2);
         }
         for (int tileY1 = 0; tileY1 < 11; ++tileY1) {
             const int tileY2 = tileY1;
@@ -88,19 +89,19 @@ SDL_Texture* GridOverlay::texture(SDL_Renderer* renderer)
             const int y1 = (tileX1 + tileY1) * 21 - 22;
             const int x2 = (tileX2 - tileY2) * 88 + 320;
             const int y2 = (tileX2 + tileY2) * 21 - 22;
-            SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+            SDL_RenderLine(renderer, x1, y1, x2, y2);
         }
         for (int tileX = 0; tileX < 11; ++tileX) {
             for (int tileY = 0; tileY < 11; ++tileY) {
                 const int x = (tileX - tileY) * 88 + 320;
                 const int y = (tileX + tileY) * 21 - 22;
-                SDL_Rect rect = { x - 1, y - 1, 3, 3 };
-                SDL_RenderDrawRect(renderer, &rect);
+                SDL_FRect rect(x - 1, y - 1, 3, 3);
+                SDL_RenderRect(renderer, &rect);
             }
         }
 
-        SDL_RenderSetClipRect(renderer, nullptr);
-        if (SDL_SetRenderTarget(renderer, oldTarget)) [[unlikely]] {
+        SDL_SetRenderClipRect(renderer, nullptr);
+        if (!SDL_SetRenderTarget(renderer, oldTarget)) [[unlikely]] {
             std::cerr << "SDL_SetRenderTarget failed. "
                       << SDL_GetError() << std::endl;
             std::abort();
@@ -114,11 +115,10 @@ void GridOverlay::draw(SDL_Renderer* renderer, int yOffset)
     if (!m_active)
         return;
 
-    SDL_Rect dstRect = {
+    SDL_FRect dstRect(
         0, yOffset,
-        PHYSICAL_SCREEN_WIDTH, PHYSICAL_SCREEN_HEIGHT
-    };
-    SDL_RenderCopy(renderer, texture(renderer), nullptr, &dstRect);
+        PHYSICAL_SCREEN_WIDTH, PHYSICAL_SCREEN_HEIGHT);
+    SDL_RenderTexture(renderer, texture(renderer), nullptr, &dstRect);
 }
 
 } // namespace resl

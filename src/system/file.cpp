@@ -1,6 +1,6 @@
 #include "file.h"
 
-#include <SDL_rwops.h>
+#include <SDL3/SDL_iostream.h>
 
 #include <algorithm>
 #include <cassert>
@@ -20,17 +20,17 @@ File::~File()
 }
 
 File::File(File&& other) noexcept
-    : m_ops(other.m_ops)
+    : m_stream(other.m_stream)
     , m_eofBit(other.m_eofBit)
     , m_failBit(other.m_failBit)
     , m_badBit(other.m_badBit)
 {
-    other.m_ops = nullptr;
+    other.m_stream = nullptr;
 }
 
 File& File::operator=(File&& other) noexcept
 {
-    std::swap(m_ops, other.m_ops);
+    std::swap(m_stream, other.m_stream);
     m_eofBit = other.m_eofBit;
     m_failBit = other.m_failBit;
     m_badBit = other.m_badBit;
@@ -41,15 +41,15 @@ File& File::operator=(File&& other) noexcept
 void File::open(const char* fileName, const char* mode) noexcept
 {
     close();
-    m_ops = SDL_RWFromFile(fileName, mode);
-    m_failBit = !m_ops;
+    m_stream = SDL_IOFromFile(fileName, mode);
+    m_failBit = !m_stream;
 }
 
 void File::close() noexcept
 {
-    if (m_ops) {
-        SDL_RWclose(m_ops);
-        m_ops = nullptr;
+    if (m_stream) {
+        SDL_CloseIO(m_stream);
+        m_stream = nullptr;
     }
     clear();
 }
@@ -69,7 +69,7 @@ std::size_t File::read(void* dst, std::size_t nBytes) noexcept
     std::size_t totalRead = 0;
     char* ptr = static_cast<char*>(dst);
     while (totalRead < nBytes) {
-        std::size_t read = SDL_RWread(m_ops, ptr, 1, nBytes);
+        std::size_t read = SDL_ReadIO(m_stream, ptr, nBytes);
         if (read == 0) {
             m_eofBit = true;
             m_failBit = true;
@@ -97,8 +97,7 @@ std::size_t File::write(const void* data, std::size_t nBytes) noexcept
     if (fail()) [[unlikely]]
         return 0;
 
-    const std::size_t written =
-        SDL_RWwrite(m_ops, data, 1, nBytes);
+    const std::size_t written = SDL_WriteIO(m_stream, data, nBytes);
     if (written != nBytes) [[unlikely]]
         m_badBit = true;
     return written;
@@ -110,7 +109,7 @@ bool File::seek(pos_type pos) noexcept
         return false;
 
     m_eofBit = false;
-    Sint64 res = SDL_RWseek(m_ops, pos, RW_SEEK_SET);
+    Sint64 res = SDL_SeekIO(m_stream, pos, SDL_IO_SEEK_SET);
     if (res != pos) [[unlikely]] {
         m_failBit = true;
         return false;
@@ -122,7 +121,7 @@ File::pos_type File::tell() const noexcept
 {
     if (fail()) [[unlikely]]
         return static_cast<pos_type>(-1);
-    return SDL_RWtell(m_ops);
+    return SDL_TellIO(m_stream);
 }
 
 } // namespace resl

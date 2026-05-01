@@ -4,10 +4,10 @@
 #include "touch_context.h"
 #include <graphics/vga.h>
 
-#include <SDL_pixels.h>
-#include <SDL_rect.h>
-#include <SDL_render.h>
-#include <SDL_stdinc.h>
+#include <SDL3/SDL_pixels.h>
+#include <SDL3/SDL_rect.h>
+#include <SDL3/SDL_render.h>
+#include <SDL3/SDL_stdinc.h>
 
 #include <array>
 #include <cmath>
@@ -41,10 +41,10 @@ public:
 
 private:
     static constexpr int g_nSteps = 32;
-    static constexpr float g_angleStep = 2 * M_PI / g_nSteps;
+    static constexpr float g_angleStep = 2 * SDL_PI_F / g_nSteps;
 
-    static constexpr SDL_Color g_startColor = { 0x55, 0x55, 0x55, 0xFF };
-    static constexpr SDL_Color g_endColor = { 0xAA, 0xAA, 0xAA, 0x80 };
+    static constexpr SDL_FColor g_startColor = { 0.333f, 0.333f, 0.333f, 1.0f };
+    static constexpr SDL_FColor g_endColor = { 0.667f, 0.667f, 0.667f, 0.5f };
 
     static constexpr int g_fillTimeMs = 700;
     static constexpr int g_clearTimeMs = 400;
@@ -101,7 +101,7 @@ private:
 
         int m_nPoints;
         int m_nIndices;
-        std::array<SDL_Color, (g_nSteps + 1) * 4> m_colors;
+        std::array<SDL_FColor, (g_nSteps + 1) * 4> m_colors;
         float m_angle = 0;
     };
 

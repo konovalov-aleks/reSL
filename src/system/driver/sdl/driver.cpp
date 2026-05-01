@@ -5,14 +5,13 @@
 #include <system/driver/driver.h>
 #include <system/keyboard.h>
 
-#include <SDL.h>
-#include <SDL_error.h>
-#include <SDL_events.h>
-#include <SDL_hints.h>
-#include <SDL_image.h>
-#include <SDL_mouse.h>
-#include <SDL_scancode.h>
-#include <SDL_video.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_error.h>
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_hints.h>
+#include <SDL3/SDL_mouse.h>
+#include <SDL3/SDL_scancode.h>
+#include <SDL3/SDL_video.h>
 
 #include <chrono>
 #include <cstdint>
@@ -33,22 +32,17 @@ Driver::Driver()
 
 Driver::SDLInit::SDLInit()
 {
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS)) [[unlikely]] {
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) [[unlikely]] {
         std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
-        std::exit(EXIT_FAILURE);
-    }
-    if (IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) [[unlikely]] {
-        std::cerr << "Unable to initialize SDL Image (png)" << std::endl;
         std::exit(EXIT_FAILURE);
     }
 
     SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
-    SDL_ShowCursor(false);
+    SDL_HideCursor();
 }
 
 Driver::SDLInit::~SDLInit()
 {
-    IMG_Quit();
     SDL_Quit();
 }
 
@@ -90,29 +84,28 @@ void Driver::pollEvent()
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
         switch (e.type) {
-        case SDL_QUIT:
+        case SDL_EVENT_QUIT:
             std::exit(EXIT_SUCCESS);
             break;
 
-        case SDL_MOUSEBUTTONDOWN:
-        case SDL_MOUSEBUTTONUP:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
             mouse().onMouseButtonEvent(e.button);
             break;
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             mouse().onMouseMove(e.motion);
             break;
-        case SDL_FINGERMOTION:
-        case SDL_FINGERDOWN:
-        case SDL_FINGERUP:
+        case SDL_EVENT_FINGER_MOTION:
+        case SDL_EVENT_FINGER_DOWN:
+        case SDL_EVENT_FINGER_UP:
             mouse().onTouch(e.tfinger);
             break;
-        case SDL_KEYDOWN:
-        case SDL_KEYUP:
+        case SDL_EVENT_KEY_DOWN:
+        case SDL_EVENT_KEY_UP:
             onKeyboardEvent(e.key);
             break;
-        case SDL_WINDOWEVENT:
-            if (e.window.event == SDL_WINDOWEVENT_RESIZED)
-                vga().requestScreenUpdate();
+        case SDL_EVENT_WINDOW_RESIZED:
+            vga().requestScreenUpdate();
             break;
         }
     }
@@ -215,17 +208,17 @@ inline std::uint8_t scancodeToKeyCode(SDL_Scancode sc)
 
 void Driver::onKeyboardEvent(const SDL_KeyboardEvent& e)
 {
-    if (e.keysym.scancode == SDL_SCANCODE_F5 && e.type == SDL_KEYUP)
+    if (e.scancode == SDL_SCANCODE_F5 && e.type == SDL_EVENT_KEY_UP)
         vga().setFullscreenMode(true);
 
     if (!m_keyboardHandler) [[unlikely]]
         return;
 
-    std::uint8_t keycode = scancodeToKeyCode(e.keysym.scancode);
+    std::uint8_t keycode = scancodeToKeyCode(e.scancode);
     if (!keycode)
         return;
 
-    if (e.type == SDL_KEYUP)
+    if (e.type == SDL_EVENT_KEY_UP)
         keycode |= g_keyReleasedFlag;
     m_keyboardHandler(keycode);
 }

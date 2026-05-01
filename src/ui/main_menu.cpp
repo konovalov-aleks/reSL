@@ -30,7 +30,7 @@
 #include <ui/components/button.h>
 #include <ui/components/menu_button.h>
 
-#include <SDL_log.h>
+#include <SDL3/SDL_log.h>
 
 #include <cassert>
 #include <cstdint>

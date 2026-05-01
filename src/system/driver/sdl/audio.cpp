@@ -9,26 +9,6 @@ namespace resl {
 
 namespace {
 
-    class AudioLock {
-    public:
-        AudioLock(SDL_AudioDeviceID devID)
-            : m_id(devID)
-        {
-            SDL_LockAudioDevice(m_id);
-        }
-
-        ~AudioLock()
-        {
-            SDL_UnlockAudioDevice(m_id);
-        }
-
-    private:
-        AudioLock(const AudioLock&) = delete;
-        AudioLock& operator=(const AudioLock&) = delete;
-
-        SDL_AudioDeviceID m_id;
-    };
-
     constexpr float g_volume = 0.2f;
     constexpr int g_sampleRate = 22050;
 
@@ -68,9 +48,8 @@ void AudioDriver::startSound(std::uint16_t frequency)
         return;
 
     {
-        // SDL calls the callback in a separate thread => we have to protect m_frequency
-        AudioLock lock(m_device);
-        m_frequency = frequency;
+        // SDL calls the callback in a separate thread
+        m_frequency.store(frequency, std::memory_order_relaxed);
     }
     SDL_PauseAudioDevice(m_device, 0);
 }
@@ -93,9 +72,8 @@ void AudioDriver::fill(float* buf, int len)
 {
     std::uint16_t frequency;
     {
-        // SDL calls the callback in a separate thread => we have to protect m_frequency
-        AudioLock lock(m_device);
-        frequency = m_frequency;
+        // SDL calls the callback in a separate thread
+        frequency = m_frequency.load(std::memory_order_relaxed);
     }
 
     const float phaseStep =

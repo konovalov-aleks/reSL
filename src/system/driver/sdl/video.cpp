@@ -67,14 +67,17 @@ void VGAEmulation::flush()
         SDL_SetRenderDrawColor(m_renderer, 0x55, 0xAA, 0x00, 0xFF);
         const SDL_Rect screenRect = { 0, 0, m_wndWidth, m_wndHeight };
         SDL_RenderFillRect(m_renderer, &screenRect);
-        for (Overlay& ov : m_overlays) {
-            const int yOffset = m_vgaState.overflowLineCompare < LOGICAL_SCREEN_HEIGHT
-                ? m_vgaState.overflowLineCompare
-                : 0;
-            ov(m_renderer, yOffset);
-        }
+
+        const auto drawOverlays = [this](int yOffset) {
+            for (Overlay& ov : m_overlays)
+                ov(m_renderer, yOffset);
+        };
+
+        const bool splitScreen = m_vgaState.overflowLineCompare < LOGICAL_SCREEN_HEIGHT;
 
         if (isDebugMode()) [[unlikely]] {
+            drawOverlays(splitScreen ? m_vgaState.overflowLineCompare : 0);
+
             SDL_Rect srcRect = { 0, 0, m_wndWidth, m_wndHeight };
             SDL_RenderCopy(m_renderer, m_screen, &srcRect, nullptr);
 
@@ -86,7 +89,7 @@ void VGAEmulation::flush()
             };
             SDL_RenderDrawRect(m_renderer, &frameRect);
 
-            if (m_vgaState.overflowLineCompare < LOGICAL_SCREEN_HEIGHT) {
+            if (splitScreen) {
                 SDL_SetRenderDrawColor(m_renderer, 153, 204, 0, 255);
                 frameRect = {
                     0, 0,
@@ -98,7 +101,10 @@ void VGAEmulation::flush()
         } else {
             const int overflowLinePhysicalY =
                 m_vgaState.overflowLineCompare * m_wndHeight / LOGICAL_SCREEN_HEIGHT;
-            if (m_vgaState.overflowLineCompare < LOGICAL_SCREEN_HEIGHT) {
+
+            drawOverlays(splitScreen ? overflowLinePhysicalY : 0);
+
+            if (splitScreen) {
                 SDL_Rect clipRect = { 0, 0, m_wndWidth, overflowLinePhysicalY };
                 SDL_RenderSetClipRect(m_renderer, &clipRect);
             }
@@ -108,7 +114,7 @@ void VGAEmulation::flush()
 
             SDL_RenderSetClipRect(m_renderer, nullptr);
 
-            if (m_vgaState.overflowLineCompare < LOGICAL_SCREEN_HEIGHT) {
+            if (splitScreen) {
                 srcRect = {
                     0, 0,
                     LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT - m_vgaState.overflowLineCompare
@@ -116,7 +122,7 @@ void VGAEmulation::flush()
                 SDL_Rect dstRect = {
                     0, overflowLinePhysicalY,
                     m_wndWidth,
-                    (LOGICAL_SCREEN_HEIGHT - m_vgaState.overflowLineCompare) * m_wndHeight / LOGICAL_SCREEN_HEIGHT,
+                    m_wndHeight - overflowLinePhysicalY
                 };
                 SDL_RenderCopy(m_renderer, m_screen, &srcRect, &dstRect);
             }

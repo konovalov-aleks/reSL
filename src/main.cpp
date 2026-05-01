@@ -5,10 +5,13 @@
 #include "game/train.h"
 #include "graphics/vga.h"
 #include "system/active_sleep.h"
+#include "system/filesystem.h"
 #include "system/keyboard.h"
 #include "system/time.h"
 #include "tasks/task.h"
 #include <system/driver/driver.h>
+
+#include <SDL_main.h>
 
 #include <cstdio>
 #include <cstdlib>
@@ -25,7 +28,7 @@ Task sdlLoop()
 {
     for (;;) {
         Driver::instance().vga().flush();
-        co_await sleep(2);
+        co_await resl::sleep(2);
     }
 }
 
@@ -100,7 +103,8 @@ int main(int argc, char* argv[])
     calibrateActiveSleep();
 
     Driver::instance().setKeyboardHandler(&keyboardInterruptionHandler);
-    Driver::instance().setMouseHandler(&handleMouseInput);
+    MouseDriver::HandlerHolder mouseHandler =
+        Driver::instance().mouse().addHandler(&handleMouseInput);
 
     initTasks(/* taskStacksMemory */);
 
@@ -108,6 +112,10 @@ int main(int argc, char* argv[])
 }
 
 } // namespace resl
+
+#if defined(__IPHONEOS__) || defined(ANDROID)
+extern "C" {
+#endif
 
 int main(int argc, char* argv[])
 {
@@ -131,6 +139,11 @@ int main(int argc, char* argv[])
             return usage(argc, argv, i);
     }
 
+    initFS();
+
+    // Driver should be destroyed after scheduler => we have to initialize it first
+    Driver::instance();
+
     if (debugGraphics)
         Driver::instance().vga().setDebugMode(true);
     if (fullscreen)
@@ -139,3 +152,7 @@ int main(int argc, char* argv[])
     addTask(sdlLoop());
     return resl::main(origGameArgc, origGameArgv);
 }
+
+#if defined(__IPHONEOS__) || defined(ANDROID)
+} // extern "C"
+#endif

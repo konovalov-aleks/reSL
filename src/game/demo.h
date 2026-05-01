@@ -1,6 +1,5 @@
 #pragma once
 
-#include "io_status.h"
 #include <tasks/task.h>
 
 namespace resl {
@@ -14,7 +13,7 @@ extern Task g_taskDemoAI;
 //-----------------------------------------------------------------------------
 
 /* 16a6:09f8 */
-IOStatus loadDemo();
+[[nodiscard]] bool loadDemo();
 
 /* 16a6:0a7b */
 void stopDemo();

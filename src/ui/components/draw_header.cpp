@@ -10,10 +10,10 @@
 #include <graphics/glyph.h>
 #include <graphics/text.h>
 #include <graphics/vga.h>
-#include <system/buffer.h>
 #include <system/filesystem.h>
 
 #include <cstdio>
+#include <iostream>
 
 namespace resl {
 
@@ -33,8 +33,13 @@ void drawHeaderFieldFontTexture()
 /* 132d:0086 */
 void drawHeaderBackground(std::int16_t yOffset)
 {
-    readIfNotLoaded("play.7", g_pageBuffer);
-    graphics::imageDot7(0, yOffset, LOGICAL_SCREEN_WIDTH, g_headerHeight, g_pageBuffer);
+    std::span<std::byte> fileData = readBinaryFile("play.7");
+    if (fileData.empty()) [[unlikely]]
+        std::cerr << "unable to read file 'play.7'" << std::endl;
+    else {
+        graphics::imageDot7(0, yOffset, LOGICAL_SCREEN_WIDTH, g_headerHeight,
+                            reinterpret_cast<std::uint8_t*>(fileData.data()));
+    }
 }
 
 /* 12c5:01d7 */
@@ -86,10 +91,13 @@ void setHeaderValues(
     updateHeaderField(3, level, yOffset);
 }
 
+static constexpr std::int16_t s_dispatchersXOrigin = 463;
+static constexpr std::int16_t s_dispatcherIconWidth = 22;
+
 /* 137c:0450 */
 void drawDispatcher(std::int16_t entranceIdx, bool signalling)
 {
-    const std::int16_t x = entranceIdx * 22 + 481;
+    const std::int16_t x = entranceIdx * s_dispatcherIconWidth + s_dispatchersXOrigin;
     g_glyphHeight = 16;
     drawGlyphW16(g_glyphEmptyBackground, x, 25, Color::Gray);
     drawGlyphW16(g_dispatcherGlyphs[signalling].bg, x, 25, g_entrances[entranceIdx].bgColor);
@@ -105,7 +113,7 @@ void drawDispatchers(std::int16_t yOffset)
     for (std::int16_t i = 0; i < g_entranceCount; ++i) {
         const Entrance& e = g_entrances[i];
         bool signalling = e.waitingTrainsCount != 0;
-        const std::int16_t x = i * 22 + 481;
+        const std::int16_t x = i * s_dispatcherIconWidth + s_dispatchersXOrigin;
         drawGlyphW16(g_dispatcherGlyphs[signalling].bg, x, y, e.bgColor);
         drawGlyphW16(g_dispatcherGlyphs[signalling].fg, x, y, Color::Black);
     }

@@ -19,7 +19,6 @@
 #include <graphics/color.h>
 #include <graphics/glyph.h>
 #include <graphics/vga.h>
-#include <system/buffer.h>
 #include <system/filesystem.h>
 #include <types/rectangle.h>
 #include <ui/components/draw_header.h>
@@ -28,6 +27,7 @@
 #include <cassert>
 #include <cstdint>
 #include <cstdlib>
+#include <iostream>
 
 #ifndef NDEBUG
 #   include <iterator>
@@ -206,8 +206,14 @@ void drawEraseTrainFinishedExclamation(std::int16_t entranceX, std::int16_t entr
 /* 132d:00f9 */
 void drawGameField(std::int16_t yOffset)
 {
-    readIfNotLoaded("play.7", g_pageBuffer);
-    graphics::imageDot7(0, yOffset, LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT, g_pageBuffer);
+    std::span<const std::byte> data = readBinaryFile("play.7");
+    if (data.empty()) [[unlikely]]
+        std::cerr << "unable to read file 'play.7'" << std::endl;
+    else {
+        graphics::imageDot7(0, yOffset, LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT,
+                            reinterpret_cast<const std::uint8_t*>(data.data()));
+    }
+
     drawStaticObjects(yOffset);
     drawCopyright(yOffset);
 }

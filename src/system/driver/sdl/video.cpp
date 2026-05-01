@@ -2,9 +2,11 @@
 
 #include "graphics/vga.h"
 #include "system/driver/sdl/driver.h"
+#include "system/driver/sdl/mouse.h"
 
 #include <SDL_blendmode.h>
 #include <SDL_error.h>
+#include <SDL_hints.h>
 #include <SDL_mouse.h>
 #include <SDL_pixels.h>
 #include <SDL_rect.h>
@@ -19,10 +21,6 @@
 #include <iostream>
 #include <iterator>
 #include <limits>
-
-#ifdef __APPLE__
-#   include <SDL_hints.h>
-#endif // __APPLE__
 
 #ifdef __EMSCRIPTEN__
 #   include <emscripten.h>
@@ -60,13 +58,26 @@ void VGAEmulation::flush()
         return;
     m_nextFrameTime = now + std::chrono::microseconds(1000000 / s_FPS);
 
-    if (updatePicture() || m_needRedraw) {
+    bool mouseAnimationUpdated = Driver::instance().mouse().updateAnimation();
+    if (updatePicture() || m_needRedraw || mouseAnimationUpdated) {
         m_needRedraw = false;
 
-        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0xFF);
+        SDL_SetRenderDrawColor(m_renderer, 0x00, 0x00, 0x00, 0xFF);
         SDL_RenderClear(m_renderer);
+        SDL_SetRenderDrawColor(m_renderer, 0x55, 0xAA, 0x00, 0xFF);
+        const SDL_Rect screenRect = { 0, 0, m_wndWidth, m_wndHeight };
+        SDL_RenderFillRect(m_renderer, &screenRect);
+
+        const auto drawOverlays = [this](int yOffset) {
+            for (Overlay& ov : m_overlays)
+                ov(m_renderer, yOffset);
+        };
+
+        const bool splitScreen = m_vgaState.overflowLineCompare < LOGICAL_SCREEN_HEIGHT;
 
         if (isDebugMode()) [[unlikely]] {
+            drawOverlays(splitScreen ? m_vgaState.overflowLineCompare : 0);
+
             SDL_Rect srcRect = { 0, 0, m_wndWidth, m_wndHeight };
             SDL_RenderCopy(m_renderer, m_screen, &srcRect, nullptr);
 
@@ -78,7 +89,7 @@ void VGAEmulation::flush()
             };
             SDL_RenderDrawRect(m_renderer, &frameRect);
 
-            if (m_vgaState.overflowLineCompare < LOGICAL_SCREEN_HEIGHT) {
+            if (splitScreen) {
                 SDL_SetRenderDrawColor(m_renderer, 153, 204, 0, 255);
                 frameRect = {
                     0, 0,
@@ -90,7 +101,10 @@ void VGAEmulation::flush()
         } else {
             const int overflowLinePhysicalY =
                 m_vgaState.overflowLineCompare * m_wndHeight / LOGICAL_SCREEN_HEIGHT;
-            if (m_vgaState.overflowLineCompare < LOGICAL_SCREEN_HEIGHT) {
+
+            drawOverlays(splitScreen ? overflowLinePhysicalY : 0);
+
+            if (splitScreen) {
                 SDL_Rect clipRect = { 0, 0, m_wndWidth, overflowLinePhysicalY };
                 SDL_RenderSetClipRect(m_renderer, &clipRect);
             }
@@ -100,7 +114,7 @@ void VGAEmulation::flush()
 
             SDL_RenderSetClipRect(m_renderer, nullptr);
 
-            if (m_vgaState.overflowLineCompare < LOGICAL_SCREEN_HEIGHT) {
+            if (splitScreen) {
                 srcRect = {
                     0, 0,
                     LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT - m_vgaState.overflowLineCompare
@@ -108,11 +122,13 @@ void VGAEmulation::flush()
                 SDL_Rect dstRect = {
                     0, overflowLinePhysicalY,
                     m_wndWidth,
-                    (LOGICAL_SCREEN_HEIGHT - m_vgaState.overflowLineCompare) * m_wndHeight / LOGICAL_SCREEN_HEIGHT,
+                    m_wndHeight - overflowLinePhysicalY
                 };
                 SDL_RenderCopy(m_renderer, m_screen, &srcRect, &dstRect);
             }
         }
+
+        Driver::instance().mouse().drawCursor(m_renderer);
         SDL_RenderPresent(m_renderer);
 
         m_dirtyRect = {};
@@ -160,9 +176,11 @@ void VGAEmulation::setFullscreenMode(bool fullscreen)
 
 void VGAEmulation::init()
 {
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(IOS)
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
 #endif // __APPLE__
+
+    SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
 
     Uint32 flags = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI;
 #ifndef __EMSCRIPTEN__
@@ -195,6 +213,7 @@ void VGAEmulation::init()
     m_screen = SDL_CreateTexture(
         m_renderer, m_pixelFormat, SDL_TEXTUREACCESS_STREAMING,
         vga::VIDEO_MEM_ROW_BYTES * 8, nRows);
+    SDL_SetTextureBlendMode(m_screen, SDL_BLENDMODE_BLEND);
     if (!m_screen) [[unlikely]] {
         std::cerr << "Unable to create SDL texture! SDL_Error: " << SDL_GetError() << std::endl;
         close();
@@ -251,7 +270,7 @@ void VGAEmulation::generatePalette()
                m_pixelFormat) != std::end(g_supportedPixelFormats));
 
     m_vgaState.palette = {
-        0xFF55AA00, // Green
+        0x0055AA00, // Green (transparent to be able to draw on the background)
         0xFF000000, // Black
         0xFFAAAAAA, // Gray
         0xFF555555, // Dark gray

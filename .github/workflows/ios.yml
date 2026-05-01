@@ -1,0 +1,35 @@
+name: iOS CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set reusable strings
+      id: strings
+      shell: bash
+      run: |
+        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+    - name: Configure CMake
+      run: >
+        cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        -DCMAKE_CONFIGURATION_TYPES=Release
+        -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/ios/cmake/ios.toolchain.cmake
+        -DSDL2IMAGE_BACKEND_IMAGEIO=OFF
+        -DPLATFORM=OS64COMBINED
+        -DBUILD_NUMBER=${{ github.run_number }}
+        -G Xcode
+        -S ${{ github.workspace }}
+
+    - name: Build
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config Release

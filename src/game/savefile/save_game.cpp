@@ -6,7 +6,6 @@
 #include <game/entrance.h>
 #include <game/header.h>
 #include <game/header_field.h>
-#include <game/io_status.h>
 #include <game/player_name.h>
 #include <game/rail.h>
 #include <game/rail_info.h>
@@ -14,7 +13,7 @@
 #include <game/static_object.h>
 #include <game/switch.h>
 #include <game/train.h>
-#include <system/keyboard.h>
+#include <system/file.h>
 #include <system/random.h>
 #include <types/rectangle.h>
 #include <ui/components/status_bar.h>
@@ -24,9 +23,16 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <cstdio>
+#include <fstream>
 #include <limits>
 #include <type_traits>
+
+#ifdef __EMSCRIPTEN__
+#   include <system/filesystem.h>
+
+#   include <filesystem>
+#   include <string>
+#endif // __EMSCRIPTEN__
 
 namespace resl {
 
@@ -45,32 +51,36 @@ namespace {
     static_assert(g_railsVirtualOffset + fileRailSize < g_entrancesVirtualOffset);
     static_assert(g_entrancesVirtualOffset + fileEntrancesArraySize <= std::numeric_limits<std::uint16_t>::max());
 
-    template <typename T, typename Enable = void>
+    template <typename T>
     class DataWriter;
 
     class Writer {
     public:
 #ifndef NDEBUG
-        // debug helper to make sure we have written the correct number of bytes
+        // Debug helper to make sure we have written the correct number of bytes.
+        // It is only needed to make sure once again that the file will be
+        // compatible with the original game.
         class [[nodiscard]] ExpectedBlockSize {
         public:
-            ExpectedBlockSize(std::FILE* f, long expected)
+            ExpectedBlockSize(File& f, File::pos_type expected)
                 : m_expected(expected)
+                , m_startOffset(f.tell())
                 , m_file(f)
             {
-                m_startOffset = std::ftell(m_file);
             }
 
             ~ExpectedBlockSize()
             {
-                long offset = std::ftell(m_file);
-                assert(offset - m_startOffset == m_expected);
+                if (m_file) {
+                    File::pos_type offset = m_file.tell();
+                    assert(offset - m_startOffset == m_expected);
+                }
             }
 
         private:
-            long m_expected;
-            long m_startOffset;
-            std::FILE* m_file;
+            File::pos_type m_expected;
+            File::pos_type m_startOffset;
+            File& m_file;
         };
 
         ExpectedBlockSize expectedSize(long expected)
@@ -81,11 +91,11 @@ namespace {
 #else // NDEBUG
 
         class [[maybe_unused]] ExpectedBlockSize { };
-        ExpectedBlockSize expectedSize(long) { return {}; }
+        ExpectedBlockSize expectedSize(File::pos_type) { return {}; }
 
 #endif // !NDEBUG
 
-        Writer(std::FILE* f)
+        Writer(File& f)
             : m_file(f)
         {
         }
@@ -98,17 +108,21 @@ namespace {
 
         void writeBytes(const char* buf, std::size_t len)
         {
-            [[maybe_unused]] std::size_t res = std::fwrite(buf, 1, len, m_file);
-            // the original game also has no check if data was successfully written
-            assert(res == len);
+            m_file.write(buf, len);
+        }
+
+        bool good() const noexcept
+        {
+            return m_file.good();
         }
 
     private:
-        std::FILE* m_file;
+        File& m_file;
     };
 
     template <typename T>
-    class DataWriter<T, std::enable_if_t<std::is_integral_v<T>>> {
+        requires std::is_integral_v<T>
+    class DataWriter<T> {
     public:
         static void write(Writer& w, T value)
         {
@@ -118,7 +132,8 @@ namespace {
     };
 
     template <typename T>
-    class DataWriter<T, std::enable_if_t<std::is_enum_v<T>>> {
+        requires std::is_enum_v<T>
+    class DataWriter<T> {
     public:
         static void write(Writer& w, T value)
         {
@@ -189,13 +204,19 @@ static void generateFileName(char* buf, std::size_t bufSize)
 }
 
 /* 1400:0245 */
-static void saveGameState(const char* fileName)
+[[nodiscard]] static bool saveGameState(const char* fileName)
 {
-    std::FILE* file = std::fopen(fileName, "wb");
-    if (!file) [[unlikely]] {
-        g_ioStatus = IOStatus::OpenError;
-        return;
-    }
+#ifdef __EMSCRIPTEN__
+    const std::string fullPathStr =
+        (std::filesystem::path(g_persistentFolder) / fileName).generic_string();
+    const char* const fullPath = fullPathStr.c_str();
+#else
+    const char* const fullPath = fileName;
+#endif
+
+    File file(fullPath, "wb");
+    if (!file) [[unlikely]]
+        return false;
 
     /* The original game just writes entire structures.
        But this approach is obviously non-portable for a bunch of reasons, e.g:
@@ -357,22 +378,19 @@ static void saveGameState(const char* fileName)
     w.write<std::uint16_t>(g_semaphoreCount);
     w.writeBytes(data, g_semaphoreCount);
 
-    if (std::fclose(file) != 0)
-        g_ioStatus = IOStatus::CloseError;
+    return w.good();
 }
 
 /* 1400:0004 */
-IOStatus saveGame()
+[[nodiscard]] bool saveGame()
 {
     char fileName[16];
-    g_ioStatus = IOStatus::NoError;
     showStatusMessage("SAVING ...      ");
     generateFileName(fileName, sizeof(fileName));
-    saveGameState(fileName);
+    const bool res = saveGameState(fileName);
     showStatusMessage("SAVING ... DONE ");
-    updateKeyboardLeds(static_cast<std::int16_t>(g_ioStatus));
     drawStatusBarWithCopyright(0);
-    return g_ioStatus;
+    return res;
 }
 
 } // namespace resl

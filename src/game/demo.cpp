@@ -1,7 +1,6 @@
 #include "demo.h"
 
 #include "constants.h"
-#include "io_status.h"
 #include "mouse/management_mode.h"
 #include "mouse/mode.h"
 #include "mouse/mouse.h"
@@ -10,6 +9,7 @@
 #include "savefile/load_game.h"
 #include "semaphore.h"
 #include "switch.h"
+#include <system/driver/driver.h>
 #include <system/random.h>
 #include <system/time.h>
 #include <tasks/message_queue.h>
@@ -33,7 +33,7 @@ Task g_taskDemoAI;
 //-----------------------------------------------------------------------------
 
 /* 16a6:09f8 */
-IOStatus loadDemo()
+[[nodiscard]] bool loadDemo()
 {
     /* 1d77:0000 : 16 bytes */
     static char g_demoFileName[16] = "demo_a";
@@ -41,8 +41,8 @@ IOStatus loadDemo()
     char origPlayerName[std::size(g_playerName)];
     std::strcpy(origPlayerName, g_playerName);
 
-    IOStatus res = loadSavedGame(g_demoFileName);
-    if (res != IOStatus::NoError) {
+    bool res = loadSavedGame(g_demoFileName);
+    if (!res) [[unlikely]] {
         g_demoFileName[5] = 'a';
         res = loadSavedGame(g_demoFileName);
     }
@@ -72,9 +72,9 @@ static void moveCursorTowardsPoint(std::int16_t x, std::int16_t y)
 {
     const mouse::Mode& m = *mouse::g_state.mode;
     g_demoMouseMsg.action = MouseAction::None;
-    g_demoMouseMsg.cursorDX = (x - m.x) / 4;
-    g_demoMouseMsg.cursorDY = (y - m.y) / 4;
-    g_mouseMsgQueue.push(g_demoMouseMsg);
+    g_demoMouseMsg.x = m.x + (x - m.x) / 4;
+    g_demoMouseMsg.y = m.y + (y - m.y) / 4;
+    Driver::instance().mouse().setPosition(g_demoMouseMsg.x, g_demoMouseMsg.y);
 }
 
 /* 1300:0200 */

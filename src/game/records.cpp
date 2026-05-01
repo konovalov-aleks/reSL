@@ -9,13 +9,12 @@
 #include <graphics/color.h>
 #include <graphics/drawing.h>
 #include <graphics/text.h>
-#include <system/buffer.h>
+#include <system/file.h>
 #include <system/filesystem.h>
 #include <utility/endianness.h>
 
 #include <cassert>
 #include <cstdint>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <iterator>
@@ -50,7 +49,13 @@ struct Record {
     char playerName[20];
 };
 
+#ifdef __EMSCRIPTEN__
+static const std::string g_recordsFilePathStr =
+    (std::filesystem::path(g_persistentFolder) / "results.tbl").generic_string();
+static const char* const g_recordsFileName = g_recordsFilePathStr.c_str();
+#else
 static constexpr char g_recordsFileName[] = "results.tbl";
+#endif
 static constexpr std::int16_t g_recordsTableCapacity = 833;
 static constexpr std::size_t g_recordSize = 36;
 
@@ -110,12 +115,14 @@ static int recordCompareByLevelAndYear(const void* a, const void* b)
 /* 174e:0266 */
 void showRecordsScreen()
 {
-    std::size_t bytesRead = readBinaryFile(g_recordsFileName, g_pageBuffer);
-    if (bytesRead) {
-        // The data can contain an empty records
+    static constexpr std::size_t maxItemsToShow = 10;
+
+    std::span<std::byte> fileData = readBinaryFile(g_recordsFileName);
+    std::size_t nRecords = 0;
+    Record* records = reinterpret_cast<Record*>(fileData.data());
+    if (!fileData.empty()) {
+        // The data can contain empty records
         // Normalize the representation - move all non-empty records to the head
-        Record* records = (Record*)g_pageBuffer;
-        std::size_t nRecords = 0;
         while (nRecords < g_recordsTableCapacity && *records[nRecords].playerName)
             ++nRecords;
 
@@ -126,43 +133,45 @@ void showRecordsScreen()
                 convertByteOrderFileToNative(records[i]);
             }
         }
+    }
 
-        /* fill entire area with red color */
-        graphics::filledRectangle(0, 350, 80, 350, 0xFF, Color::Red);
-        /* first block */
-        graphics::dialogFrame(98, 367, 56, 151, Color::Gray);
-        /* second block */
-        graphics::dialogFrame(98, 545, 56, 151, Color::Gray);
+    /* fill entire area with red color */
+    graphics::filledRectangle(0, 350, 80, 350, 0xFF, Color::Red);
+    /* first block */
+    graphics::dialogFrame(98, 367, 56, 151, Color::Gray);
+    /* second block */
+    graphics::dialogFrame(98, 545, 56, 151, Color::Gray);
 
-        g_textSpacing = 2;
-        drawText(153, 352, "* THE BEST DISPATCHERS *", Color::Black);
-        drawTextSmall(114, 370,
-                      " #  Name           Trains   Money   Year   Level", Color::Black);
-        drawText(169, 530, "* THE BEST MANAGERS *", Color::Black);
-        drawTextSmall(114, 548,
-                      " #  Name        Level : Year   Money   Trains", Color::Black);
-        std::qsort(records, nRecords, sizeof(Record), &recordCompareByTrains);
-        for (std::uint16_t i = 0; i < 10 && records[i].byTrains.trains; ++i) {
-            char buf[80];
-            const RecordItem& ri = records[i].byTrains;
-            std::snprintf(
-                buf, sizeof(buf), "%2d. %-14s %6u %4u,000 %6u %2u", i + 1,
-                records[i].playerName, static_cast<unsigned>(ri.trains),
-                static_cast<unsigned>(ri.money), static_cast<unsigned>(ri.year),
-                static_cast<unsigned>(ri.level));
-            drawTextSmall(114, (i + 2) * 12 + 370, buf, Color::Black);
-        }
+    g_textSpacing = 2;
+    drawText(153, 352, "* THE BEST DISPATCHERS *", Color::Black);
+    drawTextSmall(114, 370,
+                  " #  Name           Trains   Money   Year   Level", Color::Black);
+    drawText(169, 530, "* THE BEST MANAGERS *", Color::Black);
+    drawTextSmall(114, 548,
+                  " #  Name        Level : Year   Money   Trains", Color::Black);
+    std::qsort(records, nRecords, sizeof(Record), &recordCompareByTrains);
 
-        std::qsort(records, nRecords, sizeof(Record), &recordCompareByLevelAndYear);
-        for (std::uint16_t i = 0; i < 10 && records[i].byYears.level; ++i) {
-            char buf[80];
-            const RecordItem& ri = records[i].byYears;
-            std::snprintf(
-                buf, sizeof(buf), "%2d. %-14s %2u : %4u %4u,000 %5u", i + 1,
-                records[i].playerName, static_cast<unsigned>(ri.level), static_cast<unsigned>(ri.year),
-                static_cast<unsigned>(ri.money), static_cast<unsigned>(ri.trains));
-            drawTextSmall(114, (i + 2) * 12 + 548, buf, Color::Black);
-        }
+    const std::size_t nItemsToShow = std::min(maxItemsToShow, nRecords);
+    for (std::size_t i = 0; i < nItemsToShow && records[i].byTrains.trains; ++i) {
+        char buf[80];
+        const RecordItem& ri = records[i].byTrains;
+        std::snprintf(
+            buf, sizeof(buf), "%2zu. %-14s %6u %4u,000 %6u %2u", i + 1,
+            records[i].playerName, static_cast<unsigned>(ri.trains),
+            static_cast<unsigned>(ri.money), static_cast<unsigned>(ri.year),
+            static_cast<unsigned>(ri.level));
+        drawTextSmall(114, (i + 2) * 12 + 370, buf, Color::Black);
+    }
+
+    std::qsort(records, nRecords, sizeof(Record), &recordCompareByLevelAndYear);
+    for (std::size_t i = 0; i < nItemsToShow && records[i].byYears.level; ++i) {
+        char buf[80];
+        const RecordItem& ri = records[i].byYears;
+        std::snprintf(
+            buf, sizeof(buf), "%2zu. %-14s %2u : %4u %4u,000 %5u", i + 1,
+            records[i].playerName, static_cast<unsigned>(ri.level), static_cast<unsigned>(ri.year),
+            static_cast<unsigned>(ri.money), static_cast<unsigned>(ri.trains));
+        drawTextSmall(114, (i + 2) * 12 + 548, buf, Color::Black);
     }
 }
 
@@ -190,33 +199,24 @@ void fillRecordItem(RecordItem& ri)
 /* 174e:00cc */
 void writeRecords()
 {
-    /* 262d:6f52 : 8 bytes */
-    static const RecordItem g_emptyRecordItem = {};
-
-    std::FILE* file = fopen(g_recordsFileName, "r+");
+    File file(g_recordsFileName, "r+");
     if (!file) {
         // initialize a new empty hash table
-        file = fopen(g_recordsFileName, "w+");
+        file.open(g_recordsFileName, "w+");
         if (!file) [[unlikely]]
             return;
 
-        Record r;
-        r.byTrains = g_emptyRecordItem;
-        r.byYears = g_emptyRecordItem;
-        r.playerName[0] = '\0';
-
-        for (std::int16_t i = 0; i < g_recordsTableCapacity; ++i)
-            std::memcpy(&g_pageBuffer[i * g_recordSize], &r, g_recordSize);
-
-        std::fwrite(g_pageBuffer, g_recordSize, g_recordsTableCapacity, file);
+        char emptyTableData[g_recordSize * g_recordsTableCapacity] = {};
+        file.write(emptyTableData, g_recordSize * g_recordsTableCapacity);
     }
 
     const std::uint16_t hash = playerNameHash();
-    std::fseek(file, hash * g_recordSize, SEEK_SET);
+    file.seek(hash * g_recordSize);
 
     Record r;
-    [[maybe_unused]] std::size_t nRecords = std::fread(&r, g_recordSize, 1, file);
-    assert(nRecords == 1);
+    file.read(&r, g_recordSize);
+    if (!file) [[unlikely]]
+        return;
     convertByteOrderFileToNative(r);
 
     const std::int16_t curTrains =
@@ -240,38 +240,37 @@ void writeRecords()
 
     if (needUpdate) {
         std::strcpy(r.playerName, g_playerName);
-        std::fseek(file, -static_cast<long>(g_recordSize), SEEK_CUR);
+        file.seek(hash * g_recordSize);
 
         convertByteOrderNativeToFile(r);
-        std::fwrite(&r, g_recordSize, 1, file);
+        file.write(&r, g_recordSize);
     }
-
-    std::fclose(file);
 }
 
 /* 174e:052b */
 std::int16_t readLevel()
 {
     constexpr std::size_t levelFieldOffset = 7;
+    constexpr std::int16_t defaultLevel = 1;
 
     std::int16_t data[18];
     static_assert(sizeof(data) >= g_recordSize);
 
-    std::FILE* file = std::fopen(g_recordsFileName, "rb");
+    File file(g_recordsFileName, "rb");
     if (!file) [[unlikely]]
-        data[levelFieldOffset] = 1;
-    else {
-        std::fseek(file, playerNameHash() * g_recordSize, SEEK_SET);
-        std::fread(data, g_recordSize, 1, file);
-        std::fclose(file);
+        return defaultLevel;
+    if (!file.seek(playerNameHash() * g_recordSize)) [[unlikely]]
+        return defaultLevel;
+    std::size_t nBytes = file.read(data, g_recordSize);
+    if (nBytes != g_recordSize) [[unlikely]]
+        return defaultLevel;
 
-        // The original game is not portable - it works only on LE systems.
-        // reSL have to perform a byte order conversion to be able to work on BE systems.
-        data[levelFieldOffset] = littleEndianToNative(data[levelFieldOffset]);
+    // The original game is not portable - it works only on LE systems.
+    // reSL have to perform a byte order conversion to be able to work on BE systems.
+    data[levelFieldOffset] = littleEndianToNative(data[levelFieldOffset]);
 
-        if (data[levelFieldOffset] == 0)
-            data[levelFieldOffset] = 1;
-    }
+    if (data[levelFieldOffset] <= 0)
+        data[levelFieldOffset] = defaultLevel;
     return data[levelFieldOffset];
 }
 

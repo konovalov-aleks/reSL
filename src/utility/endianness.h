@@ -13,41 +13,29 @@ namespace details {
     template <typename T>
     concept arithmetic = std::is_arithmetic_v<T>;
 
-    template <std::integral DstT, std::integral SrcT>
-    DstT bitCast(SrcT src)
-    {
-        static_assert(sizeof(DstT) == sizeof(SrcT));
-        return static_cast<DstT>(src);
-    }
-
-    template <std::integral DstT, std::floating_point SrcT>
-    DstT bitCast(SrcT src)
-    {
-        static_assert(sizeof(DstT) == sizeof(SrcT));
-        DstT res;
-        std::memcpy(&res, &src, sizeof(DstT));
-        return res;
-    }
-
     // Changes the byte order (little endian <=> big endian)
     template <arithmetic T>
     struct Endianness {
         static T Swap(T val)
         {
+#if defined(__cpp_lib_byteswap) && __cpp_lib_byteswap == 202110L
+            return std::byteswap(val);
+#endif
+
             if constexpr (sizeof(T) == 1)
                 return val;
 
 // fast conversion using GCC extensions
 #if defined __GNUC__ && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3))
             else if constexpr (sizeof(T) == 8)
-                return bitCast<T>(__builtin_bswap64(bitCast<std::uint64_t>(val)));
+                return std::bit_cast<T>(__builtin_bswap64(std::bit_cast<std::uint64_t>(val)));
             else if constexpr (sizeof(T) == 4)
-                return bitCast<T>(__builtin_bswap32(bitCast<std::uint32_t>(val)));
+                return std::bit_cast<T>(__builtin_bswap32(std::bit_cast<std::uint32_t>(val)));
             else if constexpr (sizeof(T) == 2) {
 #   if (__GNUC__ == 4 && __GNUC_MINOR__ >= 8) || __GNUC__ > 4
-                return bitCast<T>(__builtin_bswap16(bitCast<std::uint16_t>(val)));
+                return std::bit_cast<T>(__builtin_bswap16(std::bit_cast<std::uint16_t>(val)));
 #   else
-                return bitCast<T, std::uint16_t>(__builtin_bswap32(bitCast<std::uint32_t>(val) << 16));
+                return std::bit_cast<T, std::uint16_t>(__builtin_bswap32(std::bit_cast<std::uint32_t>(val) << 16));
 #   endif
             }
 
@@ -55,13 +43,13 @@ namespace details {
 #elif defined _MSC_VER
             if constexpr (sizeof(T) == 8) {
                 static_assert(sizeof(unsigned __int64) == 8);
-                return bitCast<T>(_byteswap_uint64(bitCast<unsigned __int64>(val)));
+                return std::bit_cast<T>(_byteswap_uint64(std::bit_cast<unsigned __int64>(val)));
             } else if constexpr (sizeof(T) == 4) {
                 static_assert(sizeof(unsigned long) == 4);
-                return bitCast<T>(_byteswap_ulong(bitCast<unsigned long>(val)));
+                return std::bit_cast<T>(_byteswap_ulong(std::bit_cast<unsigned long>(val)));
             } else if constexpr (sizeof(T) == 2) {
                 static_assert(sizeof(unsigned short) == 2);
-                return bitCast<T>(_byteswap_ushort(bitCast<unsigned short>(val)));
+                return std::bit_cast<T>(_byteswap_ushort(std::bit_cast<unsigned short>(val)));
             }
 #endif
 

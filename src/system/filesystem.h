@@ -2,8 +2,16 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <filesystem>
+#include <span>
 
 namespace resl {
+
+#ifdef __EMSCRIPTEN__
+
+static constexpr const char* const g_persistentFolder = "/persistent";
+
+#endif // __EMSCRIPTEN__
 
 // The original game uses a cumbersome structure DTA from DOS API with many
 // useless fields:
@@ -13,19 +21,18 @@ struct FileInfo {
     // https://www.stanislavs.org/helppc/file_attributes.html
     std::uint16_t fileTime = 0;
     std::uint16_t fileDate = 0;
-    const char* fileName;
+    std::filesystem::path filePath;
 };
 
 //-----------------------------------------------------------------------------
 
+void initFS();
+
 /* 1abc:0005 */
-std::size_t readBinaryFile(const char* fileName, void* pagePtr);
+[[nodiscard]] std::span<std::byte> readBinaryFile(const char* fileName);
 
 /* 1400:067f */
-std::size_t readTextFile(const char* fileName);
-
-/* 1abc:0064 */
-void readIfNotLoaded(const char* fileName, void* pagePtr);
+[[nodiscard]] std::span<std::byte> readTextFile(const char* fileName);
 
 /* 12b1:0006 */
 int findFirst(const char* pattern, std::uint8_t attrs);

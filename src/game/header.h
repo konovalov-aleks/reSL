@@ -12,7 +12,7 @@ struct HeaderValueChangeRequest {
     std::int8_t delta;
     HeaderFieldId fieldId;
     // if delta is zero, the value will be set without animation
-    std::int16_t value;
+    std::int16_t value = 0;
 };
 
 //-----------------------------------------------------------------------------

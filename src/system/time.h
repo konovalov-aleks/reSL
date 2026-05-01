@@ -21,4 +21,7 @@ void disableTimer();
 /* 16a6:0600 */
 void enableTimer();
 
+void setTimeAcceleration(int);
+int getTimeAcceleration();
+
 } // namespace resl

@@ -23,12 +23,4 @@ void keyboardInterruptionHandler(std::uint8_t keycode)
     g_lastKeyCode = keycode;
 }
 
-/* 1c71:000f */
-void updateKeyboardLeds(std::int16_t)
-{
-    // In the original game, this function updates the state of keyboard LEDs.
-    // This feature is non-portable and is not important at all
-    // => reSL doesn't implement this
-}
-
 } // namespace resl

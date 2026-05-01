@@ -24,4 +24,6 @@ extern State g_state;
 /* 14af:0104 */
 void setMode(Mode&);
 
+void toggleMode();
+
 } // namespace resl::mouse

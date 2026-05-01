@@ -16,7 +16,6 @@
 #include <ui/components/status_bar.h>
 
 #include <algorithm>
-#include <cmath>
 #include <cstdlib>
 
 namespace resl {

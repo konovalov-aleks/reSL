@@ -11,6 +11,10 @@ using KeyboardHandler = void (*)(std::uint8_t keycode);
 
 // http://www.techhelpmanual.com/57-keyboard_scan_codes.html
 inline constexpr std::uint8_t g_keyEscape = 1;
+inline constexpr std::uint8_t g_key1 = 2;
+inline constexpr std::uint8_t g_key2 = 3;
+inline constexpr std::uint8_t g_key3 = 4;
+inline constexpr std::uint8_t g_keySpace = 57;
 
 //-----------------------------------------------------------------------------
 
@@ -27,8 +31,5 @@ extern std::uint8_t g_lastKeyCode;
 // data from the IO port 0x60.
 /* 14af:06e7 */
 void keyboardInterruptionHandler(std::uint8_t keycode);
-
-/* 1c71:000f */
-void updateKeyboardLeds(std::int16_t);
 
 } // namespace resl

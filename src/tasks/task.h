@@ -30,7 +30,7 @@ struct Task : public std::coroutine_handle<TaskPromise> {
 
     bool await_ready() { return false; }
     inline void await_suspend(std::coroutine_handle<TaskPromise> inner);
-    void await_resume() {};
+    void await_resume() { };
     inline void resume() const;
 };
 
@@ -104,7 +104,7 @@ inline SleepAwaitable yield()
 inline SleepAwaitable sleep(TimeT time)
 {
     assert(time > 0);
-    return { std::chrono::milliseconds(time * MsPerTick) };
+    return { std::chrono::milliseconds(time * MsPerTick / getTimeAcceleration()) };
 }
 
 void runScheduler();

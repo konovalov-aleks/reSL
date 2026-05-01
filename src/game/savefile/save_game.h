@@ -1,10 +1,8 @@
 #pragma once
 
-#include <game/io_status.h>
-
 namespace resl {
 
 /* 1400:0004 */
-IOStatus saveGame();
+[[nodiscard]] bool saveGame();
 
 } // namespace resl

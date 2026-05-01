@@ -1,5 +1,6 @@
 #include "main_menu.h"
 
+#include "components/close_button.h"
 #include "components/dialog.h"
 #include "components/draw_header.h"
 #include "components/status_bar.h"
@@ -8,7 +9,6 @@
 #include <game/demo.h>
 #include <game/drawing.h>
 #include <game/init.h>
-#include <game/io_status.h>
 #include <game/main_loop.h>
 #include <game/melody.h>
 #include <game/mouse/construction_mode.h>
@@ -22,15 +22,24 @@
 #include <graphics/animation.h>
 #include <graphics/drawing.h>
 #include <graphics/vga.h>
-#include <system/buffer.h>
+#include <system/driver/driver.h>
 #include <system/exit.h>
 #include <system/filesystem.h>
 #include <system/keyboard.h>
 #include <tasks/task.h>
+#include <ui/components/button.h>
+#include <ui/components/menu_button.h>
+
+#include <SDL_log.h>
 
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
+#include <filesystem>
+#include <iostream>
+#include <optional>
+#include <string>
 
 namespace resl {
 
@@ -53,6 +62,16 @@ static void eraseArchiveMenu(std::int16_t yOffset)
     vga::setVideoModeR0W2();
 }
 
+static void drawMainMenu()
+{
+    drawGameField(350);
+    setHeaderValues(0, 100, 1800, readLevel(), 350);
+    drawDialog(DialogType::MainMenu, 350);
+    graphics::setVideoFrameOrigin(0, 350);
+    graphics::copyScreenBufferTo(0);
+    graphics::setVideoFrameOrigin(0, 0);
+}
+
 enum class ArchiveMenuAction {
     ReturnToMainMenu,
     StartGame
@@ -61,38 +80,47 @@ enum class ArchiveMenuAction {
 /* 15e8:063e */
 inline ArchiveMenuAction showArchiveMenu()
 {
-    for (bool showNextFile = true; showNextFile;) {
-        showNextFile = false;
+    bool worldChanged = false;
+    const auto returnToMainMenu = [&worldChanged]() {
+        if (worldChanged)
+            createNewWorld();
+        drawMainMenu();
+        return ArchiveMenuAction::ReturnToMainMenu;
+    };
 
+    for (;;) {
         if (int err = findNextSaveFile(); err) [[unlikely]] {
             alert("Can't open game files in current dir");
-            eraseArchiveMenu(0);
-            return ArchiveMenuAction::ReturnToMainMenu;
+            return returnToMainMenu();
         }
+        worldChanged = true;
 
         FileInfo file = lastSearchResult();
         g_lastKeyPressed = 0;
 
-        IOStatus status = loadSavedGame(file.fileName);
-        if (status != IOStatus::NoError) {
+        if (!loadSavedGame(file.filePath.string().c_str())) [[unlikely]] {
             alert("Load Error");
             continue;
         }
         char buf[80];
         // Date and time format:
         // https://www.stanislavs.org/helppc/file_attributes.html
+        int year = (file.fileDate >> 9) + 80; // year since 1980
+        if (year > 100)
+            year -= 100;
+        const std::string fileName = file.filePath.filename().string();
         std::snprintf(buf, sizeof(buf),
                       "Player: %-18s Date: %02d-%3s-%02d  Time: %02d:%02d  File: %-s",
                       g_playerName,
                       file.fileDate & 0x1F,                           // day
                       g_monthNames[((file.fileDate >> 5) & 0xF) - 1], // month
-                      (file.fileDate >> 9) + 80,                      // year since 1980
-                      (file.fileTime >> 11) & 0x1F,                   // hours
-                      (file.fileTime >> 5) & 0x3F,                    // minutes
-                      file.fileName);
+                      year,
+                      (file.fileTime >> 11) & 0x1F, // hours
+                      (file.fileTime >> 5) & 0x3F,  // minutes
+                      fileName.c_str());
         drawWorld();
 
-        while (!showNextFile) {
+        for (bool showNextFile = false; !showNextFile;) {
             drawDialog(DialogType::Archive, 350);
             graphics::setVideoFrameOrigin(0, 350);
             graphics::copyScreenBufferTo(0);
@@ -100,8 +128,7 @@ inline ArchiveMenuAction showArchiveMenu()
             graphics::setVideoFrameOrigin(0, 0);
             drawWorld();
 
-            bool needRedrawDialog = false;
-            while (!showNextFile && !needRedrawDialog) {
+            for (bool needRedrawDialog = false; !showNextFile && !needRedrawDialog;) {
                 switch (handleDialog(DialogType::Archive)) {
                 case -1:
                     // Timeout
@@ -111,18 +138,35 @@ inline ArchiveMenuAction showArchiveMenu()
                     /* 15e8:0785 */
                     // [V]iew
                     {
+                        const char* hintMessage = Driver::instance().mouse().isTouchDevice()
+                            ? "Touch anywhere on the screen to close the preview"
+                            : "Press any key or click the mouse to close the preview";
+                        showStatusMessage(hintMessage, 350);
+
+                        bool mouseClicked = false;
+                        Driver::instance().mouse().setCursorVisibility(false);
+                        MouseDriver::HandlerHolder mouseHandlerHolder =
+                            Driver::instance().mouse().addHandler(
+                                [&mouseClicked](MouseEvent& me) {
+                                    me.stopPropagation();
+                                    mouseClicked = me.flags() & (ME_LEFTRELEASED | ME_RIGHTRELEASED);
+                                });
+
                         graphics::setVideoFrameOrigin(0, 350);
                         const Dialog& dialog = g_dialogs[static_cast<int>(DialogType::Archive)];
                         std::int16_t itemY = dialog.itemY[0];
                         if (itemY > 350)
                             itemY -= 350;
-                        highlightFirstDlgItemSymbol(dialog.x, itemY);
-                        // wait until the button is released
-                        while (!(g_lastKeyCode & g_keyReleasedFlag)) {
+                        toggleButtonState(dialog.x, itemY);
+
+                        // wait until a keyboard button is pressed or mouse clicked
+                        g_lastKeyPressed = 0;
+                        while (g_lastKeyPressed == 0 && !mouseClicked) {
                             // The original game uses busy-loop here (without sleep)
                             // I'm not so cruel :D
                             vga::waitVerticalRetrace();
                         }
+                        Driver::instance().mouse().setCursorVisibility(true);
                         graphics::setVideoFrameOrigin(0, 0);
                         g_lastKeyPressed = 0;
                     }
@@ -145,7 +189,7 @@ inline ArchiveMenuAction showArchiveMenu()
                     graphics::setVideoFrameOrigin(0, 0);
                     fillGameFieldBackground(350);
                     drawFieldBackground(350);
-                    mouse::g_state.mode = &mouse::g_modeManagement;
+                    mouse::setMode(mouse::g_modeManagement);
                     spawnNewTrain();
                     return ArchiveMenuAction::StartGame;
 
@@ -154,9 +198,15 @@ inline ArchiveMenuAction showArchiveMenu()
                     // [D] Delete
                     drawDialog(DialogType::Confirmation, 0);
                     g_lastKeyPressed = 0;
-                    if (handleDialog(DialogType::Confirmation) == 0) {
+                    if (handleDialog(DialogType::Confirmation, 1) == 0) {
                         // Yes
-                        std::remove(file.fileName);
+                        std::error_code ec;
+                        std::filesystem::remove(file.filePath);
+                        if (ec != std::error_code()) [[unlikely]] {
+                            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                                         "unable to remove the file \"%s\"",
+                                         file.filePath.string().c_str());
+                        }
                         showNextFile = true;
                     } else {
                         // No
@@ -167,24 +217,15 @@ inline ArchiveMenuAction showArchiveMenu()
                 case 4:
                     /* 15e8:085c */
                     // [B]ye
-                    createNewWorld();
-                    drawGameField(350);
-                    setHeaderValues(0, 100, 1800, readLevel(), 350);
-                    drawDialog(DialogType::MainMenu, 350);
-                    graphics::setVideoFrameOrigin(0, 350);
-                    graphics::copyScreenBufferTo(0);
-                    graphics::setVideoFrameOrigin(0, 0);
-                    return ArchiveMenuAction::ReturnToMainMenu;
+                    return returnToMainMenu();
 
-                default:
-                    /* 15e8:08bf */
-                    // wrong choice
-                    playErrorMelody();
+                [[unlikely]] default:
+                    // unreachable
+                    std::abort();
                 }
             }
         }
     }
-    return ArchiveMenuAction::ReturnToMainMenu;
 }
 
 /* 15e8:04c3 */
@@ -197,7 +238,6 @@ void mainMenu()
             /* 15e8:04ea */
             // [M] Manual
             showManual();
-            readBinaryFile("play.7", g_pageBuffer);
             drawGameField(350);
             setHeaderValues(0, 100, 1800, readLevel(), 350);
             drawDialog(DialogType::MainMenu, 350);
@@ -211,8 +251,8 @@ void mainMenu()
             /* 15e8:0575 */
             // No item selected - dialog was closed due to timeout.
             // In this case, run the demo.
-            highlightFirstDlgItemSymbol(g_dialogs[static_cast<int>(DialogType::MainMenu)].x,
-                                        g_dialogs[static_cast<int>(DialogType::MainMenu)].itemY[1]);
+            toggleButtonState(g_dialogs[static_cast<int>(DialogType::MainMenu)].x,
+                              g_dialogs[static_cast<int>(DialogType::MainMenu)].itemY[1]);
             playEntitySwitchedSound(false);
             vga::waitForNRetraces(8);
             [[fallthrough]];
@@ -220,15 +260,16 @@ void mainMenu()
         case 1:
             /* 15e8:0590 */
             // [D]emo
-            if (loadDemo() == IOStatus::NoError) {
+            if (loadDemo()) [[likely]] {
                 g_isDemoMode = true;
                 drawWorld();
+                MenuButton::draw(350);
                 graphics::animateScreenShifting();
                 graphics::copyScreenBufferTo(0);
                 graphics::setVideoFrameOrigin(0, 0);
                 fillGameFieldBackground(350);
                 drawFieldBackground(350);
-                mouse::g_state.mode = &mouse::g_modeManagement;
+                mouse::setMode(mouse::g_modeManagement);
                 return;
             }
             break;
@@ -241,7 +282,7 @@ void mainMenu()
             graphics::setVideoFrameOrigin(0, 350);
             graphics::copyScreenBufferTo(0);
             graphics::setVideoFrameOrigin(0, 0);
-            mouse::g_state.mode = &mouse::g_modeConstruction;
+            mouse::setMode(mouse::g_modeConstruction);
             return;
 
         case 3:
@@ -255,18 +296,25 @@ void mainMenu()
             /* 15e8:08c7 */
             // [R] Records
             showRecordsScreen();
+            CloseButton closeBtn;
+            closeBtn.draw(350);
             graphics::animateScreenShifting();
+            graphics::copyScreenBufferTo(0);
+            graphics::setVideoFrameOrigin(0, 0);
             g_lastKeyPressed = 0;
-            while (g_lastKeyPressed == 0) {
+            while (g_lastKeyPressed == 0 && !closeBtn.clicked()) {
                 // The original game has computation-intense loop here
                 // (without waitVerticalRetrace call).
                 vga::waitVerticalRetrace();
             }
-            const Dialog& mainMenu = g_dialogs[static_cast<int>(DialogType::MainMenu)];
-            std::int16_t itemY = mainMenu.itemY[4];
-            if (itemY > 350)
-                itemY -= 350;
-            highlightFirstDlgItemSymbol(mainMenu.x, itemY);
+            closeBtn.click();
+
+            drawGameField(350);
+            setHeaderValues(0, 100, 1800, readLevel(), 350);
+            drawDialog(DialogType::MainMenu, 350);
+            graphics::animateScreenShifting();
+            graphics::setVideoFrameOrigin(0, 350);
+            graphics::copyScreenBufferTo(0);
             graphics::setVideoFrameOrigin(0, 0);
             break;
         }
@@ -276,9 +324,9 @@ void mainMenu()
             // [B]ye
             exitWithMessage("Bye\n");
 
-        default:
-            playErrorMelody();
-            break;
+        [[unlikely]] default:
+            // unreachable
+            std::abort();
         };
     }
 }
@@ -286,8 +334,13 @@ void mainMenu()
 /* 132d:00b6 */
 void drawMainMenuBackground(std::int16_t yOffset)
 {
-    readBinaryFile("play.7", g_pageBuffer);
-    graphics::imageDot7(0, yOffset, LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT, g_pageBuffer);
+    std::span<std::byte> fileData = readBinaryFile("play.7");
+    if (fileData.empty()) [[unlikely]]
+        std::cerr << "unable to read file 'play.7'" << std::endl;
+    else {
+        graphics::imageDot7(0, yOffset, LOGICAL_SCREEN_WIDTH, LOGICAL_SCREEN_HEIGHT,
+                            reinterpret_cast<std::uint8_t*>(fileData.data()));
+    }
     drawStaticObjects(yOffset);
     drawCopyright(yOffset);
 }

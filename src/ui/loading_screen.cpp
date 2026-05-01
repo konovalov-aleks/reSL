@@ -2,42 +2,80 @@
 
 #include <graphics/drawing.h>
 #include <graphics/vga.h>
-#include <system/buffer.h>
+#include <system/driver/driver.h>
 #include <system/filesystem.h>
 #include <system/keyboard.h>
+#include <system/mouse.h>
 
 #include <cstdint>
+#include <iostream>
 
 namespace resl {
 
-/* 17a7:0150 */
-static void drawLoadingScreenTitle(std::int16_t item)
-{
-    vga::waitForLine(70);
-    graphics::copyRectangle(132, 10, 8, item * 49 + 351, 49, 46);
-    vga::setVideoModeR0W2();
-}
+namespace {
 
-/* 17a7:0120 */
-static void clearLoadingScreenTitle()
-{
-    vga::waitForLine(70);
-    graphics::copyRectangle(132, 10, 0, 600, 49, 46);
-    vga::setVideoModeR0W2();
-}
+    /* 17a7:0150 */
+    void drawLoadingScreenTitle(std::int16_t item)
+    {
+        vga::waitForLine(70);
+        graphics::copyRectangle(132, 10, 8, item * 49 + 351, 49, 46);
+        vga::setVideoModeR0W2();
+    }
+
+    /* 17a7:0120 */
+    void clearLoadingScreenTitle()
+    {
+        vga::waitForLine(70);
+        graphics::copyRectangle(132, 10, 0, 600, 49, 46);
+        vga::setVideoModeR0W2();
+    }
+
+    class LoadingScreenMouseHandler {
+    public:
+        LoadingScreenMouseHandler()
+            : m_clicked(false)
+        {
+            m_handler = Driver::instance().mouse().addHandler(
+                [this](MouseEvent& e) {
+                    if (e.flags()) // any mouse button actions
+                        m_clicked = true;
+                    e.stopPropagation();
+                });
+        }
+
+        bool clicked() const noexcept { return m_clicked; }
+
+    private:
+        MouseDriver::HandlerHolder m_handler;
+        bool m_clicked;
+    };
+
+} // namespace
 
 /* 17a7:0005 */
 void showLoadingScreen()
 {
     g_lastKeyPressed = 0;
 
-    readBinaryFile("poster.7", g_pageBuffer);
-    graphics::imageDot7(0, 0, 640, 350, g_pageBuffer);
+    std::span<std::byte> fileData = readBinaryFile("poster.7");
+    if (fileData.empty()) [[unlikely]]
+        std::cerr << "unable to read file 'poster.7'" << std::endl;
+    else {
+        graphics::imageDot7(0, 0, 640, 350,
+                            reinterpret_cast<std::uint8_t*>(fileData.data()));
+    }
 
-    readBinaryFile("captions.7", g_pageBuffer);
-    graphics::imageDot7(0, 350, 400, 350, g_pageBuffer);
+    fileData = readBinaryFile("captions.7");
+    if (fileData.empty()) [[unlikely]]
+        std::cerr << "unable to read file 'captions.7'" << std::endl;
+    else {
+        graphics::imageDot7(0, 350, 400, 350,
+                            reinterpret_cast<std::uint8_t*>(fileData.data()));
+    }
 
     drawLoadingScreenTitle(0);
+
+    LoadingScreenMouseHandler mouseHandler;
 
     /** BUGFIX **
 
@@ -53,16 +91,19 @@ void showLoadingScreen()
        reSL uses a hardcoded palette => the colors are always correct.
      */
 
-    for (std::int16_t i = 0; i < 5; ++i) {
-        drawLoadingScreenTitle(i % 4);
+    constexpr std::int16_t nItems = 5;
+    constexpr std::int16_t totalAnimationTime = 120;
+
+    for (std::int16_t i = 0; i < nItems + 1; ++i) {
+        drawLoadingScreenTitle(i % nItems);
         for (std::int16_t j = 0; j < 220; ++j) {
-            if (g_lastKeyPressed)
+            if (g_lastKeyPressed || mouseHandler.clicked())
                 return;
             vga::waitVerticalRetrace();
         }
-        if (i != 4) {
+        if (i != nItems) {
             clearLoadingScreenTitle();
-            vga::waitForNRetraces(30);
+            vga::waitForNRetraces(totalAnimationTime / nItems);
         }
     }
     g_lastKeyPressed = 0;

@@ -10,7 +10,7 @@ struct Mode {
     using DrawCursorFn =
         void (*)();
     using UpdateCursorPosFn =
-        void (*)(std::int16_t /* x */, std::int16_t /* y */);
+        bool (*)(std::int16_t /* x */, std::int16_t /* y */);
 
     const std::uint8_t* const glyphs[2];
     const Color colors[2];

@@ -3,6 +3,7 @@
 #include <SDL_audio.h>
 #include <SDL_stdinc.h>
 
+#include <atomic>
 #include <cstdint>
 
 namespace resl {
@@ -22,7 +23,7 @@ private:
     static void fillBuffer(void*, Uint8*, int);
     void fill(float*, int);
 
-    std::uint16_t m_frequency = 0;
+    std::atomic<std::uint16_t> m_frequency = 0;
     SDL_AudioDeviceID m_device = 0;
     float m_phase = 0;
 };

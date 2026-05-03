@@ -55,7 +55,7 @@ void initFS()
 {
 #ifdef __EMSCRIPTEN__
     static_assert(
-        std::tuple(__EMSCRIPTEN_major__, __EMSCRIPTEN_minor__, __EMSCRIPTEN_tiny__) >=
+        std::tuple(__EMSCRIPTEN_MAJOR__, __EMSCRIPTEN_MINOR__, __EMSCRIPTEN_TINY__) >=
             std::tuple(3, 1, 61),
         "emscripten older than 3.1.61 doesn't support autoPersist flag "
         "=> this code will work incorrectly");

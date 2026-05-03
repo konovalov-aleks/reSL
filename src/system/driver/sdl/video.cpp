@@ -324,12 +324,34 @@ std::uint32_t VGAEmulation::argbToPreferred(std::uint32_t argb) const
     std::abort();
 }
 
+// Decompose the bits of a byte into bytes of a 64-bit value.
+//
+// e.g
+// 0b10011010 -> { 0x80 0x00 0x00 0x80 0x80 0x00 0x80 0x00 }
+inline std::uint64_t spreadPlaneByte(std::uint8_t b)
+{
+    // Multiplication by 0x8040201008040201ULL creates shifted copies of b at
+    // bit offsets 0, 9, 18, ..., 63. Masking with 0x8080808080808080ULL keeps
+    // only one selected bit in each output byte:
+    //
+    //   byte0 <- b7, byte1 <- b6, ..., byte7 <- b0
+    //
+    // The selected bit remains in the MSB position of each byte.
+    return (static_cast<std::uint64_t>(b) * 0x8040201008040201ULL) & 0x8080808080808080ULL;
+}
+
 bool VGAEmulation::updatePicture()
 {
     SDL_Rect screenRect = { 0, 0, m_wndWidth, vga::VIDEO_MEM_N_ROWS };
     SDL_IntersectRect(&m_dirtyRect, &screenRect, &m_dirtyRect);
     if (SDL_RectEmpty(&m_dirtyRect))
         return false;
+
+    // we unpack the picture by 8-pixel blocks => expand the dirty rect to block boundaries
+    assert(m_wndWidth % 8 == 0);
+    const int right = m_dirtyRect.x + m_dirtyRect.w;
+    m_dirtyRect.x &= ~7;
+    m_dirtyRect.w = ((right + 7) & ~7) - m_dirtyRect.x;
 
     std::uint32_t* dst = nullptr;
     int pitch = 0;
@@ -343,24 +365,29 @@ bool VGAEmulation::updatePicture()
     assert(pitch % sizeof(std::uint32_t) == 0);
     pitch /= sizeof(std::uint32_t);
 
+    assert(m_dirtyRect.x % 8 == 0);
     std::size_t srcByte =
         m_dirtyRect.y * vga::VIDEO_MEM_ROW_BYTES + m_dirtyRect.x / 8;
+    const int groups = m_dirtyRect.w / 8;
     for (int y = 0; y < m_dirtyRect.h; ++y) {
-        const std::size_t s = srcByte;
-        for (int x = 0; x < m_dirtyRect.w; ++x) {
-            const int bit = (x + m_dirtyRect.x) & 7;
-            assert(srcByte < 0x10000);
-            std::uint8_t color =
-                (((m_vgaState.mem[srcByte][3] << bit) & 0x80) >> 4) |
-                (((m_vgaState.mem[srcByte][2] << bit) & 0x80) >> 5) |
-                (((m_vgaState.mem[srcByte][1] << bit) & 0x80) >> 6) |
-                (((m_vgaState.mem[srcByte][0] << bit) & 0x80) >> 7);
-            dst[x] = m_vgaState.palette[color];
-            if (bit == 7)
-                ++srcByte;
+        for (int g = 0; g < groups; ++g) {
+            // unpack 8 pixels
+            assert(srcByte + g < 0x10000);
+            const std::uint8_t* planes = m_vgaState.mem[srcByte + g];
+            std::uint64_t pixels =
+                spreadPlaneByte(planes[0]) >> 7 |
+                spreadPlaneByte(planes[1]) >> 6 |
+                spreadPlaneByte(planes[2]) >> 5 |
+                spreadPlaneByte(planes[3]) >> 4;
+
+#pragma unroll
+            for (int p = 0; p < 8; ++p) {
+                dst[g * 8 + p] = m_vgaState.palette[pixels & 0xF];
+                pixels >>= 8;
+            }
         }
         dst += pitch;
-        srcByte = s + vga::VIDEO_MEM_ROW_BYTES;
+        srcByte += vga::VIDEO_MEM_ROW_BYTES;
     }
 
     SDL_UnlockTexture(m_screen);
@@ -503,40 +530,10 @@ void VGAEmulation::setWriteOperation(vga::WriteOperation op)
 void VGAEmulation::setPaletteItem(std::uint8_t idx, std::uint32_t argb)
 {
     assert(idx < m_vgaState.palette.size());
-    m_vgaState.palette[idx] = argbToPreferred(argb);
-
-    int x1 = std::numeric_limits<int>::max();
-    int x2 = std::numeric_limits<int>::min();
-    int y1 = std::numeric_limits<int>::max();
-    int y2 = std::numeric_limits<int>::min();
-
-    std::size_t srcByte = 0;
-    for (int y = 0; y < static_cast<int>(vga::VIDEO_MEM_N_ROWS); ++y) {
-        const std::size_t s = srcByte;
-        for (int x = 0; x <= m_wndWidth; x += 8) {
-            for (int bit = 0; bit < 8; ++bit) {
-                std::uint8_t color =
-                    (((m_vgaState.mem[srcByte][3] << bit) & 0x80) >> 4) |
-                    (((m_vgaState.mem[srcByte][2] << bit) & 0x80) >> 5) |
-                    (((m_vgaState.mem[srcByte][1] << bit) & 0x80) >> 6) |
-                    (((m_vgaState.mem[srcByte][0] << bit) & 0x80) >> 7);
-                if (color == idx) {
-                    int xx = x + bit;
-                    x1 = std::min(x1, xx);
-                    x2 = std::max(x2, xx);
-                    y1 = std::min(y1, y);
-                    y2 = std::max(y2, y);
-                }
-            }
-            ++srcByte;
-        }
-        srcByte = s + vga::VIDEO_MEM_ROW_BYTES;
-    }
-
-    if (x2 >= x1) {
-        assert(y2 >= y1);
-        SDL_Rect r = { x1, y1, x2 - x1 + 1, y2 - y1 + 1 };
-        SDL_UnionRect(&m_dirtyRect, &r, &m_dirtyRect);
+    const std::uint32_t newColor = argbToPreferred(argb);
+    if (newColor != m_vgaState.palette[idx]) {
+        m_vgaState.palette[idx] = newColor;
+        m_dirtyRect = { 0, 0, m_wndWidth, vga::VIDEO_MEM_N_ROWS };
     }
 }
 

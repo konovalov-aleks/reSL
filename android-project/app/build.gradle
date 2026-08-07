@@ -2,11 +2,11 @@ apply plugin: 'com.android.application'
 
 android {
     namespace "com.konovalovaleks.resl"
-    compileSdkVersion 34
+    compileSdkVersion 36
     ndkVersion "27.0.12077973"
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 34
+        targetSdkVersion 36
         versionCode Integer.valueOf(System.getenv("VERSION_CODE") ?: 1)
         versionName System.getenv().getOrDefault("VERSION_NAME", "1.1.2")
         externalNativeBuild {

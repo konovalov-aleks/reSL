@@ -9,7 +9,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 36
         versionCode Integer.valueOf(System.getenv("VERSION_CODE") ?: 1)
-        versionName System.getenv().getOrDefault("VERSION_NAME", "1.1.2")
+        versionName System.getenv().getOrDefault("VERSION_NAME", "1.1.3")
         externalNativeBuild {
             cmake {
                 arguments "-DANDROID_APP_PLATFORM=android-19", "-DANDROID_STL=c++_static"

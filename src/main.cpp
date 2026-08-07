@@ -5,6 +5,7 @@
 #include "game/train.h"
 #include "graphics/vga.h"
 #include "system/active_sleep.h"
+#include "system/analytics.h"
 #include "system/filesystem.h"
 #include "system/keyboard.h"
 #include "system/time.h"
@@ -81,6 +82,8 @@ int main(int argc, char* argv[])
     }
     if (argc > 1)
         std::strcpy(g_playerName, argv[1]);
+
+    trackEvent("run_game", "app_name", "reSL");
 
     /*
         The original game performs initialization here:

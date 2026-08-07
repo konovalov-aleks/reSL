@@ -66,6 +66,7 @@ set(sources
     src/graphics/vga.cpp
     src/main.cpp
     src/system/active_sleep.cpp
+    src/system/analytics.cpp
     src/system/driver/sdl/audio.cpp
     src/system/driver/sdl/driver.cpp
     src/system/driver/sdl/mouse.cpp

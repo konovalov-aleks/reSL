@@ -138,7 +138,7 @@ inline PauseMenuAction showPauseMenu()
 
 class GameTouchContextProvider : public TouchContextProvider {
 public:
-    LongTouchAction recognizeTouchAction(int x, int y) const override
+    LongTouchAction recognizeTouchAction(int screenX, int screenY) const override
     {
         if (m_paused)
             return LongTouchAction::None;
@@ -146,8 +146,12 @@ public:
         if (mouse::g_state.mode == &mouse::g_modeConstruction)
             return LongTouchAction::BuildRail;
 
-        return findClosestEntrance(x, y) ? LongTouchAction::CallServer
-                                         : LongTouchAction::None;
+        // touch handler works in physical coordinates,
+        // need to convert to logical to handle the action
+        const int logicalX = screenXToLogical(screenX);
+        const int logicalY = screenYToLogical(screenY);
+        return findClosestEntrance(logicalX, logicalY) ? LongTouchAction::CallServer
+                                                       : LongTouchAction::None;
     }
 
     bool isSwipeAllowed() const override

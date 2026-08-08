@@ -17,6 +17,20 @@ inline static constexpr int LOGICAL_SCREEN_HEIGHT = 350;
 inline static constexpr int PHYSICAL_SCREEN_WIDTH = 640;
 inline static constexpr int PHYSICAL_SCREEN_HEIGHT = 480;
 
+// Convert a coordinate in the SDL logical viewport space (640x480, the space
+// in which SDL mouse/touch events arrive and in which the screen is rendered)
+// into the game logical space (640x350). The vertical component is scaled
+// down because the game content (640x350) is stretched vertically to 480 rows.
+inline constexpr int screenXToLogical(int x) noexcept
+{
+    return x * LOGICAL_SCREEN_WIDTH / PHYSICAL_SCREEN_WIDTH;
+}
+
+inline constexpr int screenYToLogical(int y) noexcept
+{
+    return y * LOGICAL_SCREEN_HEIGHT / PHYSICAL_SCREEN_HEIGHT;
+}
+
 } // namespace resl
 
 namespace resl::vga {

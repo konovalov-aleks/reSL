@@ -5,6 +5,8 @@
 #include <system/driver/driver.h>
 #include <system/keyboard.h>
 
+#include <graphics/vga.h>
+
 #include <SDL.h>
 #include <SDL_error.h>
 #include <SDL_events.h>
@@ -96,9 +98,17 @@ void Driver::pollEvent()
 
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
+            if (!vga().isDebugMode()) {
+                e.button.x = screenXToLogical(e.button.x);
+                e.button.y = screenYToLogical(e.button.y);
+            }
             mouse().onMouseButtonEvent(e.button);
             break;
         case SDL_MOUSEMOTION:
+            if (!vga().isDebugMode()) {
+                e.motion.x = screenXToLogical(e.motion.x);
+                e.motion.y = screenYToLogical(e.motion.y);
+            }
             mouse().onMouseMove(e.motion);
             break;
         case SDL_FINGERMOTION:

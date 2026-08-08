@@ -165,12 +165,12 @@ namespace {
 MouseDriver::MouseDriver(SDL_Renderer* renderer)
     : m_touchHandler(
           renderer,
-          [this](TouchHandler::Action a, int x, int y) {
+          [this](TouchHandler::Action a, int screenX, int screenY) {
               // touch handler works in physical coordinates,
               // need to convert to logical to handle the action
-              x = (x * LOGICAL_SCREEN_WIDTH) / PHYSICAL_SCREEN_WIDTH;
-              y = (y * LOGICAL_SCREEN_HEIGHT) / PHYSICAL_SCREEN_HEIGHT;
-              handleTouchAction(a, x, y);
+              const int logicalX = screenXToLogical(screenX);
+              const int logicalY = screenYToLogical(screenY);
+              handleTouchAction(a, logicalX, logicalY);
           })
     , m_mouseButtonState(mouseButtonState())
     , m_cursorTexture(createTexture(renderer))
